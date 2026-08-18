@@ -1,0 +1,62 @@
+name: PR pre-commit checks
+
+on:
+  pull_request:
+    branches:
+      - staging
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+  push:
+    branches:
+      - staging
+      - main
+
+concurrency:
+  group: pr-pre-commit-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  pre-commit:
+    name: Prettier, ESLint, TypeScript, and build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.27.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Prepare TypeScript environment
+        run: |
+          printf '/// <reference types="next" />\n/// <reference types="next/image-types/global" />\n' > next-env.d.ts
+
+      - name: Prettier (check-format)
+        run: pnpm run check-format
+
+      - name: ESLint (check-lint)
+        run: pnpm run check-lint
+
+      - name: TypeScript (check-types)
+        run: pnpm run check-types
+
+      - name: Build
+        run: pnpm run build

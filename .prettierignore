@@ -1,0 +1,7 @@
+# Ignore artifacts:
+.next/
+public/
+
+# Ignore specific files:
+package-lock.json
+yarn.lock

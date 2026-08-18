@@ -1,0 +1,90 @@
+name: Test Port Extraction
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to simulate"
+        required: true
+        default: "123"
+      test_port:
+        description: "Port to simulate (optional - will generate random if not provided)"
+        required: false
+        default: ""
+
+jobs:
+  test_deployment:
+    runs-on: self-hosted
+    permissions:
+      deployments: write
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Mock Deploy via SSH
+        id: deploy
+        run: |
+          eval $(ssh-agent -s)
+          echo "${{ secrets.TELEX_SERVER_SSH_KEY }}" | ssh-add -
+
+          PORT=$(ssh -o StrictHostKeyChecking=no ${{ secrets.TELEX_SERVER_SSH_USER }}@${{ secrets.TELEX_SERVER_SSH_HOST }} << 'ENDSSH'
+            echo "=== Simulating deployment process ===" >&2
+            echo "Cloning repository..." >&2
+            sleep 1
+            echo "Installing dependencies..." >&2
+            sleep 1
+            echo "Building application..." >&2
+            echo "out: ├ ○ /some-page    4.15 kB    116 kB" >&2
+            echo "out: ├ ○ /other-page   4.16 kB    116 kB" >&2
+            echo "out: └ ƒ /dynamic/[id]  9.59 kB    231 kB" >&2
+            sleep 1
+            
+            # Generate random port
+            PORT=$((40000 + RANDOM % 10000))
+            
+            echo "Starting preview server..." >&2
+            echo "Preview server started on port $PORT" >&2
+            
+            # Only output the port to stdout
+            echo $PORT
+          ENDSSH
+          )
+
+          echo "port=$PORT" >> $GITHUB_OUTPUT
+          echo "✅ Deployment complete on port $PORT"
+
+      - name: Verify port was captured
+        id: verify
+        run: |
+          PORT="${{ steps.deploy.outputs.port }}"
+          if [ -z "$PORT" ]; then
+            echo "❌ ERROR: Port was not captured!"
+            exit 1
+          fi
+          echo "✅ Successfully captured port: $PORT"
+          echo "port=$PORT" >> $GITHUB_OUTPUT
+
+      - name: Determine Deployment Base URL
+        id: base
+        run: |
+          echo "base_url=${{ vars.TELEX_FE_DEPLOY_BASE }}" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Deployment
+        uses: chrnorm/deployment-action@v2
+        id: deployment
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          environment: preview-pr-${{ inputs.pr_number }}
+          ref: ${{ github.ref }}
+          transient-environment: true
+          description: Preview
+
+      - name: Set Deployment Status
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+          state: success
+          environment_url: ${{ steps.base.outputs.base_url }}:${{ steps.verify.outputs.port }}
+          log_url: ${{ steps.base.outputs.base_url }}:${{ steps.verify.outputs.port }}
+          description: Preview URL

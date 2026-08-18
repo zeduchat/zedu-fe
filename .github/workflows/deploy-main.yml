@@ -1,0 +1,57 @@
+name: Deploy Telex Frontend - main
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy_telex_fe_main:
+    runs-on: self-hosted
+    if: github.event.repository.fork == false
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Remove stale node_modules
+        run: rm -rf node_modules
+
+      - name: Install node_modules
+        run: pnpm install
+
+      - name: Build on workflow first
+        run: pnpm build
+
+      - name: Rebuild frontend on deployment server
+        run: |
+          eval $(ssh-agent -s)
+          echo "${{ secrets.TELEX_SERVER_SSH_KEY }}" | ssh-add -
+
+          OUTPUT=$(ssh -o StrictHostKeyChecking=no ${{ secrets.TELEX_SERVER_SSH_USER }}@${{ secrets.TELEX_SERVER_SSH_HOST }} << 'ENDSSH'
+
+            cd /var/www/telex_fe
+            git reset --hard
+            git pull origin main
+            pnpm install
+            pnpm build
+
+          ENDSSH
+          )
+
+      - name: Pull and Restart App
+        run: |
+          eval $(ssh-agent -s)
+          echo "${{ secrets.TELEX_SERVER_SSH_KEY }}" | ssh-add -
+
+          OUTPUT=$(ssh -o StrictHostKeyChecking=no ${{ secrets.TELEX_SERVER_SSH_USER }}@${{ secrets.TELEX_SERVER_SSH_HOST }} << 'ENDSSH'
+
+            cd /var/www/telex_fe
+            supervisorctl restart telexfe
+
+          ENDSSH
+          )

@@ -1,0 +1,152 @@
+import { LucidePhone, Phone, Star, X } from "lucide-react";
+import { useContext } from "react";
+import Image from "next/image";
+import { Button } from "~/components/ui/button";
+import {
+  BellSimpleSlashIcon,
+  ClockIcon,
+  CopyIcon,
+  FilesIcon,
+  HideUserIcon,
+  MailIcon,
+} from "~/svgs";
+import images from "~/assets/images";
+import { DataContext } from "~/store/GlobalState";
+import { ACTIONS } from "~/store/Actions";
+
+import { CopyToClipboardWithTooltip } from "../copy-to-clipboard";
+import ProfileStatus from "./profile-status";
+
+const ProfileSidebar = ({ user }: any) => {
+  const { dispatch } = useContext(DataContext);
+
+  const onClose = () => {
+    dispatch({ type: ACTIONS.USER_DATA });
+    dispatch({ type: ACTIONS.SHOW_PROFILE, payload: false });
+    dispatch({ type: ACTIONS.HOVER_PROFILE, payload: false });
+  };
+
+  //
+  return (
+    <div className="flex flex-col h-full">
+      <nav className="flex items-center justify-between p-5 py-[23px] border-b border-[#E6EAEF]">
+        {/* <h2 className="text-[#1D2939] text-lg font-bold">Profile</h2> */}
+
+        <button
+          onClick={onClose}
+          className="text-[#344054] p-1 border border-input rounded-[0.3125rem]"
+        >
+          <X className="size-5 text-[#344054]" />
+        </button>
+      </nav>
+
+      {/* Profile body */}
+      <div className="py-3 flex flex-col gap-3 flex-1 overflow-hidden">
+        <div className="flex flex-col gap-5 px-5">
+          <div className="">
+            <Image
+              src={
+                user?.avatar_url ||
+                user?.default_avatar_url ||
+                (user?.user_type == "user" || user?.user_type === ""
+                  ? images?.user
+                  : images?.bot)
+              }
+              alt={user?.username ?? "avatar"}
+              width={250}
+              height={250}
+              className="rounded-[9px] border h-[250px] w-[250px] object-cover"
+              quality={100}
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <h2 className="text-[#101828] text-[22px] font-black">
+                  {user?.username || user?.full_name}
+                </h2>
+                {user?.online && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                    <span className="size-1.5 rounded-full bg-green-600" />
+                    Online
+                  </span>
+                )}
+              </div>
+            </div>
+            <p className="text-[#344054] text-lg">{user?.title}</p>
+
+            <ProfileStatus user={user} />
+
+            <div className="flex gap-[10px] items-center">
+              <BellSimpleSlashIcon color="#475467" />
+              <p className="text-[15px] text-[#344054]">
+                {user?.online ? "Online" : "Away"}, Notifications snoozed
+              </p>
+            </div>
+            {user?.timezone && (
+              <div className="flex gap-[10px] items-center">
+                <ClockIcon />
+                <p className="text-[15px] text-[#344054]">{user?.timezone}</p>
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-3 items-center">
+            <Button
+              variant={"outline"}
+              className="h-fit p-[7px] border-[#E6EAEF]"
+            >
+              <Star size={20} strokeWidth={1.5} color="#667085" />
+            </Button>
+
+            <Button
+              variant={"outline"}
+              className="h-fit py-[7px] px-[10px] border-[#E6EAEF] font-semibold text-[13px] text-[#344054] gap-1"
+            >
+              <BellSimpleSlashIcon /> Mute
+            </Button>
+          </div>
+        </div>
+
+        <div className="border-t border-[#E6EAEF]" />
+        <div className="flex flex-col gap-2 px-5">
+          <h4 className="text-[15px] text-[#101828] font-bold">
+            Contact Information
+          </h4>
+
+          {user?.phone && (
+            <div className="flex justify-between items-center gap-2">
+              <div className="flex gap-[10px] items-center">
+                <Phone size={20} color="#475467" />
+                <span className="text-sm text-[#6868F7]">{user?.phone}</span>
+                <span className="text-sm text-[#667085]">whatsapp only</span>
+              </div>
+              <CopyToClipboardWithTooltip textToCopy={user?.phone}>
+                <CopyIcon />
+              </CopyToClipboardWithTooltip>
+            </div>
+          )}
+
+          {user?.email && (
+            <div className="flex justify-between items-center gap-2">
+              <div className="flex gap-[10px] items-center">
+                <MailIcon />
+                <span className="text-sm text-[#6868F7]">{user?.email}</span>
+              </div>
+
+              <CopyToClipboardWithTooltip
+                textToCopy={user?.email}
+                tooltipText="Copied!"
+              >
+                <CopyIcon />
+              </CopyToClipboardWithTooltip>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProfileSidebar;

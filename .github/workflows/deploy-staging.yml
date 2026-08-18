@@ -1,0 +1,56 @@
+name: Deploy Telex Frontend - staging
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - staging
+
+jobs:
+  deploy_telex_fe_staging:
+    runs-on: ubuntu-latest
+    if: github.event.repository.fork == false
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install node_modules
+        run: pnpm install
+
+      - name: Build on workflow first
+        run: pnpm build
+
+      - name: Rebuild frontend on deployment server
+        run: |
+          eval $(ssh-agent -s)
+          echo "${{ secrets.TELEX_SERVER_SSH_KEY }}" | ssh-add -
+
+          ssh -o StrictHostKeyChecking=no ${{ secrets.TELEX_SERVER_SSH_USER }}@${{ secrets.TELEX_SERVER_SSH_HOST }} << 'ENDSSH'
+            cd /var/www/telex_fe_staging
+            git reset --hard
+            git pull origin staging
+            pnpm install
+            pnpm build
+          ENDSSH
+
+      - name: Pull and Restart App
+        run: |
+          eval $(ssh-agent -s)
+          echo "${{ secrets.TELEX_SERVER_SSH_KEY }}" | ssh-add -
+
+          ssh -o StrictHostKeyChecking=no ${{ secrets.TELEX_SERVER_SSH_USER }}@${{ secrets.TELEX_SERVER_SSH_HOST }} << 'ENDSSH'
+            cd /var/www/telex_fe_staging
+            supervisorctl restart telexfe_staging
+          ENDSSH

@@ -1,0 +1,307 @@
+"use client";
+
+import { useContext, useEffect, useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
+import { SearchCards } from "~/components/search/search-cards";
+import { SearchCardsSkeleton } from "~/components/search/search-cards-skeleton";
+import { SearchFilters } from "~/components/search/SearchFilters";
+import { DataContext } from "~/store/GlobalState";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+} from "~/components/ui/pagination";
+import { cn } from "~/lib/utils";
+import { searchMessages, searchUsers } from "~/lib/search/api";
+import { buildMessageSearchQuery } from "~/lib/search/query";
+import type { MessageSearchResult, UserSearchResult } from "~/lib/search/types";
+
+import { showError } from "~/components/toast/sonner";
+
+type CombinedResult = MessageSearchResult | UserSearchResult;
+
+const SearchPaginationPrevious = ({
+  className,
+  disabled,
+  ...props
+}: React.ComponentProps<typeof PaginationLink> & { disabled?: boolean }) => (
+  <PaginationLink
+    aria-label="Go to previous page"
+    size="icon"
+    className={cn(
+      "h-8 w-8",
+      disabled && "pointer-events-none opacity-50",
+      className
+    )}
+    {...props}
+  >
+    <ChevronLeft className="h-4 w-4 cursor-pointer hover:bg-primary-50" />
+  </PaginationLink>
+);
+
+const SearchPaginationNext = ({
+  className,
+  disabled,
+  ...props
+}: React.ComponentProps<typeof PaginationLink> & { disabled?: boolean }) => (
+  <PaginationLink
+    aria-label="Go to next page"
+    size="icon"
+    className={cn(
+      "h-8 w-8",
+      disabled && "pointer-events-none opacity-50",
+      className
+    )}
+    {...props}
+  >
+    <ChevronRight className="h-4 w-4 cursor-pointer hover:bg-primary-50" />
+  </PaginationLink>
+);
+
+const SearchPaginationLink = ({
+  className,
+  isActive,
+  ...props
+}: React.ComponentProps<typeof PaginationLink> & { isActive?: boolean }) => (
+  <PaginationLink
+    size="icon"
+    className={cn(
+      "h-8 w-8 cursor-pointer",
+      isActive
+        ? "bg-[#5F5FE1] text-white hover:bg-primary-300 hover:text-white"
+        : "text-gray-700 hover:bg-gray-100",
+      className
+    )}
+    isActive={isActive}
+    {...props}
+  />
+);
+
+export default function Search() {
+  const searchParams = useSearchParams();
+  const baseQuery = searchParams.get("query");
+  const [results, setResults] = useState<CombinedResult[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [filters, setFilters] = useState({
+    type: "messages" as "messages" | "people" | undefined,
+    from: undefined as string | undefined,
+    channel: undefined as string | undefined,
+    date: undefined as { type: string; value: string } | undefined,
+    sortBy: "relevance" as "relevance" | "newest" | "oldest" | string,
+  });
+
+  const { state } = useContext(DataContext);
+  const { orgData, channels, orgMembers } = state;
+  const [currentPage, setCurrentPage] = useState(1);
+  const cardsPerPage = 8;
+  const lastCardIndex = currentPage * cardsPerPage;
+  const firstCardIndex = lastCardIndex - cardsPerPage;
+  const currentCards = results.slice(firstCardIndex, lastCardIndex);
+  const totalPages = Math.ceil(results.length / cardsPerPage);
+
+  const filterUsers = (orgMembers || []).map((member: any) => ({
+    id: member.id || member.user_id || member.email || member.username || "",
+    name: member.name || member.username || member.email || "",
+    avatar_url: member.avatar_url || member.profile_url,
+  }));
+
+  const fetchAllResults = useCallback(async () => {
+    if (!baseQuery?.trim() || !orgData?.id) {
+      setResults([]);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const searchType = filters.type || "messages";
+
+      if (searchType === "messages") {
+        const messages = await searchMessages(orgData.id, baseQuery, {
+          from: filters.from,
+          channel: filters.channel,
+          date: filters.date,
+          sortBy: filters.sortBy,
+        });
+        setResults(messages);
+      } else {
+        const userResults = await searchUsers(orgData.id, baseQuery);
+        setResults(userResults);
+      }
+    } catch (error) {
+      console.error("Search failed:", error);
+      showError("An error occurred while searching");
+      setResults([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    baseQuery,
+    orgData?.id,
+    filters.type,
+    filters.from,
+    filters.channel,
+    filters.date,
+    filters.sortBy,
+  ]);
+
+  useEffect(() => {
+    if (baseQuery && orgData?.id) {
+      setCurrentPage(1);
+      void fetchAllResults();
+    }
+  }, [baseQuery, orgData?.id, fetchAllResults]);
+
+  const handleFilterChange = (newFilters: {
+    type?: "messages" | "people";
+    from?: string;
+    channel?: string;
+    date?: { type: string; value: string };
+    sortBy: "relevance" | "newest" | "oldest" | string;
+  }) => {
+    setResults([]);
+    setFilters({
+      type: newFilters.type || "messages",
+      from: newFilters.from,
+      channel: newFilters.channel,
+      date: newFilters.date,
+      sortBy: newFilters.sortBy,
+    });
+    setCurrentPage(1);
+  };
+
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    const maxVisible = 5;
+
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else if (currentPage <= 3) {
+      for (let i = 1; i <= 4; i++) pages.push(i);
+      pages.push("ellipsis");
+      pages.push(totalPages);
+    } else if (currentPage >= totalPages - 2) {
+      pages.push(1);
+      pages.push("ellipsis");
+      for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      pages.push("ellipsis");
+      for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+      pages.push("ellipsis");
+      pages.push(totalPages);
+    }
+
+    return pages;
+  };
+
+  if (!baseQuery) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen">
+        <p className="text-sm text-gray-500">
+          Enter a search query to get started
+        </p>
+      </div>
+    );
+  }
+
+  const resolvedQuery = buildMessageSearchQuery(baseQuery, filters);
+
+  return (
+    <div className="p-6 min-h-screen bg-white">
+      <div className="max-w-5xl mx-auto">
+        <h1 className="text-xl font-semibold text-gray-900 mb-6">
+          Results for: &quot;{baseQuery}&quot;
+        </h1>
+        {resolvedQuery !== baseQuery.trim() && filters.type !== "people" && (
+          <p className="text-sm text-gray-500 mb-4">
+            Filtered query: <span className="font-mono">{resolvedQuery}</span>
+          </p>
+        )}
+
+        <SearchFilters
+          onFilterChange={handleFilterChange}
+          channels={channels || []}
+          users={filterUsers}
+        />
+
+        {loading && (
+          <div className="py-10">
+            <SearchCardsSkeleton />
+          </div>
+        )}
+
+        {!loading && results.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <p className="text-[28px] text-neutral-900 font-semibold">
+              Couldn&apos;t find anything
+            </p>
+            <p className="text-lg text-neutral-600 text-center font-normal mt-2">
+              You may want to try adjusting your filters or searching
+              <span className="block">with a different keyword.</span>
+            </p>
+          </div>
+        ) : null}
+
+        {!loading && results.length > 0 && (
+          <>
+            <div className="mb-4">
+              <p className="text-sm text-gray-600">
+                {results.length} result{results.length !== 1 ? "s" : ""}
+              </p>
+            </div>
+            <SearchCards cardData={currentCards} />
+
+            {totalPages > 1 && (
+              <div className="mt-8 flex justify-center">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <SearchPaginationPrevious
+                        onClick={() =>
+                          setCurrentPage((prev) => Math.max(prev - 1, 1))
+                        }
+                        disabled={currentPage === 1}
+                      />
+                    </PaginationItem>
+
+                    {getPageNumbers().map((page, index) => (
+                      <PaginationItem key={index}>
+                        {page === "ellipsis" ? (
+                          <PaginationEllipsis />
+                        ) : (
+                          <SearchPaginationLink
+                            onClick={() => setCurrentPage(page as number)}
+                            isActive={currentPage === page}
+                          >
+                            {page}
+                          </SearchPaginationLink>
+                        )}
+                      </PaginationItem>
+                    ))}
+
+                    <PaginationItem>
+                      <SearchPaginationNext
+                        onClick={() =>
+                          setCurrentPage((prev) =>
+                            Math.min(prev + 1, totalPages)
+                          )
+                        }
+                        disabled={currentPage === totalPages}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

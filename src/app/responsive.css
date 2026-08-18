@@ -1,0 +1,15 @@
+.message-box {
+  @media (max-width: 490px) {
+    margin-right: 400px !important;
+  }
+}
+
+.reply-thread {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+}
+
+.channel-thread {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}

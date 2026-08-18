@@ -1,0 +1,9 @@
+# If everything passes... Now we can commit
+echo "🤔🤔🤔🤔... Let's see how good you are at following rules...I am committing this now. 🤔🤔🤔🤔"
+
+npx --no -- commitlint --edit "$1" || (
+    echo '🤡😂❌🤡... Haha...Learn to make commit the right way!. 😤🏀👋😤'
+    false
+)
+
+echo '🚀🚀🚀🚀 You rock buddy... You are a Pro! ✅✅✅✅'

@@ -1,0 +1,13 @@
+node_modules/
+.next/
+out/
+build/
+coverage/
+public/
+*.min.js
+pnpm-lock.yaml
+
+# Reviewed: HTML message rendering and DiceBear-generated SVG avatars
+# Use ** globs — literal [org] in paths is parsed as a character class by gitignore syntax
+**/ChannelMessage/formatMessage.tsx
+**/colleagues/avatars.tsx
