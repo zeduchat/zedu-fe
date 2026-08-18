@@ -8,7 +8,6 @@ import React, {
   useContext,
 } from "react";
 import Editor, { OnMount } from "@monaco-editor/react";
-import { exampleJson } from "~/data/workflow-example";
 import { PostRequest, PutRequest } from "~/utils/new-request";
 import { useParams } from "next/navigation";
 import Loading from "~/components/ui/loading";
@@ -253,8 +252,8 @@ export default function JSONEditor({ filename = "sample.json" }: Props) {
   };
 
   const insertExample = () => {
-    setValue(exampleJson);
-    safeSetModelText(exampleJson);
+    setValue("");
+    safeSetModelText("");
   };
 
   //
