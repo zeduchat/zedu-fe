@@ -14,13 +14,13 @@ import { getInitials } from "~/utils/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { RequirePermission } from "~/components/rbac/RequirePermission";
+import { appStoreUrl, playStoreUrl } from "~/lib/env-urls";
 interface Props {
   name?: string;
 }
 
-const APP_STORE_URL = "https://apps.apple.com/ng/app/zedu-app/id6759181591";
-const PLAY_STORE_URL =
-  "https://play.google.com/store/apps/details?id=net.emerj.zedu&pcampaignid=web_share";
+const APP_STORE_URL = appStoreUrl();
+const PLAY_STORE_URL = playStoreUrl();
 
 export default function OrganisationMenu({ name }: Props) {
   const { state, dispatch } = useContext(DataContext);

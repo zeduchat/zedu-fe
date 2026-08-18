@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ogImageUrl, siteUrl } from "~/lib/env-urls";
 import Image from "next/image";
 import { Star } from "lucide-react";
 import { ArrowBtn, OutlineBtn } from "~/app/(homepage)/_components/ui/Button";
@@ -28,11 +29,11 @@ export const metadata: Metadata = {
     title: "Zedu for Schools - Structured Communication for Classrooms",
     description:
       "Bring teachers, students, and school staff into one organized workspace for announcements, assignments, and focused classroom discussions.",
-    url: "https://zedu.chat/solutions/schools",
+    url: siteUrl("/solutions/schools"),
     siteName: "Zedu",
     images: [
       {
-        url: "https://media.zedu.chat/telexprodbucket/public/og-images/og-image-5.png",
+        url: ogImageUrl("og-image-5.png"),
         width: 1200,
         height: 630,
         alt: "Zedu schools solution page preview",
@@ -46,12 +47,10 @@ export const metadata: Metadata = {
     title: "Zedu for Schools - Structured Classroom Communication",
     description:
       "Create organized school communication where class discussions, updates, and assignments stay easy to follow for everyone.",
-    images: [
-      "https://media.zedu.chat/telexprodbucket/public/og-images/og-image-5.png",
-    ],
+    images: [ogImageUrl("og-image-5.png")],
   },
   alternates: {
-    canonical: "https://zedu.chat/solutions/schools",
+    canonical: siteUrl("/solutions/schools"),
   },
   robots: {
     index: true,

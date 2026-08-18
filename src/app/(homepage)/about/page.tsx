@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { ogImageUrl, siteUrl } from "~/lib/env-urls";
 import Image from "next/image";
 import { ArrowBtn, OutlineBtn } from "../_components/ui/Button";
 import { WhyCard } from "../_components/ui/WhyCard";
@@ -27,11 +28,11 @@ export const metadata: Metadata = {
     title: "About Zedu - Structured Learning Communication Built for Education",
     description:
       "See Zedu's mission, product philosophy, and approach to building secure, organized, and AI-assisted communication for modern learning teams.",
-    url: "https://zedu.chat/about",
+    url: siteUrl("/about"),
     siteName: "Zedu",
     images: [
       {
-        url: "https://media.zedu.chat/telexprodbucket/public/og-images/og-image-5.png",
+        url: ogImageUrl("og-image-5.png"),
         width: 1200,
         height: 630,
         alt: "About Zedu and its education-first platform philosophy",
@@ -44,12 +45,10 @@ export const metadata: Metadata = {
     title: "About Zedu - Built for Structured Learning",
     description:
       "Discover how Zedu helps educators and learners communicate clearly with structured channels, AI assistance, and secure collaboration.",
-    images: [
-      "https://media.zedu.chat/telexprodbucket/public/og-images/og-image-5.png",
-    ],
+    images: [ogImageUrl("og-image-5.png")],
   },
   alternates: {
-    canonical: "https://zedu.chat/about",
+    canonical: siteUrl("/about"),
   },
   robots: {
     index: true,

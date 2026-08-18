@@ -1,3 +1,5 @@
+import { officeEmbedUrl } from "~/lib/env-urls";
+
 export type DocumentCategory =
   | "pdf"
   | "document"
@@ -68,7 +70,7 @@ export const isPreviewableDocument = (category: DocumentCategory): boolean =>
   category !== "file";
 
 export const getOfficeEmbedUrl = (fileUrl: string): string =>
-  `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`;
+  officeEmbedUrl(fileUrl);
 
 export const getPdfEmbedUrl = (fileUrl: string, page = 1): string =>
   `${fileUrl}#page=${page}&view=FitH&toolbar=0&navpanes=0`;

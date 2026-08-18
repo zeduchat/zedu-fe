@@ -4,10 +4,10 @@ import Image from "next/image";
 import { ArrowBtn, DownloadAppBtn } from "../_components/ui/Button";
 import FeatureCard from "../_components/FeatureCard";
 import { DynamicFooter } from "../_components/footer/dynamic-footer";
+import { appStoreUrl, playStoreUrl } from "~/lib/env-urls";
 
-const APP_STORE_URL = "https://apps.apple.com/ng/app/zedu-app/id6759181591";
-const PLAY_STORE_URL =
-  "https://play.google.com/store/apps/details?id=net.emerj.zedu&pcampaignid=web_share";
+const APP_STORE_URL = appStoreUrl();
+const PLAY_STORE_URL = playStoreUrl();
 
 export const metadata: Metadata = {
   title: "Download Zedu App | Mobile and Desktop Learning Workspace",

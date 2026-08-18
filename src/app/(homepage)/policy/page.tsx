@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import SectionWrapper from "./component/SectionWrapper";
+import { siteUrl } from "~/lib/env-urls";
 
 // Set document title for client component
 const useDocumentTitle = (title: string) => {
@@ -148,7 +149,7 @@ function Policy() {
             visit our website
             <span className="p-1">
               <Link
-                href="http://www.zedu.chat"
+                href={siteUrl()}
                 target="_blank"
                 rel=""
                 className="text-blue-500"

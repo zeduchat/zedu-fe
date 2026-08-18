@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import React from "react";
+import { ogImageUrl, siteUrl } from "~/lib/env-urls";
 import { Toaster } from "~/components/ui/toaster";
 import { DataProvider } from "~/store/GlobalState";
 import Footer from "./_components/footer";
 import Header from "./_components/header";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://zedu.chat"),
+  metadataBase: process.env.NEXT_PUBLIC_CLIENT_URL
+    ? new URL(siteUrl())
+    : undefined,
   title: {
     default: "Zedu - Learning Platform for Bootcamps, Schools, and Cohorts",
     template: "%s | Zedu",
@@ -34,7 +37,7 @@ export const metadata: Metadata = {
     siteName: "Zedu",
     images: [
       {
-        url: "https://media.zedu.chat/telexprodbucket/public/og-images/og-image-5.png",
+        url: ogImageUrl("og-image-5.png"),
         width: 1200,
         height: 630,
         alt: "Zedu learning platform for educators and cohorts",
@@ -47,9 +50,7 @@ export const metadata: Metadata = {
     title: "Zedu - Learning Platform for Bootcamps, Schools, and Cohorts",
     description:
       "Run modern learning programs with one AI-powered workspace for communication, collaboration, pricing flexibility, and cohort success.",
-    images: [
-      "https://media.zedu.chat/telexprodbucket/public/og-images/og-image-5.png",
-    ],
+    images: [ogImageUrl("og-image-5.png")],
   },
   alternates: {
     canonical: "/",

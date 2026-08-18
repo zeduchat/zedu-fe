@@ -127,7 +127,7 @@ export const monthlyPricingData = [
     title: "Basic",
     amount: "15",
     period: "month",
-    // url: "https://buy.stripe.com/9AQ8Av3RK1TSbuwdRn",
+    // stripe checkout url lives in env when billing links are re-enabled
     url: "/dashboard/settings/billing",
     features: [
       { text: "Access to 10 channels only", enabled: true },
@@ -143,7 +143,7 @@ export const monthlyPricingData = [
     title: "Business",
     amount: "25",
     period: "month",
-    // url: "https://buy.stripe.com/bIY5oj3RK0PO0PScNk",
+    // stripe checkout url lives in env when billing links are re-enabled
     url: "/dashboard/settings/billing",
     features: [
       { text: "Access to 20 channels only", enabled: true },

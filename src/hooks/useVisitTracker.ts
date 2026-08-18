@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { PageVisitsWebhook } from "~/utils/webhook-request";
+import { ipifyUrl } from "~/lib/env-urls";
 
 const TWO_HOURS = 2 * 60 * 60 * 1000;
 
@@ -42,7 +43,7 @@ export const useVisitTracker = () => {
         const status = "success";
 
         // Collect extended metadata
-        const ip = await fetch("https://api.ipify.org?format=json")
+        const ip = await fetch(ipifyUrl())
           .then((res) => res.json())
           .then((data) => data.ip)
           .catch(() => "unknown");

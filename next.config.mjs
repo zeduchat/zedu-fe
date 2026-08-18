@@ -2,18 +2,28 @@
 
 const isDev = process.env.NODE_ENV === "development";
 
+function hostnameFromEnv(name) {
+  const value = process.env[name];
+  if (!value) return null;
+  try {
+    return new URL(value).hostname;
+  } catch {
+    return null;
+  }
+}
+
 const imageHostnames = [
   "images.unsplash.com",
   "images.stockcake.com",
   "s3-alpha-sig.figma.com",
-  "media.staging.zedu.chat",
-  "media.zedu.chat",
+  hostnameFromEnv("NEXT_PUBLIC_MEDIA_STAGING_URL"),
+  hostnameFromEnv("NEXT_PUBLIC_MEDIA_URL"),
   "lh3.googleusercontent.com",
   "media.tifi.tv",
   "is1-ssl.mzstatic.com",
   "res.cloudinary.com",
   "i.imgur.com",
-];
+].filter(Boolean);
 
 const nextConfig = {
   reactStrictMode: false,

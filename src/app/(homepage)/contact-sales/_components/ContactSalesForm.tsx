@@ -9,6 +9,7 @@ import { Label } from "~/components/ui/label";
 import { Textarea } from "~/components/ui/textarea";
 import { useToast } from "~/components/ui/use-toast";
 import { cn } from "~/lib/utils";
+import { contactSalesUrl } from "~/lib/env-urls";
 
 const contactSalesSchema = z.object({
   name: z
@@ -118,16 +119,13 @@ export const ContactSalesForm = () => {
     };
 
     try {
-      const response = await fetch(
-        "https://api.staging.zedu.chat/api/v1/contact",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(contactData),
-        }
-      );
+      const response = await fetch(contactSalesUrl(), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(contactData),
+      });
 
       if (!response.ok) {
         throw new Error("Failed to send message");

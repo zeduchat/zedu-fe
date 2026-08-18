@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { ogImageUrl, siteUrl } from "~/lib/env-urls";
 import { ContactSalesBenefits } from "./_components/ContactSalesBenefits";
 import { ContactSalesForm } from "./_components/ContactSalesForm";
 
@@ -23,11 +24,11 @@ export const metadata: Metadata = {
     title: "Contact Sales - Zedu for Schools and Cohorts",
     description:
       "Talk to Zedu sales about tailored plans, onboarding, and AI-powered collaboration for modern learning teams.",
-    url: "https://zedu.chat/contact-sales",
+    url: siteUrl("/contact-sales"),
     siteName: "Zedu",
     images: [
       {
-        url: "https://media.zedu.chat/telexprodbucket/public/og-images/og-image-5.png",
+        url: ogImageUrl("og-image-5.png"),
         width: 1200,
         height: 630,
         alt: "Contact Zedu sales for education platform plans",
@@ -40,12 +41,10 @@ export const metadata: Metadata = {
     title: "Contact Sales - Zedu",
     description:
       "Get tailored plans and onboarding from Zedu sales for your school, bootcamp, or cohort-based learning organization.",
-    images: [
-      "https://media.zedu.chat/telexprodbucket/public/og-images/og-image-5.png",
-    ],
+    images: [ogImageUrl("og-image-5.png")],
   },
   alternates: {
-    canonical: "https://zedu.chat/contact-sales",
+    canonical: siteUrl("/contact-sales"),
   },
   robots: {
     index: true,

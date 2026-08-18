@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ogImageUrl, siteUrl } from "~/lib/env-urls";
 import Image from "next/image";
 import { Star, Settings, Shield, Lock } from "lucide-react";
 import { ArrowBtn, OutlineBtn } from "~/app/(homepage)/_components/ui/Button";
@@ -28,11 +29,11 @@ export const metadata: Metadata = {
     title: "Zedu for Universities - Structured Communication at Scale",
     description:
       "Unify academic communication across faculties and courses with dedicated channels, collaborative learning spaces, and AI-powered assistance.",
-    url: "https://zedu.chat/solutions/universities",
+    url: siteUrl("/solutions/universities"),
     siteName: "Zedu",
     images: [
       {
-        url: "https://media.zedu.chat/telexprodbucket/public/og-images/og-image-5.png",
+        url: ogImageUrl("og-image-5.png"),
         width: 1200,
         height: 630,
         alt: "Zedu universities solution page preview",
@@ -46,12 +47,10 @@ export const metadata: Metadata = {
     title: "Zedu for Universities - Academic Collaboration Platform",
     description:
       "Help departments and students communicate clearly, coordinate courses faster, and keep academic discussions organized in one workspace.",
-    images: [
-      "https://media.zedu.chat/telexprodbucket/public/og-images/og-image-5.png",
-    ],
+    images: [ogImageUrl("og-image-5.png")],
   },
   alternates: {
-    canonical: "https://zedu.chat/solutions/universities",
+    canonical: siteUrl("/solutions/universities"),
   },
   robots: {
     index: true,

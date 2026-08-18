@@ -7,6 +7,7 @@ import "react-loading-skeleton/dist/skeleton.css";
 import { DataProvider } from "~/store/GlobalState";
 import Script from "next/script";
 import ClientLayout from "./client-layout";
+import { gtmScriptUrl } from "~/lib/env-urls";
 
 export const metadata: Metadata = {
   title: "Zedu",
@@ -31,7 +32,7 @@ export default function RootLayout({
       <head>
         <Script
           async
-          src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
+          src={`${gtmScriptUrl()}?id=${process.env.NEXT_PUBLIC_GA_ID}`}
         />
         <Script
           id="google-analytics"

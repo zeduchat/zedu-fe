@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { ogImageUrl, siteUrl } from "~/lib/env-urls";
 import Image from "next/image";
 import { ArrowBtn, OutlineBtn } from "../../_components/ui/Button";
 import { BuzzPageHeroSVG } from "../../_components/svgs";
@@ -28,11 +29,11 @@ export const metadata: Metadata = {
     title: "Zedu Buzz - Instant Voice Conversations for Learning Teams",
     description:
       "Launch live voice discussions directly in channels and keep every session useful with AI-powered recap summaries.",
-    url: "https://zedu.chat/products/buzz",
+    url: siteUrl("/products/buzz"),
     siteName: "Zedu",
     images: [
       {
-        url: "https://media.zedu.chat/telexprodbucket/public/og-images/og-image-5.png",
+        url: ogImageUrl("og-image-5.png"),
         width: 1200,
         height: 630,
         alt: "Zedu Buzz live voice collaboration for education",
@@ -45,12 +46,10 @@ export const metadata: Metadata = {
     title: "Zedu Buzz - Real-Time Voice Collaboration",
     description:
       "Start instant voice sessions in your learning channels and keep everyone aligned with AI-generated summaries.",
-    images: [
-      "https://media.zedu.chat/telexprodbucket/public/og-images/og-image-5.png",
-    ],
+    images: [ogImageUrl("og-image-5.png")],
   },
   alternates: {
-    canonical: "https://zedu.chat/products/buzz",
+    canonical: siteUrl("/products/buzz"),
   },
   robots: {
     index: true,

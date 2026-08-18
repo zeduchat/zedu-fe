@@ -5,6 +5,14 @@ import Link from "next/link";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { PostRequest } from "~/utils/request";
 import { useToast } from "~/components/ui/use-toast";
+import {
+  appStoreUrl,
+  facebookUrl,
+  instagramUrl,
+  playStoreUrl,
+  tiktokUrl,
+  xUrl,
+} from "~/lib/env-urls";
 import { Loader2, Star } from "lucide-react";
 import { ZeduRoundedWhiteLogo, ZeduWhiteLogo } from "../svgs";
 
@@ -79,25 +87,25 @@ const footerSections = [
 const socialLinks = [
   {
     id: 0,
-    href: "https://www.instagram.com/telex.im/",
+    href: instagramUrl(),
     icon: "/instagram-fill.svg",
     alt: "instagram icon",
   },
   {
     id: 1,
-    href: "https://www.tiktok.com/@telexim",
+    href: tiktokUrl(),
     icon: "/tiktok-fill.svg",
     alt: "tiktok icon",
   },
   {
     id: 2,
-    href: "https://www.facebook.com/profile.php?id=61578751079130",
+    href: facebookUrl(),
     icon: "/facebook-fill.svg",
     alt: "facebook icon",
   },
   {
     id: 3,
-    href: "https://x.com/teleximapp",
+    href: xUrl(),
     icon: "/images/twitter-white.svg",
     alt: "twitter icon",
   },
@@ -106,7 +114,7 @@ const socialLinks = [
 const appStoreLinks = [
   {
     id: 0,
-    href: "https://apps.apple.com/ng/app/zedu-app/id6759181591",
+    href: appStoreUrl(),
     icon: "/images/app-download/app-store-badge-2.png",
     label: "App store",
     rating: "4.9",
@@ -114,7 +122,7 @@ const appStoreLinks = [
   },
   {
     id: 1,
-    href: "https://play.google.com/store/apps/details?id=net.emerj.zedu&pcampaignid=web_share",
+    href: playStoreUrl(),
     icon: "/images/app-download/google-play-badge-2.png",
     label: "Play store",
     rating: "4.7",

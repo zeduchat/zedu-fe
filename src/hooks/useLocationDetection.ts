@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Country, countries } from "../components/pricing/CountrySelector";
+import { ipapiUrl } from "~/lib/env-urls";
 
 interface LocationData {
   country: string;
@@ -19,7 +20,7 @@ export const useLocationDetection = () => {
         setIsLoading(true);
 
         // Try to get location from IP geolocation service
-        const response = await fetch("https://ipapi.co/json/");
+        const response = await fetch(ipapiUrl());
 
         if (!response.ok) {
           throw new Error("Failed to fetch location data");

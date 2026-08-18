@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { ogImageUrl, siteUrl } from "~/lib/env-urls";
 import Image from "next/image";
 import { ArrowBtn, OutlineBtn } from "../../_components/ui/Button";
 import {
@@ -32,11 +33,11 @@ export const metadata: Metadata = {
     title: "Zedu Channels - Organized Communication for Learning Teams",
     description:
       "Keep learning conversations structured with channels built for schools, universities, and cohort-based programs.",
-    url: "https://zedu.chat/products/channels",
+    url: siteUrl("/products/channels"),
     siteName: "Zedu",
     images: [
       {
-        url: "https://media.zedu.chat/telexprodbucket/public/og-images/og-image-5.png",
+        url: ogImageUrl("og-image-5.png"),
         width: 1200,
         height: 630,
         alt: "Zedu channels for organized learning communication",
@@ -49,12 +50,10 @@ export const metadata: Metadata = {
     title: "Zedu Channels - Structured Class Communication",
     description:
       "Create focused discussions, announcements, and threaded conversations with channels designed for modern education teams.",
-    images: [
-      "https://media.zedu.chat/telexprodbucket/public/og-images/og-image-5.png",
-    ],
+    images: [ogImageUrl("og-image-5.png")],
   },
   alternates: {
-    canonical: "https://zedu.chat/products/channels",
+    canonical: siteUrl("/products/channels"),
   },
   robots: {
     index: true,

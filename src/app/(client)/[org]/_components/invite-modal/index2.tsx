@@ -10,6 +10,7 @@ import { Button } from "~/components/ui/button";
 import Image from "next/image";
 import { DataContext } from "~/store/GlobalState";
 import { ACTIONS } from "~/store/Actions";
+import { uiAvatarUrl } from "~/lib/env-urls";
 
 interface Invitee {
   id: string;
@@ -21,19 +22,19 @@ const mockUsers = [
     id: "1",
     name: "Jennifer Garner",
     email: "jennifer@example.com",
-    avatar: "https://avatars.githubusercontent.com/u/1214679",
+    avatar: uiAvatarUrl("Jennifer Garner"),
   },
   {
     id: "2",
     name: "John Smith",
     email: "john@example.com",
-    avatar: "https://avatars.githubusercontent.com/u/124588",
+    avatar: uiAvatarUrl("John Smith"),
   },
   {
     id: "3",
     name: "Sarah Johnson",
     email: "sarah@example.com",
-    avatar: "https://avatars.githubusercontent.com/u/124589",
+    avatar: uiAvatarUrl("Sarah Johnson"),
   },
 ];
 

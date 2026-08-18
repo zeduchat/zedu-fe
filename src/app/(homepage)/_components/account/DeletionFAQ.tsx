@@ -109,13 +109,15 @@ const DeletionFAQ = () => {
                   {faq.question}
                 </span>
                 <ChevronDown
-                  className={`w-5 h-5 text-purple-600 flex-shrink-0 transition-transform duration-300 ${openIndex === index ? "rotate-180" : ""
-                    }`}
+                  className={`w-5 h-5 text-purple-600 flex-shrink-0 transition-transform duration-300 ${
+                    openIndex === index ? "rotate-180" : ""
+                  }`}
                 />
               </button>
               <div
-                className={`overflow-hidden transition-all duration-300 ${openIndex === index ? "max-h-96" : "max-h-0"
-                  }`}
+                className={`overflow-hidden transition-all duration-300 ${
+                  openIndex === index ? "max-h-96" : "max-h-0"
+                }`}
               >
                 <div className="px-6 pb-5 text-gray-700 leading-relaxed border-t border-gray-100 pt-4">
                   {faq.answer}

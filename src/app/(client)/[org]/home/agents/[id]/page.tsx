@@ -14,6 +14,7 @@ import images from "~/assets/images";
 import { Button } from "~/components/ui/button";
 import { PieChart, Pie, Cell, ResponsiveContainer, Label } from "recharts";
 import { BotMessages } from "../../../constants/messages";
+import { uiAvatarUrl } from "~/lib/env-urls";
 
 export interface User {
   id: string;
@@ -72,7 +73,7 @@ const AgentPage = () => {
       text,
       timestamp: "2021-01-01 12:00:00",
       sender: "Adaeze Ndupu",
-      avatar: "https://avatars.githubusercontent.com/u/1214686",
+      avatar: uiAvatarUrl("Adaeze Ndupu"),
       type: "textBlock",
     };
 
@@ -907,7 +908,7 @@ $result = $stmt->get_result();
             <div className="flex flex-col gap-2 w-full">
               <div className="flex items-center gap-2">
                 <Image
-                  src={"https://avatars.githubusercontent.com/u/10347539?v=4"}
+                  src={uiAvatarUrl("org")}
                   alt={"org"}
                   width={24}
                   height={24}

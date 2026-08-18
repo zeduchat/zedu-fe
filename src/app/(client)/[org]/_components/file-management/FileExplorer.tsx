@@ -27,6 +27,7 @@ import DeleteFolderModal from "./DeleteFolderModal";
 import RenameFolderModal from "./RenameFolderModal";
 import { Pin } from "lucide-react";
 import { DataContext } from "~/store/GlobalState";
+import { uiAvatarUrl } from "~/lib/env-urls";
 import FileListSkeleton from "./FileListSkeleton";
 import { useDeleteFile } from "~/hooks/useDeleteFile";
 import { showError, showSuccess, showWarning } from "~/components/toast/sonner";
@@ -293,8 +294,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
         label: member.name || member.username,
         value: member.name || member.username,
         imageUrl:
-          member.avatar_url ||
-          `https://ui-avatars.com/api/?name=${member.name || member.username}`,
+          member.avatar_url || uiAvatarUrl(member.name || member.username),
       }));
       setUploaderOptions(options);
     }
@@ -351,7 +351,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
       const uploaderInfo = userProfileMap.get(file.user_id);
       const userProfilePhoto =
         uploaderInfo?.profile_url ||
-        `https://ui-avatars.com/api/?name=${uploaderInfo?.name || uploaderInfo?.username}`;
+        uiAvatarUrl(uploaderInfo?.name || uploaderInfo?.username || "");
       const uploaderDisplayName =
         uploaderInfo?.name ||
         uploaderInfo?.username ||

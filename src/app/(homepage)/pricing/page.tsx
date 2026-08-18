@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { ogImageUrl, siteUrl } from "~/lib/env-urls";
 import { DynamicFooter } from "../_components/footer/dynamic-footer";
 import { FAQSection } from "../_components/home/FAQSection";
 import { PricingSection } from "../_components/home/PricingSection";
@@ -31,11 +32,11 @@ export const metadata: Metadata = {
     title: "Zedu Pricing - Flexible Plans for Modern Learning Teams",
     description:
       "Compare Zedu plans and features to run structured cohorts, manage learning communication, and scale AI-powered education workflows.",
-    url: "https://zedu.chat/pricing",
+    url: siteUrl("/pricing"),
     siteName: "Zedu",
     images: [
       {
-        url: "https://media.zedu.chat/telexprodbucket/public/og-images/og-image-5.png",
+        url: ogImageUrl("og-image-5.png"),
         width: 1200,
         height: 630,
         alt: "Zedu pricing plans and feature comparison",
@@ -48,12 +49,10 @@ export const metadata: Metadata = {
     title: "Zedu Pricing - Flexible Plans for Modern Learning Teams",
     description:
       "Choose a Zedu plan that fits your school, bootcamp, or cohort and unlock AI-powered communication and learning workflows.",
-    images: [
-      "https://media.zedu.chat/telexprodbucket/public/og-images/og-image-5.png",
-    ],
+    images: [ogImageUrl("og-image-5.png")],
   },
   alternates: {
-    canonical: "https://zedu.chat/pricing",
+    canonical: siteUrl("/pricing"),
   },
   robots: {
     index: true,

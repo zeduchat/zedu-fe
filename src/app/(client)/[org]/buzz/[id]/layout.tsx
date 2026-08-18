@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { ogImageUrl, siteUrl } from "~/lib/env-urls";
 
 export const metadata: Metadata = {
   title: "Zedu - Seamless Video Meetings & Learning Communities",
@@ -20,11 +21,11 @@ export const metadata: Metadata = {
     title: "Zedu - Seamless Video Meetings & Learning Communities",
     description:
       "Join the conversation on Zedu. Connect with your team or classroom through our high-performance video meeting platform.",
-    url: "https://zedu.chat",
+    url: siteUrl(),
     siteName: "Zedu",
     images: [
       {
-        url: "https://media.zedu.chat/telexprodbucket/public/og-images/og-image-4.png",
+        url: ogImageUrl("og-image-4.png"),
         width: 1200,
         height: 630,
         alt: "Zedu - Collaborative Video Meetings for Teams and Classrooms",
@@ -37,12 +38,10 @@ export const metadata: Metadata = {
     title: "Zedu - Seamless Video Meetings & Learning Communities",
     description:
       "Seamless video calls and meetings for every learning community. Connect in one shared space with Zedu.",
-    images: [
-      "https://media.zedu.chat/telexprodbucket/public/og-images/og-image-4.png",
-    ],
+    images: [ogImageUrl("og-image-4.png")],
   },
   alternates: {
-    canonical: "https://zedu.chat",
+    canonical: siteUrl(),
   },
 };
 
@@ -88,11 +87,11 @@ export default function MeetingLayout({
 //     openGraph: {
 //       title: displayTitle,
 //       description: "Join the conversation on Zedu. Connect with your team or classroom through our high-performance video meeting platform.",
-//       url: `https://zedu.chat/buzz/${buzzId}`,
+//       url: siteUrl(`/buzz/${buzzId}`),
 //       siteName: "Zedu",
 //       images: [
 //         {
-//           url: "https://media.zedu.chat/telexprodbucket/public/og-images/og-image-4.png",
+//           url: ogImageUrl("og-image-4.png"),
 //           width: 1200,
 //           height: 630,
 //           alt: "Zedu - Collaborative Video Meetings",
@@ -104,10 +103,10 @@ export default function MeetingLayout({
 //       card: "summary_large_image",
 //       title: displayTitle,
 //       description: "Seamless video calls and meetings for every learning community.",
-//       images: ["https://media.zedu.chat/telexprodbucket/public/og-images/og-image-4.png"],
+//       images: [ogImageUrl("og-image-4.png")],
 //     },
 //     alternates: {
-//       canonical: `https://zedu.chat/buzz/${buzzId}`,
+//       canonical: siteUrl(`/buzz/${buzzId}`),
 //     },
 //   };
 // }

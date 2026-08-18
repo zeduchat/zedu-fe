@@ -1,4 +1,5 @@
 import images from "~/assets/images";
+import { siteUrl, uiAvatarUrl } from "~/lib/env-urls";
 
 export const BotMessages = [
   {
@@ -16,7 +17,7 @@ export const BotMessages = [
     sender: "Adaeze Ndupu",
     text: "I want to add social media handles for my brand",
     timestamp: "2021-01-01 12:00:00",
-    avatar: "https://avatars.githubusercontent.com/u/1214686",
+    avatar: uiAvatarUrl("Adaeze Ndupu"),
     type: "textBlock",
   },
   {
@@ -54,7 +55,7 @@ export const BotMessages = [
     sender: "Adaeze Ndupu",
     text: "My notification settings?",
     timestamp: "2021-01-01 12:00:00",
-    avatar: "https://avatars.githubusercontent.com/u/1214686",
+    avatar: uiAvatarUrl("Adaeze Ndupu"),
     type: "textBlock",
   },
   {
@@ -76,7 +77,7 @@ export const BotMessages = [
     sender: "Adaeze Ndupu",
     text: "Yeah phrases like “ai language game” “learn a language”, “how to learn french”",
     timestamp: "2021-01-01 12:00:00",
-    avatar: "https://avatars.githubusercontent.com/u/1214686",
+    avatar: uiAvatarUrl("Adaeze Ndupu"),
     type: "textBlock",
   },
   {
@@ -95,7 +96,7 @@ export const BotMessages = [
     sender: "Adaeze Ndupu",
     text: "I would love to add some links",
     timestamp: "2021-01-01 12:00:00",
-    avatar: "https://avatars.githubusercontent.com/u/1214686",
+    avatar: uiAvatarUrl("Adaeze Ndupu"),
     type: "textBlock",
   },
   {
@@ -112,7 +113,7 @@ export const BotMessages = [
     sender: "Adaeze Ndupu",
     text: "I want to see some alerts",
     timestamp: "2021-01-01 12:00:00",
-    avatar: "https://avatars.githubusercontent.com/u/1214686",
+    avatar: uiAvatarUrl("Adaeze Ndupu"),
     type: "textBlock",
   },
   {
@@ -146,7 +147,7 @@ export const BotMessages = [
     sender: "Adaeze Ndupu",
     text: "I want to see how my posts are performing",
     timestamp: "2021-01-01 12:00:00",
-    avatar: "https://avatars.githubusercontent.com/u/1214686",
+    avatar: uiAvatarUrl("Adaeze Ndupu"),
     type: "textBlock",
   },
   {
@@ -162,7 +163,7 @@ export const BotMessages = [
       {
         alert: "green",
         review: "Your latest post is gaining traction!",
-        image: "https://avatars.githubusercontent.com/u/1214686",
+        image: uiAvatarUrl("Adaeze Ndupu"),
         title: "Product Launch day!🚀",
         likes: "+5k",
         comments: "230",
@@ -185,7 +186,7 @@ export const BotMessages = [
     sender: "Adaeze Ndupu",
     text: "What about tiktok",
     timestamp: "2021-01-01 12:00:00",
-    avatar: "https://avatars.githubusercontent.com/u/1214686",
+    avatar: uiAvatarUrl("Adaeze Ndupu"),
     type: "textBlock",
   },
   {
@@ -201,7 +202,7 @@ export const BotMessages = [
       {
         alert: "green",
         review: "New Video Performance",
-        image: "https://avatars.githubusercontent.com/u/1214686",
+        image: uiAvatarUrl("Adaeze Ndupu"),
         title: "AI in Action at AlexTech",
         likes: "1.2k",
         comments: "400",
@@ -212,7 +213,7 @@ export const BotMessages = [
       {
         alert: "black",
         review: "Competitor Alert!",
-        image: "https://avatars.githubusercontent.com/u/1214686",
+        image: uiAvatarUrl("Adaeze Ndupu"),
         title: "@Allnnovators just posted about a similar topic!",
         suggestion: "Duet their video for engagement boost",
         type: "media",
@@ -321,14 +322,14 @@ $stmt->execute();`,
     },
     tableData: [
       {
-        link: "https://www.timbu.com",
+        link: siteUrl(),
         status: "broken",
         issueType: "The page no longer exists (404 Error).",
         suggestedFix:
           "Redirect to a relevant article or remove the broken link.",
       },
       {
-        link: "https://www.timbu.com/update",
+        link: siteUrl("/update"),
         status: "active",
         issueType: "---",
         suggestedFix: "---",

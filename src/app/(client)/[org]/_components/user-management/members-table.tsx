@@ -211,50 +211,50 @@ export default function MembersTable({
     },
     ...(showMemberActions
       ? [
-        {
-          accessorKey: "action",
-          header: () => (
-            <div className="text-[#667085] font-medium">Actions</div>
-          ),
-          cell: ({ row }: { row: { original: Member } }) => (
-            <div className="flex items-center gap-3">
-              {canChangeRole && (
-                <Button
-                  variant="outline"
-                  className="text-gray-700 h-fit p-1"
-                  onClick={() => {
-                    setIsOpenEditMemberModal(true);
-                    setSelectedMember(row.original);
-                  }}
-                >
-                  <Pencil size={20} />
-                </Button>
-              )}
-              {canManageMembers && (
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "h-fit p-1",
-                    row.original.status === "inactive"
-                      ? "text-green-700"
-                      : "text-gray-700"
-                  )}
-                  onClick={() => {
-                    setIsOpenRestrictMemberModal(true);
-                    setSelectedMember(row.original);
-                  }}
-                >
-                  {row.original.status === "inactive" ? (
-                    <UserCheck size={20} />
-                  ) : (
-                    <Trash2 size={20} />
-                  )}
-                </Button>
-              )}
-            </div>
-          ),
-        } as ColumnDef<Member>,
-      ]
+          {
+            accessorKey: "action",
+            header: () => (
+              <div className="text-[#667085] font-medium">Actions</div>
+            ),
+            cell: ({ row }: { row: { original: Member } }) => (
+              <div className="flex items-center gap-3">
+                {canChangeRole && (
+                  <Button
+                    variant="outline"
+                    className="text-gray-700 h-fit p-1"
+                    onClick={() => {
+                      setIsOpenEditMemberModal(true);
+                      setSelectedMember(row.original);
+                    }}
+                  >
+                    <Pencil size={20} />
+                  </Button>
+                )}
+                {canManageMembers && (
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "h-fit p-1",
+                      row.original.status === "inactive"
+                        ? "text-green-700"
+                        : "text-gray-700"
+                    )}
+                    onClick={() => {
+                      setIsOpenRestrictMemberModal(true);
+                      setSelectedMember(row.original);
+                    }}
+                  >
+                    {row.original.status === "inactive" ? (
+                      <UserCheck size={20} />
+                    ) : (
+                      <Trash2 size={20} />
+                    )}
+                  </Button>
+                )}
+              </div>
+            ),
+          } as ColumnDef<Member>,
+        ]
       : []),
   ];
 
@@ -274,9 +274,9 @@ export default function MembersTable({
       const nextState =
         typeof updater === "function"
           ? updater({
-            pageIndex: pagination.pageIndex,
-            pageSize: pagination.pageSize,
-          })
+              pageIndex: pagination.pageIndex,
+              pageSize: pagination.pageSize,
+            })
           : updater;
 
       if (nextState.pageIndex !== pagination.pageIndex) {

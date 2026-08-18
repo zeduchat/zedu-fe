@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { ogImageUrl, siteUrl } from "~/lib/env-urls";
 import Image from "next/image";
 import { ArrowBtn, OutlineBtn } from "../../_components/ui/Button";
 import { FeaturedCard } from "../../_components/ui/FeaturedCard";
@@ -27,11 +28,11 @@ export const metadata: Metadata = {
     title: "Zedu File Management - Organize and Share Learning Materials",
     description:
       "Store lectures, assignments, and class resources in organized spaces while keeping collaboration connected to the right learning context.",
-    url: "https://zedu.chat/products/file-management",
+    url: siteUrl("/products/file-management"),
     siteName: "Zedu",
     images: [
       {
-        url: "https://media.zedu.chat/telexprodbucket/public/og-images/og-image-5.png",
+        url: ogImageUrl("og-image-5.png"),
         width: 1200,
         height: 630,
         alt: "Zedu file management for structured learning resources",
@@ -44,12 +45,10 @@ export const metadata: Metadata = {
     title: "Zedu File Management - Structured Learning Resources",
     description:
       "Keep course files organized, searchable, and secure with a collaboration-ready workspace built for education.",
-    images: [
-      "https://media.zedu.chat/telexprodbucket/public/og-images/og-image-5.png",
-    ],
+    images: [ogImageUrl("og-image-5.png")],
   },
   alternates: {
-    canonical: "https://zedu.chat/products/file-management",
+    canonical: siteUrl("/products/file-management"),
   },
   robots: {
     index: true,
