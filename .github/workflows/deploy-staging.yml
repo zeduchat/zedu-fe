@@ -1,4 +1,4 @@
-name: Deploy Telex Frontend - staging
+name: Deploy Zedu Frontend - staging
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ on:
       - staging
 
 jobs:
-  deploy_telex_fe_staging:
+  deploy_zedu_fe_staging:
     runs-on: ubuntu-latest
     if: github.event.repository.fork == false
 
@@ -35,10 +35,10 @@ jobs:
       - name: Rebuild frontend on deployment server
         run: |
           eval $(ssh-agent -s)
-          echo "${{ secrets.TELEX_SERVER_SSH_KEY }}" | ssh-add -
+          echo "${{ secrets.ZEDU_SERVER_SSH_KEY }}" | ssh-add -
 
-          ssh -o StrictHostKeyChecking=no ${{ secrets.TELEX_SERVER_SSH_USER }}@${{ secrets.TELEX_SERVER_SSH_HOST }} << 'ENDSSH'
-            cd /var/www/telex_fe_staging
+          ssh -o StrictHostKeyChecking=no ${{ secrets.ZEDU_SERVER_SSH_USER }}@${{ secrets.ZEDU_SERVER_SSH_HOST }} << 'ENDSSH'
+            cd /var/www/zedu_fe_staging
             git reset --hard
             git pull origin staging
             pnpm install
@@ -48,9 +48,9 @@ jobs:
       - name: Pull and Restart App
         run: |
           eval $(ssh-agent -s)
-          echo "${{ secrets.TELEX_SERVER_SSH_KEY }}" | ssh-add -
+          echo "${{ secrets.ZEDU_SERVER_SSH_KEY }}" | ssh-add -
 
-          ssh -o StrictHostKeyChecking=no ${{ secrets.TELEX_SERVER_SSH_USER }}@${{ secrets.TELEX_SERVER_SSH_HOST }} << 'ENDSSH'
-            cd /var/www/telex_fe_staging
-            supervisorctl restart telexfe_staging
+          ssh -o StrictHostKeyChecking=no ${{ secrets.ZEDU_SERVER_SSH_USER }}@${{ secrets.ZEDU_SERVER_SSH_HOST }} << 'ENDSSH'
+            cd /var/www/zedu_fe_staging
+            supervisorctl restart zedu_fe_staging
           ENDSSH
