@@ -1,8 +1,15 @@
 "use client";
 
 import ChannelDetailsDialog from "../channel-details-dialog";
+import ChannelExportModal from "../channel-export/channel-export-modal";
 import { useParams } from "next/navigation";
-import { useState, useRef, useEffect, useContext } from "react";
+import {
+  useState,
+  useRef,
+  useEffect,
+  useContext,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
 import { cn } from "~/lib/utils";
 import NotificationSettingsModal from "../notification-modal";
 import { ACTIONS } from "~/store/Actions";
@@ -16,16 +23,17 @@ interface MenuDropdownProps {
 }
 
 const MenuDropdown = ({ isOpen, onClose }: MenuDropdownProps) => {
-  // const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { state, dispatch } = useContext(DataContext);
   const [buttonLoading, setButtonLoading] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
   const params = useParams();
   const id = params?.id as string;
 
   useEffect(() => {
+    if (!isOpen) return;
+
     const handleClickOutside = (event: MouseEvent) => {
-      // Check if click target is inside a dialog
       const isInsideDialog = (event.target as Element).closest(
         '[role="dialog"]'
       );
@@ -41,15 +49,12 @@ const MenuDropdown = ({ isOpen, onClose }: MenuDropdownProps) => {
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [onClose]);
-
-  if (!isOpen) return null;
+  }, [isOpen, onClose]);
 
   const menuItemClass =
     "px-4 py-[10px] text-[15px] text-[#101828] hover:bg-[#F1F1FE] flex items-center justify-between cursor-pointer";
   const dividerClass = "h-px bg-[#E6EAEF]";
 
-  // leave channel
   const handleLeave = async () => {
     setButtonLoading(true);
 
@@ -64,30 +69,54 @@ const MenuDropdown = ({ isOpen, onClose }: MenuDropdownProps) => {
     setButtonLoading(false);
   };
 
+  const handleOpenExport = (event: ReactMouseEvent) => {
+    event.stopPropagation();
+    setExportOpen(true);
+    onClose();
+  };
+
   return (
-    <div
-      ref={dropdownRef}
-      className="absolute top-full right-0 w-[220px] mt-2.5 bg-white rounded-[7px] shadow-lg border border-[#E6EAEF] z-20"
-      onClick={() => dispatch({ type: ACTIONS.ACTIVE_TAB, payload: "about" })}
-    >
-      <div>
-        <ChannelDetailsDialog className={cn(menuItemClass, "w-full")}>
-          Open channel details
-        </ChannelDetailsDialog>
-
-        <NotificationSettingsModal />
-
-        <div className={dividerClass} />
-
+    <>
+      {isOpen ? (
         <div
-          className={`${menuItemClass} text-[#B00E03]`}
-          onClick={handleLeave}
+          ref={dropdownRef}
+          className="absolute top-full right-0 w-[220px] mt-2.5 bg-white rounded-[7px] shadow-lg border border-[#E6EAEF] z-20"
+          onClick={() =>
+            dispatch({ type: ACTIONS.ACTIVE_TAB, payload: "about" })
+          }
         >
-          Leave channel{" "}
-          {buttonLoading && <Loading color="red" height="15px" width="15px" />}
+          <div>
+            <ChannelDetailsDialog className={cn(menuItemClass, "w-full")}>
+              Open channel details
+            </ChannelDetailsDialog>
+
+            <NotificationSettingsModal />
+
+            <div className={menuItemClass} onClick={handleOpenExport}>
+              Export
+            </div>
+
+            <div className={dividerClass} />
+
+            <div
+              className={`${menuItemClass} text-[#B00E03]`}
+              onClick={handleLeave}
+            >
+              Leave channel{" "}
+              {buttonLoading && (
+                <Loading color="red" height="15px" width="15px" />
+              )}
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      ) : null}
+
+      <ChannelExportModal
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        channelId={id}
+      />
+    </>
   );
 };
 

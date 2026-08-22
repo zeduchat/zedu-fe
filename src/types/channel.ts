@@ -77,6 +77,29 @@ export interface Pagination {
   total_pages: number;
 }
 
+export type ChannelExportStatus =
+  | "pending"
+  | "processing"
+  | "in_progress"
+  | "queued"
+  | "completed"
+  | "failed"
+  | string;
+
+export interface ChannelExport {
+  id: string;
+  channel_id: string;
+  user_id: string;
+  organisation_id: string;
+  status: ChannelExportStatus;
+  file_id: string | null;
+  file_url: string | null;
+  error_message: string | null;
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
+}
+
 export interface ChannelResponse {
   status: "success" | "error";
   status_code: number;
