@@ -8,7 +8,7 @@ on:
 
 jobs:
   deploy_zedu_fe_staging:
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-latest, telex]
     if: github.event.repository.fork == false
 
     steps:
