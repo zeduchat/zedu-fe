@@ -32,7 +32,7 @@ import {
 } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
-import Picker from "@emoji-mart/react";
+import Picker from "~/components/theme/themed-emoji-picker";
 import data from "@emoji-mart/data";
 import Loading from "~/components/ui/loading";
 import {

@@ -67,8 +67,8 @@ export default function GlobalMention({
           onMouseLeave={handleMouseLeave}
           className={
             isSelfMention
-              ? "text-[#1264a3] bg-[#fff3b0] hover:bg-[#ffe566] px-1 rounded cursor-pointer transition-colors font-medium inline-flex items-center mx-[1px]"
-              : "text-[#1264a3] bg-[#e8f0fe] hover:bg-[#d0e2ff] px-1 rounded cursor-pointer transition-colors font-medium inline-flex items-center mx-[1px]"
+              ? "text-[#1264a3] bg-[#fff3b0] hover:bg-[#ffe566] dark:text-[#F5D90A] dark:bg-[#4A3F00] dark:hover:bg-[#5C4E00] px-1 rounded cursor-pointer transition-colors font-medium inline-flex items-center mx-[1px]"
+              : "text-[#1264a3] bg-[#e8f0fe] hover:bg-[#d0e2ff] dark:text-[#6CB6FF] dark:bg-[#1A3F66] dark:hover:bg-[#245380] px-1 rounded cursor-pointer transition-colors font-medium inline-flex items-center mx-[1px]"
           }
         >
           {trigger}

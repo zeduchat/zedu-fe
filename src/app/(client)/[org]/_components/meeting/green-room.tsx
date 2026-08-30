@@ -183,7 +183,7 @@ const GreenRoom: React.FC<GreenRoomProps> = ({ onJoin }) => {
         </div>
 
         <div className="lg:col-span-2 flex flex-col items-center text-center space-y-6">
-          <h1 className="text-3xl font-normal text-[#202124]">
+          <h1 className="text-3xl font-normal text-[#202124] dark:text-zinc-100">
             Ready to join?
           </h1>
 

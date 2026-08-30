@@ -68,7 +68,7 @@ export default function UsernameHover({ item }: any) {
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           onClick={handleOpen}
-          className="ml-1 py-[1px] px-[3px] bg-[#F1F1FE] text-[#7141F8] text-[15px] rounded-[3px] cursor-pointer"
+          className="ml-1 py-[1px] px-[3px] bg-[#F1F1FE] text-[#7141F8] dark:bg-[#2D2463] dark:text-[#C4B5FD] text-[15px] rounded-[3px] cursor-pointer"
         >
           {" "}
           @{item?.username}

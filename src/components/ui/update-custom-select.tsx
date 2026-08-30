@@ -39,9 +39,15 @@ const UpdateCustomSelect = ({
         borderRadius: 0,
         colors: {
           ...theme.colors,
-          primary25: "#fafafa",
-          primary50: "#fafafa",
-          primary: "blue",
+          primary25: "hsl(var(--accent))",
+          primary50: "hsl(var(--muted))",
+          primary: "rgb(113, 65, 248)",
+          neutral0: "hsl(var(--card))",
+          neutral20: "hsl(var(--border))",
+          neutral30: "hsl(var(--border))",
+          neutral40: "hsl(var(--muted-foreground))",
+          neutral50: "hsl(var(--muted-foreground))",
+          neutral80: "hsl(var(--foreground))",
         },
       })}
     />

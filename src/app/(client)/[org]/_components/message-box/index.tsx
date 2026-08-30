@@ -48,7 +48,7 @@ import { EditorContent } from "@tiptap/react";
 import Image from "next/image";
 import { Input } from "~/components/ui/input";
 import Loading from "~/components/ui/loading";
-import Picker from "@emoji-mart/react";
+import Picker from "~/components/theme/themed-emoji-picker";
 import Tooltips from "../tooltip";
 import { UploadRequest } from "~/utils/new-request";
 import UseTextEditor from "../editor";

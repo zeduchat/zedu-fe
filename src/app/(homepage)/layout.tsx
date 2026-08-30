@@ -5,6 +5,7 @@ import { Toaster } from "~/components/ui/toaster";
 import { DataProvider } from "~/store/GlobalState";
 import Footer from "./_components/footer";
 import Header from "./_components/header";
+import { ForceLightTheme } from "~/components/theme/force-light-theme";
 
 export const metadata: Metadata = {
   metadataBase: process.env.NEXT_PUBLIC_CLIENT_URL
@@ -65,14 +66,16 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <DataProvider>
-      <div className="w-full">
-        <Header />
-        <div className="pt-12 min-w-screen overflow-x-hidden">{children}</div>
-        <Footer />
-      </div>
+    <ForceLightTheme>
+      <DataProvider>
+        <div className="zedu-marketing w-full">
+          <Header />
+          <div className="pt-12 min-w-screen overflow-x-hidden">{children}</div>
+          <Footer />
+        </div>
 
-      <Toaster />
-    </DataProvider>
+        <Toaster />
+      </DataProvider>
+    </ForceLightTheme>
   );
 }

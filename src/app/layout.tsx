@@ -8,6 +8,7 @@ import { DataProvider } from "~/store/GlobalState";
 import Script from "next/script";
 import ClientLayout from "./client-layout";
 import { gtmScriptUrl } from "~/lib/env-urls";
+import { ThemeProvider } from "~/components/theme/theme-provider";
 
 export const metadata: Metadata = {
   title: "Zedu",
@@ -50,9 +51,11 @@ export default function RootLayout({
       </head>
 
       <body className="max-w-screen overflow-x-hidden" suppressHydrationWarning>
-        <ClientLayout>
-          <DataProvider>{children}</DataProvider>
-        </ClientLayout>
+        <ThemeProvider>
+          <ClientLayout>
+            <DataProvider>{children}</DataProvider>
+          </ClientLayout>
+        </ThemeProvider>
       </body>
     </html>
   );

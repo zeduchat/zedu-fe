@@ -151,7 +151,7 @@ const Topbar = () => {
             {/* Mobile Sheet */}
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
               <SheetTrigger asChild className="lg:hidden">
-                <Button className="bg-blue-100 px-2 py-1.5 rounded-lg flex items-center gap-1.5">
+                <Button className="bg-blue-300 px-2 py-1.5 rounded-lg flex items-center gap-1.5">
                   <div className="w-[28px] h-[28px] rounded-md bg-white/90 flex items-center justify-center shadow-sm">
                     <OrgLogo
                       logo_url={orgData?.logo_url}
@@ -304,7 +304,7 @@ const Topbar = () => {
             >
               <div className="hidden lg:flex items-center justify-evenly gap-2">
                 <PopoverTrigger asChild>
-                  <Button className="bg-blue-100 text-white -ml-3 px-3 py-2 rounded-md flex items-center gap-2">
+                  <Button className="bg-blue-300 text-white -ml-3 px-3 py-2 rounded-md flex items-center gap-2">
                     <div className="w-[23px] h-[23px] rounded-sm border flex items-center justify-center capitalize">
                       <OrgLogo
                         logo_url={orgData?.logo_url}

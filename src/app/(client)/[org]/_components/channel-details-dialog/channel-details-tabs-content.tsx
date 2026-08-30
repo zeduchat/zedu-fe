@@ -38,7 +38,7 @@ export function AboutTabContainer({ setIsOpen }: any) {
   //
 
   return (
-    <div className="bg-white text-[0.9375rem] divide-y divide-[#E6EAEF] border border-[#E6EAEF] rounded-[0.625rem] overflow-hidden">
+    <div className="bg-white dark:bg-[#222529] text-[0.9375rem] divide-y divide-[#E6EAEF] border border-[#E6EAEF] rounded-[0.625rem] overflow-hidden">
       <div className="py-4 px-5 flex justify-between items-center">
         <div>
           <h3 className="font-bold text-[#101828]">Topic</h3>

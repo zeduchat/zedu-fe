@@ -76,7 +76,9 @@ export const BuzzList = () => {
   return (
     <div className="flex h-full w-full flex-col bg-white">
       <div className="flex shrink-0 items-center justify-between border-b border-[#E6EAEF] px-5 py-4">
-        <h1 className="text-[22px] font-bold text-[#1D2939]">Buzzs</h1>
+        <h1 className="text-[22px] font-bold text-[#1D2939] dark:text-zinc-100">
+          Buzzs
+        </h1>
         <button
           type="button"
           onClick={handleStartBuzz}

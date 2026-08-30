@@ -7,7 +7,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import EmojiPicker from "@emoji-mart/react";
+import EmojiPicker from "~/components/theme/themed-emoji-picker";
 import data from "@emoji-mart/data";
 import { DataContext } from "~/store/GlobalState";
 import ReplyMore from "./reply-more";

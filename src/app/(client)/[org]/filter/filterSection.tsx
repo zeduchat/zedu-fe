@@ -74,7 +74,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
         value={fileNameSearch}
         onChange={(e) => onFileNameSearchChange(e.target.value)}
         placeholder="Search by file name"
-        className="w-full rounded-md border border-[#E6EAEF] py-2 pl-9 pr-3 text-sm text-[#344054] placeholder:text-[#98A2B3] focus:border-[#5F5FE1] focus:outline-none focus:ring-1 focus:ring-[#5F5FE1]"
+        className="w-full rounded-md border border-[#E6EAEF] bg-white py-2 pl-9 pr-3 text-sm text-[#344054] placeholder:text-[#98A2B3] focus:border-[#5F5FE1] focus:outline-none focus:ring-1 focus:ring-[#5F5FE1] dark:bg-[#222529] dark:text-zinc-100"
         aria-label="Search by file name"
       />
     </div>
