@@ -8,9 +8,11 @@ on:
 
 jobs:
   deploy_zedu_fe_main:
-    runs-on: ubuntu-latest
-    if: github.event.repository.fork == false
+    runs-on: [self-hosted, zedu-runner]
 
+    env:
+      CI: true
+      
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
