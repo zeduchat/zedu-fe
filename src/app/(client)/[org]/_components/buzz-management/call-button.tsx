@@ -43,14 +43,19 @@ export const CallButton: React.FC<CallButtonProps> = ({
               "inline-flex items-center justify-center gap-2 px-4 h-9 rounded-md font-medium transition-all duration-150 active:scale-95 relative border",
               isActive
                 ? "bg-primary-500 border-primary-500 text-white shadow-md hover:bg-primary-400"
-                : "bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900",
+                : "bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:bg-transparent dark:border-zinc-500 dark:text-zinc-100 dark:hover:bg-white/10 dark:hover:text-white",
               className
             )}
           >
             {startLoading || joinLoading ? (
-              <Loading color={startLoading ? "black" : "white"} />
+              <Loading color={isActive ? "white" : "black"} />
             ) : (
-              <HeadphonesIcon size={16} color={isActive ? "white" : "black"} />
+              <HeadphonesIcon
+                size={16}
+                className={
+                  isActive ? "text-white" : "text-zinc-700 dark:text-zinc-100"
+                }
+              />
             )}
             <span className="text-sm">
               {isActive ? "Join Buzz" : "Start Buzz"}

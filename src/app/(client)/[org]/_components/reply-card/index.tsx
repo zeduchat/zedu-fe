@@ -52,7 +52,7 @@ export default function ReplyCard({
 
   return (
     <div
-      className="w-[100%] flex items-center space-x-1 text-sm text-gray-600 mt-2 p-1 rounded hover:bg-white hover:shadow-sm cursor-pointer"
+      className="w-[100%] flex items-center space-x-1 text-sm text-gray-600 mt-2 p-1 rounded hover:bg-white hover:shadow-sm dark:hover:bg-[#2C2D30] dark:hover:shadow-none cursor-pointer"
       onClick={handleReply}
     >
       {/* Avatars */}

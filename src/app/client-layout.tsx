@@ -1,6 +1,6 @@
 "use client";
-import { Toaster } from "sonner";
-import { ReactNode, useEffect } from "react";
+import { ReactNode } from "react";
+import { ThemeToaster } from "~/components/theme/theme-toaster";
 // import { useVisitTracker } from "~/hooks/useVisitTracker";
 
 export default function ClientLayout({ children }: { children: ReactNode }) {
@@ -8,7 +8,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <Toaster position="top-right" richColors />
+      <ThemeToaster />
       {children}
     </>
   );

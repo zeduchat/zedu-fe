@@ -18,7 +18,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import EmojiPicker from "@emoji-mart/react";
+import EmojiPicker from "~/components/theme/themed-emoji-picker";
 import data from "@emoji-mart/data";
 import More from "./more";
 import UserHoverCard from "../hover-card/user";
@@ -185,7 +185,7 @@ const Message = ({
   return (
     <div
       ref={containerRef}
-      className={`relative group py-1 transition-colors flex items-start px-5 gap-2`}
+      className={`relative group message-row py-1 transition-colors flex items-start px-5 gap-2`}
       onClick={handleMessageClick}
     >
       <div className="flex items-center justify-center">

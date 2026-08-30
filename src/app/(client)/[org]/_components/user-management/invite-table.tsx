@@ -427,15 +427,15 @@ export default function InviteTable({
             className={cn(
               "flex gap-1 w-fit px-2 py-1 rounded-md items-center border",
               {
-                "border-green-100 text-green-700":
+                "border-green-100 text-green-700 dark:border-green-700/50 dark:text-green-400":
                   row.original.status === "accepted",
-                "border-red-100 text-red-700":
+                "border-red-100 text-red-700 dark:border-red-700/50 dark:text-red-400":
                   row.original.status === "inactive",
-                "border-[#91C3FF] text-blue-700":
+                "border-[#91C3FF] text-blue-700 dark:border-blue-700/50 dark:text-blue-400":
                   row.original.status === "invited",
-                "border-yellow-100 text-yellow-700":
+                "border-yellow-100 text-yellow-700 dark:border-yellow-700/50 dark:text-yellow-400":
                   row.original.status === "pending",
-                "border-gray-100 text-gray-700":
+                "border-gray-100 text-gray-700 dark:border-white/15 dark:text-zinc-300":
                   row.original.status === "deactivated",
               }
             )}

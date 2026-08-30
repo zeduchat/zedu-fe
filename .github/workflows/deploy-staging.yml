@@ -8,7 +8,11 @@ on:
 
 jobs:
   deploy_zedu_fe_staging:
-    runs-on: [ubuntu-latest, telex]
+    runs-on: [self-hosted, zedu-runner]
+
+    env:
+      CI: true
+
     if: github.event.repository.fork == false
 
     steps:
@@ -27,7 +31,7 @@ jobs:
           cache: "pnpm"
 
       - name: Install node_modules
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build on workflow first
         run: pnpm build
@@ -36,14 +40,20 @@ jobs:
         run: |
           eval $(ssh-agent -s)
           trap 'ssh-agent -k' EXIT
-          
+
           echo "${{ secrets.ZEDU_SERVER_SSH_KEY }}" | ssh-add -
 
           ssh -o StrictHostKeyChecking=no ${{ secrets.ZEDU_SERVER_SSH_USER }}@${{ secrets.ZEDU_SERVER_SSH_HOST }} << 'ENDSSH'
+            set -e
+
             cd /var/www/zedu_fe_staging
+
             git reset --hard
             git pull origin staging
-            pnpm install
+
+            export CI=true
+
+            pnpm install --no-frozen-lockfile
             pnpm build
           ENDSSH
 
@@ -51,7 +61,7 @@ jobs:
         run: |
           eval $(ssh-agent -s)
           trap 'ssh-agent -k' EXIT
-          
+
           echo "${{ secrets.ZEDU_SERVER_SSH_KEY }}" | ssh-add -
 
           ssh -o StrictHostKeyChecking=no ${{ secrets.ZEDU_SERVER_SSH_USER }}@${{ secrets.ZEDU_SERVER_SSH_HOST }} << 'ENDSSH'

@@ -166,7 +166,7 @@ const FileList: React.FC<FileListProps> = ({
   };
 
   const fileNameClassName =
-    "text-[#1F2937] min-w-0 flex-1 truncate block hover:text-blue-600 hover:underline cursor-pointer";
+    "text-[#1F2937] dark:text-zinc-100 min-w-0 flex-1 truncate block hover:text-blue-600 dark:hover:text-blue-400 hover:underline cursor-pointer";
 
   const fileIcon = (
     <button
@@ -319,11 +319,11 @@ const FileList: React.FC<FileListProps> = ({
             </span>
           </div>
           <div className="hidden md:flex md:col-span-2 items-center gap-2 text-[#4B5563] min-w-0">
-            <img
+            {/* <img
               src={user_profile_photo || "/av_Image.png"}
               alt={uploader_display_name || owner}
               className="w-6 h-6 rounded-full object-cover"
-            />
+            /> */}
             <span className="truncate">{uploader_display_name || owner}</span>
           </div>
           <div className="hidden md:flex md:col-span-2 items-center text-[#4B5563] truncate">
@@ -407,11 +407,11 @@ const FileList: React.FC<FileListProps> = ({
           </span>
         </div>
         <div className="hidden md:flex md:col-span-2 items-center gap-2 text-[#4B5563] min-w-0">
-          <img
+          {/* <img
             src={user_profile_photo || "/av_Image.png"}
             alt={uploader_display_name || owner}
             className="w-6 h-6 rounded-full object-cover"
-          />
+          /> */}
           <span className="truncate">{uploader_display_name || owner}</span>
         </div>
         <div className="hidden md:flex md:col-span-2 items-center text-[#4B5563] truncate">

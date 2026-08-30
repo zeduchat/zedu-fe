@@ -17,19 +17,18 @@ import {
 } from "./FileList";
 
 interface FolderListProps {
-  // eslint-disable-next-line no-unused-vars
   id: string;
   name: string;
-  // eslint-disable-next-line no-unused-vars
+
   user_id: string;
   item_count: number;
   created_at?: string;
   folder_owner_name?: string;
-  // eslint-disable-next-line no-unused-vars
+
   onEdit: (id: string) => void;
-  // eslint-disable-next-line no-unused-vars
+
   onDelete: (id: string) => void;
-  // eslint-disable-next-line no-unused-vars
+
   onClick?: (id: string) => void;
 }
 
@@ -38,7 +37,7 @@ const FolderList: React.FC<FolderListProps> = ({
   name,
   item_count,
   created_at,
-  // eslint-disable-next-line no-unused-vars
+
   user_id,
   folder_owner_name,
   onEdit,
@@ -63,7 +62,7 @@ const FolderList: React.FC<FolderListProps> = ({
           className="flex-shrink-0"
         />
         <span
-          className="text-[#1F2937] font-medium min-w-0 flex-1 truncate block"
+          className="text-[#1F2937] dark:text-zinc-100 font-medium min-w-0 flex-1 truncate block"
           title={fullName}
         >
           {displayName}
