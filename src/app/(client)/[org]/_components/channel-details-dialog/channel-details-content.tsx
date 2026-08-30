@@ -121,7 +121,11 @@ export const ChannelDetailsContent = ({ setIsOpen }: any) => {
         {TABS_CONTENT.map(({ name, Component }) => (
           <TabsContent key={name} value={name}>
             <TabContainer
-              className={name === "about" ? "bg-[#F6F7F9] min-h-[32rem]" : ""}
+              className={
+                name === "about"
+                  ? "bg-[#F6F7F9] dark:bg-[#1A1D21] min-h-[32rem]"
+                  : ""
+              }
             >
               <Component setIsOpen={setIsOpen} />
             </TabContainer>

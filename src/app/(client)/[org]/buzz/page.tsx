@@ -102,7 +102,7 @@ export default function MeetingPage() {
   return (
     <div className="min-h-screen px-4 py-12 md:p-6 md:pt-20">
       <div className="mx-auto max-w-[800px] flex flex-col items-center text-center">
-        <h1 className="text-3xl md:text-4xl font-normal text-[#202124] leading-snug">
+        <h1 className="text-3xl md:text-4xl font-normal text-[#202124] dark:text-zinc-100 leading-snug">
           Seamless video calls and meetings for every learning community.
         </h1>
         <p className="text-base md:text-lg text-zinc-500 mt-4 md:mt-2 max-w-[600px]">
@@ -145,14 +145,14 @@ export default function MeetingPage() {
               <div className="flex flex-col">
                 <button
                   onClick={() => handleCreateMeeting("later")}
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-zinc-100 transition text-sm text-[#3c4043]"
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-zinc-100 dark:hover:bg-white/10 transition text-sm text-[#3c4043] dark:text-zinc-200"
                 >
                   <LinkIcon size={18} />
                   Create a meeting for later
                 </button>
                 <button
                   onClick={() => handleCreateMeeting("instant")}
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-zinc-100 transition text-sm text-[#3c4043]"
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-zinc-100 dark:hover:bg-white/10 transition text-sm text-[#3c4043] dark:text-zinc-200"
                 >
                   <Plus size={18} />
                   Start an instant meeting
@@ -193,7 +193,7 @@ export default function MeetingPage() {
         <div className="w-full mt-12 md:mt-20 flex justify-center px-4">
           <div className="relative w-full max-w-[800px] aspect-[16/10]">
             <Image
-              src="/image/meeting-image.jpg"
+              src="/image/meeting-image.png"
               alt="Meetings Illustration"
               fill
               className="object-contain opacity-95"
@@ -206,7 +206,7 @@ export default function MeetingPage() {
       <Dialog open={isLaterModalOpen} onOpenChange={setIsLaterModalOpen}>
         <DialogContent className="sm:max-w-md p-6 border-none">
           <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-            <DialogTitle className="text-base font-normal text-[#202124]">
+            <DialogTitle className="text-base font-normal text-[#202124] dark:text-zinc-100">
               Here's the link to your meeting
             </DialogTitle>
           </DialogHeader>
@@ -216,8 +216,8 @@ export default function MeetingPage() {
               sure to save it so you can use it later, too.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-[#f1f3f4] rounded-md p-3 gap-2 group">
-              <span className="text-sm text-[#3c4043] break-all w-full sm:max-w-80">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-[#f1f3f4] dark:bg-[#2C2D30] rounded-md p-3 gap-2 group">
+              <span className="text-sm text-[#3c4043] dark:text-zinc-200 break-all w-full sm:max-w-80">
                 {laterMeetingLink}
               </span>
               <button

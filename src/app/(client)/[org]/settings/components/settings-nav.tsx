@@ -12,6 +12,7 @@ import {
   UsersIcon,
   BanknoteIcon,
   Webhook,
+  Palette,
 } from "lucide-react";
 import {
   Accordion,
@@ -90,6 +91,11 @@ export default function SettingsNav() {
           title: "Notifications",
           icon: <BellIcon className="w-5" />,
           link: `/${orgSlug}/settings/personal/notifications`,
+        },
+        {
+          title: "Appearance",
+          icon: <Palette className="w-5" />,
+          link: `/${orgSlug}/settings/personal/appearance`,
         },
         {
           title: "Security",

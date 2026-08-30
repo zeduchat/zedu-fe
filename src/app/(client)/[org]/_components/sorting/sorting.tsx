@@ -126,10 +126,10 @@ const Sorting: React.FC<FilterDropdownProps> = ({
         {/* Filter Button */}
         <button
           type="button"
-          className={`inline-flex items-center gap-2 px-3 py-2 text-[13px] text-[#344054] h-8 ring-1 ring-inset ring-[#E6EAEF] hover:bg-[#D0D0FD] transition-colors ${
+          className={`inline-flex items-center gap-2 px-3 py-2 text-[13px] h-8 ring-1 ring-inset ring-[#E6EAEF] transition-colors ${
             selectedValues.length > 0
-              ? "bg-[#D0D0FD] ring-[#BABAFB] text-[#3E3E93] rounded-l-md "
-              : "rounded-md bg-white"
+              ? "bg-[#D0D0FD] ring-[#BABAFB] text-[#3E3E93] rounded-l-md dark:bg-[#2A2A5C] dark:text-[#C4B5FD] dark:ring-[#6868F7]"
+              : "rounded-md bg-white text-[#344054] hover:bg-[#D0D0FD] dark:hover:bg-white/10"
           }`}
           onClick={() => setIsOpen(!isOpen)}
         >
@@ -153,7 +153,7 @@ const Sorting: React.FC<FilterDropdownProps> = ({
           <button
             type="button"
             onClick={clearSelection}
-            className="h-8 px-2 text-[#3E3E93] bg-[#d0d0fd]  rounded-tr-md rounded-br-md transition-colors"
+            className="h-8 px-2 text-[#3E3E93] bg-[#d0d0fd] dark:bg-[#2A2A5C] dark:text-[#C4B5FD] rounded-tr-md rounded-br-md transition-colors"
             title="Clear selection"
           >
             <svg
@@ -178,7 +178,7 @@ const Sorting: React.FC<FilterDropdownProps> = ({
         <div
           className={`absolute ${
             position === "right" ? "right-0" : "left-0"
-          } z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none`}
+          } z-10 mt-2 w-56 origin-top-right rounded-md bg-white dark:bg-[#222529] shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none`}
         >
           <div className="py-2">
             {/* Search Input - Conditionally rendered */}
@@ -189,14 +189,14 @@ const Sorting: React.FC<FilterDropdownProps> = ({
                   placeholder="Search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#5F5FE1] focus:border-[#5F5FE1]"
+                  className="w-full px-3 py-1 text-sm border border-gray-300 rounded-md bg-white text-[#101828] focus:outline-none focus:ring-1 focus:ring-[#5F5FE1] focus:border-[#5F5FE1] dark:bg-[#1A1D21] dark:text-zinc-100"
                   autoFocus
                 />
               </div>
             )}
 
             {/* Options List */}
-            <div className="max-h-60 text-black overflow-y-auto">
+            <div className="max-h-60 text-black dark:text-zinc-200 overflow-y-auto">
               {filteredOptions.length === 0 ? (
                 <div className="px-4 py-2 text-sm text-[#344054] text-center">
                   No options found

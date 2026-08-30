@@ -93,7 +93,7 @@ const FirstPeopleMessage = ({ selectedUsers }: any) => {
             This is the very beginning of your direct message history with
             {selectedUsers?.map((user: any, index: number) => (
               <React.Fragment key={user.id}>
-                <span className="ml-1 py-[1px] px-[3px] bg-[#F1F1FE] text-[#7141F8] text-[15px] rounded-[3px]">
+                <span className="ml-1 py-[1px] px-[3px] bg-[#F1F1FE] text-[#7141F8] dark:bg-[#2D2463] dark:text-[#C4B5FD] text-[15px] rounded-[3px]">
                   {" "}
                   @{user.name}
                 </span>

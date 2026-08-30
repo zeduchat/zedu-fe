@@ -92,7 +92,7 @@ export const OrgList = ({
   return (
     <>
       <div
-        className="flex items-center gap-2 cursor-pointer justify-between hover:bg-gray-300 rounded-sm px-1 py-1 transition-all duration-200"
+        className="flex items-center gap-2 cursor-pointer justify-between hover:bg-gray-300 dark:hover:bg-[#2C2D30] rounded-sm px-1 py-1 transition-all duration-200"
         onClick={(e) => {
           e.stopPropagation();
           onClick?.();
@@ -107,7 +107,7 @@ export const OrgList = ({
               notificationCount={notificationCount}
             />
           </div>
-          <p className="text-black text-sm">{name ?? ""}</p>
+          <p className="text-black dark:text-zinc-100 text-sm">{name ?? ""}</p>
         </div>
         <Button
           size={"sm"}
@@ -116,7 +116,7 @@ export const OrgList = ({
             e.stopPropagation();
             onPin?.();
           }}
-          className="rounded-sm p-2 hover:bg-gray-200 z-10"
+          className="rounded-sm p-2 hover:bg-gray-200 dark:hover:bg-white/10 z-10"
         >
           {pinned ? (
             <PinIcon />

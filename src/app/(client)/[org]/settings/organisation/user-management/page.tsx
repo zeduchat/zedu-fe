@@ -122,10 +122,10 @@ const Page = () => {
 
         <Tabs defaultValue="members" className="w-full mt-6">
           <div className="border-b border-gray-200">
-            <TabsList className="flex w-fit bg-white rounded-none h-auto p-0 space-x-10">
+            <TabsList className="flex w-fit bg-transparent rounded-none h-auto p-0 space-x-10">
               <TabsTrigger
                 value="members"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-purple-600 rounded-none py-3 px-0 flex items-center gap-2"
+                className="bg-transparent shadow-none data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-purple-600 rounded-none py-3 px-0 flex items-center gap-2"
               >
                 Members
                 <div className="rounded-full bg-[#F2F4F7] text-[#5757CD] text-xs px-2 py-1">
@@ -134,7 +134,7 @@ const Page = () => {
               </TabsTrigger>
               <TabsTrigger
                 value="invites"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-purple-600 rounded-none py-3 px-0 flex items-center gap-2"
+                className="bg-transparent shadow-none data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-purple-600 rounded-none py-3 px-0 flex items-center gap-2"
               >
                 Invites
                 <div className="rounded-full bg-[#F2F4F7] text-[#5757CD] text-xs px-2 py-1">

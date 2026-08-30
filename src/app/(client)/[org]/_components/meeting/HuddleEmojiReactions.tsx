@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useCallback, useContext } from "react";
-import Picker from "@emoji-mart/react";
+import Picker from "~/components/theme/themed-emoji-picker";
 import data from "@emoji-mart/data";
 import { MoreHorizontal } from "lucide-react";
 import {
@@ -170,7 +170,6 @@ const HuddleEmojiReactions = ({
               <Picker
                 data={data}
                 onEmojiSelect={handleEmojiPickerSelect}
-                theme="light"
                 previewPosition="none"
               />
             </PopoverContent>

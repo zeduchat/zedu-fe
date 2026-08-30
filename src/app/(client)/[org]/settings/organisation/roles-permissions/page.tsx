@@ -21,7 +21,7 @@ import { isOwnerOrAdministrator } from "~/utils/rbac";
 
 const RolesPermissionsSkeleton = () => (
   <div className="flex flex-col gap-5 animate-pulse">
-    <div className="rounded-lg border border-[#E6EAEF] bg-[#F9F7FF] p-5 space-y-3">
+    <div className="rounded-lg border border-[#E6EAEF] bg-[#F9F7FF] dark:border-[#7141F8]/40 dark:bg-[#1F1A2E] p-5 space-y-3">
       <div className="h-3 w-48 bg-gray-200 rounded" />
       <div className="h-6 w-28 bg-gray-200 rounded-full" />
       <div className="h-4 w-full max-w-md bg-gray-200 rounded" />
@@ -139,7 +139,7 @@ const Page = () => {
         ) : (
           <>
             {currentUserRole.roleName ? (
-              <Card className="mb-6 border-[#E6EAEF] bg-[#F9F7FF]">
+              <Card className="mb-6 border-[#E6EAEF] bg-[#F9F7FF] dark:border-[#7141F8]/40 dark:bg-[#1F1A2E]">
                 <CardContent className="p-4 sm:p-5 space-y-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="text-xs font-semibold uppercase tracking-wide text-[#667085]">
@@ -150,7 +150,7 @@ const Page = () => {
                     </Badge>
                   </div>
                   {currentUserRole.roleDescription ? (
-                    <p className="text-sm text-[#344054]">
+                    <p className="text-sm text-[#344054] dark:text-zinc-300">
                       {currentUserRole.roleDescription}
                     </p>
                   ) : (
@@ -164,7 +164,7 @@ const Page = () => {
                       {yourRoleActions.map((action, index) => (
                         <Badge
                           key={`${action.label}-${index}`}
-                          className="text-sm text-gray-700 border border-[#E6EAEF] bg-white w-fit rounded-sm"
+                          className="text-sm text-gray-700 border border-[#E6EAEF] bg-[#F6F7F9] dark:text-zinc-200 dark:border-white/10 dark:bg-[#2C2D30] w-fit rounded-sm"
                         >
                           {action.label}
                         </Badge>

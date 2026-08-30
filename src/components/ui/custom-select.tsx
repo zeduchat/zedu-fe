@@ -47,15 +47,15 @@ const CustomSelect = ({
             width: "8px",
           },
           "::-webkit-scrollbar-track": {
-            background: "#f1f1f1",
+            background: "hsl(var(--muted))",
             borderRadius: "4px",
           },
           "::-webkit-scrollbar-thumb": {
-            background: "#c1c1c1",
+            background: "hsl(var(--border))",
             borderRadius: "4px",
           },
           "::-webkit-scrollbar-thumb:hover": {
-            background: "#a8a8a8",
+            background: "hsl(var(--muted-foreground))",
           },
         }),
         option: (baseStyles, state) => ({
@@ -70,9 +70,20 @@ const CustomSelect = ({
         borderRadius: 8,
         colors: {
           ...theme.colors,
-          primary25: "#fafafa",
-          primary50: "#fafafa",
-          primary: "blue",
+          primary25: "hsl(var(--accent))",
+          primary50: "hsl(var(--muted))",
+          primary: "rgb(113, 65, 248)",
+          neutral0: "hsl(var(--card))",
+          neutral5: "hsl(var(--muted))",
+          neutral10: "hsl(var(--muted))",
+          neutral20: "hsl(var(--border))",
+          neutral30: "hsl(var(--border))",
+          neutral40: "hsl(var(--muted-foreground))",
+          neutral50: "hsl(var(--muted-foreground))",
+          neutral60: "hsl(var(--muted-foreground))",
+          neutral70: "hsl(var(--foreground))",
+          neutral80: "hsl(var(--foreground))",
+          neutral90: "hsl(var(--foreground))",
         },
       })}
     />

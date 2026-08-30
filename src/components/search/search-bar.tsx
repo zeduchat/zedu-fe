@@ -264,7 +264,7 @@ export const SearchInput = ({ name, orgId }: SearchInputProps) => {
       ref={searchRef}
       className="w-full max-w-xl mx-auto p-2 md:p-4 relative"
     >
-      <div className="flex items-center w-full bg-blue-100 rounded-md relative">
+      <div className="flex items-center w-full bg-blue-300 rounded-md relative">
         <Search className="text-white mx-1 md:mx-2 shrink-0" size={19} />
         {channelName && (
           <div className="flex items-center justify-center px-2 py-1 my-2 rounded-md bg-white shrink-0">
@@ -316,7 +316,7 @@ export const SearchInput = ({ name, orgId }: SearchInputProps) => {
               setActiveIndex((prev) => Math.max(prev - 1, -1));
             }
           }}
-          className="bg-blue-100 text-white text-xs md:text-sm placeholder:text-xs md:placeholder:text-sm placeholder-white/90 pl-1 md:pl-2 pr-2 md:pr-4 py-1.5 md:py-2 rounded-md focus:outline-none focus:ring-0 w-28 sm:w-48 md:w-64 lg:w-80"
+          className="bg-transparent text-white text-xs md:text-sm placeholder:text-xs md:placeholder:text-sm placeholder-white/90 pl-1 md:pl-2 pr-2 md:pr-4 py-1.5 md:py-2 rounded-md focus:outline-none focus:ring-0 w-28 sm:w-48 md:w-64 lg:w-80"
         />
         {searchQuery ? (
           <button
@@ -337,7 +337,7 @@ export const SearchInput = ({ name, orgId }: SearchInputProps) => {
       </div>
 
       {(showPreviewPanel || showRecentPanel) && (
-        <div className="absolute top-full mt-2 w-[min(100%,32rem)] left-1/2 -translate-x-1/2 bg-white border border-gray-200 rounded-lg shadow-xl z-50 overflow-hidden">
+        <div className="absolute top-full mt-2 w-[min(100%,32rem)] left-1/2 -translate-x-1/2 bg-popover text-popover-foreground border border-gray-200 rounded-lg shadow-xl z-50 overflow-hidden">
           {showRecentPanel && (
             <div className="p-3">
               <div className="text-xs font-semibold text-gray-500 mb-2 uppercase">
@@ -399,7 +399,9 @@ export const SearchInput = ({ name, orgId }: SearchInputProps) => {
                             }
                             onClick={() => openMessageResult(result)}
                             className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
-                              isActive ? "bg-purple-50" : "hover:bg-gray-50"
+                              isActive
+                                ? "bg-purple-50 dark:bg-white/10"
+                                : "hover:bg-gray-50"
                             }`}
                           >
                             <div className="flex items-center gap-2 mb-1">
@@ -442,7 +444,9 @@ export const SearchInput = ({ name, orgId }: SearchInputProps) => {
                             key={person.id}
                             onClick={() => void openPersonResult(person)}
                             className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
-                              isActive ? "bg-purple-50" : "hover:bg-gray-50"
+                              isActive
+                                ? "bg-purple-50 dark:bg-white/10"
+                                : "hover:bg-gray-50"
                             }`}
                           >
                             <div className="flex items-center gap-3">
