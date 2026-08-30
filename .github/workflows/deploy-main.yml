@@ -24,7 +24,7 @@ jobs:
         run: rm -rf node_modules
 
       - name: Install node_modules
-        run: pnpm install
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build on workflow first
         run: pnpm build
@@ -36,16 +36,20 @@ jobs:
 
           echo "${{ secrets.ZEDU_SERVER_SSH_KEY }}" | ssh-add -
 
-          OUTPUT=$(ssh -o StrictHostKeyChecking=no ${{ secrets.ZEDU_SERVER_SSH_USER }}@${{ secrets.ZEDU_SERVER_SSH_HOST }} << 'ENDSSH'
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.ZEDU_SERVER_SSH_USER }}@${{ secrets.ZEDU_SERVER_SSH_HOST }} << 'ENDSSH'
+            set -e
 
             cd /var/www/zedu_fe
+
             git reset --hard
             git pull origin main
-            pnpm install
-            pnpm build
 
+            export CI=true
+
+            pnpm install --no-frozen-lockfile
+            pnpm build
           ENDSSH
-          )
 
       - name: Pull and Restart App
         run: |
@@ -54,10 +58,11 @@ jobs:
 
           echo "${{ secrets.ZEDU_SERVER_SSH_KEY }}" | ssh-add -
 
-          OUTPUT=$(ssh -o StrictHostKeyChecking=no ${{ secrets.ZEDU_SERVER_SSH_USER }}@${{ secrets.ZEDU_SERVER_SSH_HOST }} << 'ENDSSH'
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.ZEDU_SERVER_SSH_USER }}@${{ secrets.ZEDU_SERVER_SSH_HOST }} << 'ENDSSH'
+            set -e
 
             cd /var/www/zedu_fe
-            supervisorctl restart zedu_fe
 
+            supervisorctl restart zedu_fe
           ENDSSH
-          )
