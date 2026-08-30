@@ -8,7 +8,11 @@ on:
 
 jobs:
   deploy_zedu_fe_staging:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, zedu-runner]
+
+    env:
+      CI: true
+      
     if: github.event.repository.fork == false
 
     steps:
