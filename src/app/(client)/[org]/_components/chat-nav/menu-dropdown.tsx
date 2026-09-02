@@ -84,6 +84,7 @@ const MenuDropdown = ({ isOpen, onClose, participants }: MenuDropdownProps) => {
 
       if (res?.status === 200 || res?.status === 201) {
         dispatch({ type: ACTIONS.CLEAR_CHATS });
+        dispatch({ type: ACTIONS.PARTICIPANTS, payload: [] });
         dispatch({
           type: ACTIONS.DMS,
           payload: (dms || []).filter(

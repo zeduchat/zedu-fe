@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { ACTIONS } from "~/store/Actions";
 import { DataContext } from "~/store/GlobalState";
 import { GetRequest } from "~/utils/new-request";
@@ -25,6 +25,11 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { state, dispatch } = useContext(DataContext);
+  const fetchedSessionRef = useRef<{
+    token: string | null;
+    orgId: string | null;
+    profileCallback: boolean;
+  } | null>(null);
 
   useEffect(() => {
     const initializeApp = async () => {
@@ -57,10 +62,23 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
 
       // 1. Immediate local check
       if (!orgId || !token) {
+        fetchedSessionRef.current = null;
         // Only redirect if we aren't already on an auth page
         if (!pathname.startsWith("/auth")) {
           router.push(loginUrl);
         }
+        setLoading(false);
+        return;
+      }
+
+      const profileCallback = state?.profileCallback ?? false;
+      const shouldRefetchProfile =
+        !fetchedSessionRef.current ||
+        fetchedSessionRef.current.token !== token ||
+        fetchedSessionRef.current.orgId !== orgId ||
+        fetchedSessionRef.current.profileCallback !== profileCallback;
+
+      if (!shouldRefetchProfile) {
         setLoading(false);
         return;
       }
@@ -76,6 +94,7 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
           isUnauthorizedResponse(profileRes) ||
           isUnauthorizedResponse(orgRes)
         ) {
+          fetchedSessionRef.current = null;
           handleSessionExpired();
           return;
         }
@@ -115,8 +134,11 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
             });
           }
         }
+
+        fetchedSessionRef.current = { token, orgId, profileCallback };
       } catch (error) {
         console.error("AuthGuard Initialization Error:", error);
+        fetchedSessionRef.current = null;
         if (!pathname.startsWith("/auth")) {
           router.push(loginUrl);
         }

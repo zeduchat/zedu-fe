@@ -35,24 +35,22 @@ export const PeopleHomeCard = (props: ComponentProps) => {
   const [isRemoving, setIsRemoving] = useState(false);
 
   const handleRoute = async () => {
-    if (props?.channel_type === "dm") {
-      const participant = props?.participants?.[0];
-      dispatch({ type: ACTIONS.PARTICIPANT, payload: participant });
-    } else {
-      dispatch({ type: ACTIONS.PARTICIPANTS, payload: props?.participants });
-    }
-
     localStorage.setItem("channelName", props?.username);
+
     dispatch({
       type: ACTIONS.CHATS,
       payload: { newThreads: props.preview_thread || [], newPage: 1 },
     });
 
     if (props?.channel_type === "dm") {
+      const participant = props?.participants?.[0];
+      dispatch({ type: ACTIONS.PARTICIPANT, payload: participant });
+
       router.push(
         `/${orgSlug}/home/people/${props?.channel_id}/${props?.participant_id}/dm`
       );
     } else {
+      dispatch({ type: ACTIONS.PARTICIPANTS, payload: props?.participants });
       router.push(`/${orgSlug}/home/people/${props?.channel_id}/dms`);
     }
   };

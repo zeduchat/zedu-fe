@@ -32,9 +32,13 @@ export const ChannelCard = (props: ComponentProps) => {
 
   // Handle channel selection
   const selectChannel = () => {
-    dispatch({ type: ACTIONS.MESSAGES, payload: props.preview_thread });
+    dispatch({
+      type: ACTIONS.MESSAGES,
+      payload: { newThreads: props.preview_thread || [], newPage: 1 },
+    });
     localStorage.setItem("channelId", props?.channels_id);
     localStorage.setItem("channelName", props?.name);
+    dispatch({ type: ACTIONS.CHANNEL_NAME, payload: props?.name });
 
     router.push(`/${orgSlug}/home/channels/${props.channels_id}`);
   };

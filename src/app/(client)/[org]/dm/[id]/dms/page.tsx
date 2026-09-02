@@ -20,22 +20,35 @@ const DmPage = () => {
   const params = useParams();
   const id = params.id as string;
 
-  // get the participant infor
+  // Keep local header state in sync when membership changes in global state.
   useEffect(() => {
     setParticipants(previewParticipants);
+  }, [previewParticipants]);
+
+  // get the participant infor
+  useEffect(() => {
+    if (!orgId || !id) return;
+
+    let cancelled = false;
+
     const getUser = async () => {
       const res = await GetRequest(
         `/organisations/${orgId}/dms/participants/${id}`
       );
+      if (cancelled) return;
       if (res?.status === 200 || res?.status === 201) {
-        setParticipants(res?.data?.data.participants);
+        const list = res?.data?.data.participants ?? [];
+        setParticipants(list);
+        dispatch({ type: ACTIONS.PARTICIPANTS, payload: list });
       }
     };
 
-    if (orgId) {
-      getUser();
-    }
-  }, [id, orgId]);
+    void getUser();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id, orgId, dispatch]);
 
   // send message
   const handleSendMessage = async (
@@ -117,20 +130,8 @@ const DmPage = () => {
       <div
         className={`relative flex flex-col flex-1 ${state?.reply ? "mr-[440px]" : ""}`}
       >
-        <ChatHeader
-          participants={
-            previewParticipants?.length !== 0
-              ? previewParticipants
-              : participants
-          }
-        />
-        <GroupMessage
-          participants={
-            previewParticipants?.length !== 0
-              ? previewParticipants
-              : participants
-          }
-        />
+        <ChatHeader participants={participants} />
+        <GroupMessage participants={participants} />
 
         <div className="absolute bottom-0 w-full">
           <MessageBox

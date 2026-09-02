@@ -1,84 +1,152 @@
 "use client";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useRef } from "react";
 import { DataContext } from "~/store/GlobalState";
-import axios from "axios";
-import { Centrifuge } from "centrifuge";
 import { ACTIONS } from "~/store/Actions";
 import { useParams } from "next/navigation";
+import {
+  getSharedCentrifuge,
+  getSubscriptionToken,
+  prepareChannelSubscription,
+  releaseChannelSubscription,
+} from "~/lib/centrifugo/shared-centrifuge";
 
 /** eslint-disable */
+
+const getParticipantId = (participant: any) =>
+  String(participant?.user_id ?? participant?.id ?? "");
+
+const removeParticipantFromList = (list: any[] | undefined, userId: string) =>
+  (list || []).filter(
+    (participant) => getParticipantId(participant) !== userId
+  );
+
+const updateConversationParticipants = (
+  conversations: any[] | undefined,
+  channelId: string,
+  nextParticipants: any[]
+) =>
+  (conversations || []).map((conversation) => {
+    if (
+      String(conversation?.channel_id || conversation?.channels_id) !==
+      String(channelId)
+    ) {
+      return conversation;
+    }
+
+    return {
+      ...conversation,
+      participants: nextParticipants,
+      username: nextParticipants
+        .map((participant) => participant?.username)
+        .filter(Boolean)
+        .join(", "),
+    };
+  });
+
+const resolveLeftUserId = (result: any, data: any) => {
+  const leftUser =
+    result?.data?.user_left ||
+    result?.data?.left_user ||
+    result?.data?.removed_user ||
+    result?.data?.user ||
+    data?.user_left ||
+    data?.left_user ||
+    data?.removed_user ||
+    null;
+
+  return String(
+    leftUser?.user_id ??
+      leftUser?.id ??
+      result?.data?.user_id ??
+      result?.data?.left_user_id ??
+      result?.data?.participant_id ??
+      result?.modification_ids?.user_id ??
+      result?.modification_ids?.participant_id ??
+      data?.user_id ??
+      ""
+  );
+};
+
+const isGroupMembershipLeaveEvent = (result: any, data: any) => {
+  const notificationType = String(
+    result?.notification_type || ""
+  ).toLowerCase();
+  const event = String(
+    result?.event || data?.event || result?.data?.event || ""
+  ).toLowerCase();
+  const message = String(
+    data?.message || result?.data?.message || ""
+  ).toLowerCase();
+
+  return (
+    notificationType.includes("member_left") ||
+    notificationType.includes("participant_left") ||
+    notificationType.includes("user_left_group") ||
+    notificationType.includes("left_group") ||
+    notificationType.includes("member_removed") ||
+    notificationType.includes("removed_participant") ||
+    notificationType.includes("leave_conversation") ||
+    event.includes("member_left") ||
+    event.includes("participant_left") ||
+    event.includes("user_left_group") ||
+    event.includes("left_group") ||
+    event.includes("member_removed") ||
+    ((data?.type === "system" || data?.user_type === "system") &&
+      (message.includes("left") || message.includes("removed")))
+  );
+};
 
 //
 
 export default function ChatConnection() {
   const params = useParams();
   const id = params.id as string;
-  const { dispatch } = useContext(DataContext);
+  const { state, dispatch } = useContext(DataContext);
+  const participantsRef = useRef(state.participants);
+  const dmsRef = useRef(state.dms);
+  const homeDmsRef = useRef(state.homeDms);
 
-  const connectUrl: any = process.env.NEXT_PUBLIC_CONNECT_URL;
+  useEffect(() => {
+    participantsRef.current = state.participants;
+  }, [state.participants]);
 
-  // get connection token
-  const getConnectionToken = async () => {
-    const token = localStorage.getItem("token") || "";
-    const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/token/connection`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    return response.data.data.token;
-  };
+  useEffect(() => {
+    dmsRef.current = state.dms;
+  }, [state.dms]);
 
-  //fetch subscription token
-  const getSubscriptionToken = async (channel: string) => {
-    const token = localStorage.getItem("token") || "";
-
-    const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/token/subscription`,
-      { channel },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    return response.data.data.token;
-  };
+  useEffect(() => {
+    homeDmsRef.current = state.homeDms;
+  }, [state.homeDms]);
 
   // centrifugo connection for notification
   useEffect(() => {
     if (id) {
-      // Initialize Centrifuge client
-      const centrifugeClient: any = new Centrifuge(connectUrl, {
-        getToken: getConnectionToken,
-        debug: true,
+      const centrifugeClient = getSharedCentrifuge();
+      const sub = prepareChannelSubscription(centrifugeClient, id, {
+        getToken: () => getSubscriptionToken(id),
       });
 
-      centrifugeClient.on("connect", () => {
-        console.log("Connected to Centrifuge");
-      });
-
-      centrifugeClient.on("disconnect", () => {
-        console.log("Disconnected from Centrifuge");
-      });
-
-      // Function to get the token for the personal channel
-      const getPersonalChannelSubscriptionToken = async () => {
-        return getSubscriptionToken(id);
+      const applyParticipantsUpdate = (nextParticipants: any[]) => {
+        dispatch({ type: ACTIONS.PARTICIPANTS, payload: nextParticipants });
+        dispatch({
+          type: ACTIONS.DMS,
+          payload: updateConversationParticipants(
+            dmsRef.current,
+            id,
+            nextParticipants
+          ),
+        });
+        dispatch({
+          type: ACTIONS.HOME_DMS,
+          payload: updateConversationParticipants(
+            homeDmsRef.current,
+            id,
+            nextParticipants
+          ),
+        });
       };
 
-      // Create a subscription to the channel
-      const sub = centrifugeClient.newSubscription(id, {
-        getToken: getPersonalChannelSubscriptionToken,
-      });
-
-      // message publishing
-      sub.on("publication", (ctx: any) => {
+      const onPublication = (ctx: any) => {
         const result = ctx?.data;
         // console.log("chat conn", ctx);
         const { data } = ctx;
@@ -86,6 +154,16 @@ export default function ChatConnection() {
         dispatch({ type: ACTIONS.AGENT_STATE, payload: ctx?.data });
 
         if (data?.type === "message" && data.user_type === "user") {
+          dispatch({
+            type: ACTIONS.CHATS,
+            payload: { newMessage: data, isRealTime: true },
+          });
+        }
+
+        if (
+          data?.type === "system" ||
+          (data?.type === "message" && data?.user_type === "system")
+        ) {
           dispatch({
             type: ACTIONS.CHATS,
             payload: { newMessage: data, isRealTime: true },
@@ -101,6 +179,39 @@ export default function ChatConnection() {
             type: ACTIONS.STREAM_APPEND,
             payload: { message: data },
           });
+        }
+
+        // Keep group member lists in sync when someone leaves/is removed.
+        if (isGroupMembershipLeaveEvent(result, data)) {
+          const nextParticipantsFromEvent =
+            result?.data?.participants || data?.participants;
+
+          if (Array.isArray(nextParticipantsFromEvent)) {
+            applyParticipantsUpdate(nextParticipantsFromEvent);
+          } else {
+            const leftUserId = resolveLeftUserId(result, data);
+            if (leftUserId) {
+              applyParticipantsUpdate(
+                removeParticipantFromList(participantsRef.current, leftUserId)
+              );
+            }
+          }
+        } else if (
+          Array.isArray(result?.data?.participants) &&
+          (String(result?.notification_type || "")
+            .toLowerCase()
+            .includes("participant") ||
+            String(result?.notification_type || "")
+              .toLowerCase()
+              .includes("member") ||
+            String(result?.event || result?.data?.event || "")
+              .toLowerCase()
+              .includes("participant") ||
+            String(result?.event || result?.data?.event || "")
+              .toLowerCase()
+              .includes("member"))
+        ) {
+          applyParticipantsUpdate(result.data.participants);
         }
 
         // update the reply count from reply message
@@ -306,24 +417,29 @@ export default function ChatConnection() {
             },
           });
         }
-      });
+      };
 
-      sub.on("error", (ctx: any) => {
+      const onError = (ctx: any) => {
         console.error(`Subscription error: ${ctx.message}`);
-      });
+      };
 
-      // Connect to Centrifuge and subscribe
-      centrifugeClient.connect();
-      sub.subscribe();
+      sub.on("publication", onPublication);
+      sub.on("error", onError);
+
+      if (sub.state !== "subscribed") {
+        sub.subscribe();
+      }
       dispatch({ type: ACTIONS.CHAT_SUBSCRIPTION, payload: sub });
 
-      // Cleanup on component unmount
+      // Cleanup on channel change or unmount — keep the shared connection alive
       return () => {
-        sub.unsubscribe();
-        centrifugeClient.disconnect();
+        sub.off("publication", onPublication);
+        sub.off("error", onError);
+        releaseChannelSubscription(centrifugeClient, id, sub);
+        dispatch({ type: ACTIONS.CHAT_SUBSCRIPTION, payload: null });
       };
     }
-  }, [id, connectUrl, dispatch]);
+  }, [id, dispatch]);
 
   //
 

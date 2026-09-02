@@ -1,8 +1,6 @@
 "use client";
 import { useContext, useEffect, useRef } from "react";
 import { DataContext } from "~/store/GlobalState";
-import axios from "axios";
-import { Centrifuge } from "centrifuge";
 import { ACTIONS } from "~/store/Actions";
 import { ToastContainer } from "react-toastify";
 import { useParams, usePathname } from "next/navigation";
@@ -14,6 +12,12 @@ import {
   isHomeRoute,
   isNotificationsRoute,
 } from "~/lib/notifications/notification-badge";
+import {
+  getSharedCentrifuge,
+  getSubscriptionToken,
+  prepareChannelSubscription,
+  releaseChannelSubscription,
+} from "~/lib/centrifugo/shared-centrifuge";
 
 const CLIENT_URL = process.env.NEXT_PUBLIC_CLIENT_URL;
 
@@ -33,7 +37,6 @@ export default function GeneralNotificationConnection() {
 
   const routeUrl = `${CLIENT_URL}${pathname}`;
   const audioPlayer = useRef<HTMLAudioElement | null>(null);
-  const connectUrl: any = process.env.NEXT_PUBLIC_CONNECT_URL;
   const participantsRef = useRef<any[]>(state?.buzzParticipants || []);
   const hasJoinedRef = useRef(state.hasJoined);
 
@@ -44,38 +47,6 @@ export default function GeneralNotificationConnection() {
   useEffect(() => {
     hasJoinedRef.current = state.hasJoined;
   }, [state.hasJoined]);
-
-  // get connection token
-  const getConnectionToken = async () => {
-    const token = localStorage.getItem("token") || "";
-    const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/token/connection`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    return response.data.data.token;
-  };
-
-  //fetch subscription token
-  const getSubscriptionToken = async (channel: string) => {
-    const token = localStorage.getItem("token") || "";
-
-    const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/token/subscription`,
-      { channel },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    return response.data.data.token;
-  };
 
   useEffect(() => {
     // ask for permission early on
@@ -91,37 +62,15 @@ export default function GeneralNotificationConnection() {
   // centrifugo connection for notification
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
+    if (!orgId || !user?.id) return;
 
-    // Initialize Centrifuge client
-    const centrifugeClient: any = new Centrifuge(connectUrl, {
-      getToken: getConnectionToken,
-      debug: true,
+    const channel = `${orgId}/${user.id}`;
+    const centrifugeClient = getSharedCentrifuge();
+    const sub = prepareChannelSubscription(centrifugeClient, channel, {
+      getToken: () => getSubscriptionToken(channel),
     });
 
-    centrifugeClient.on("connect", () => {
-      console.log("Connected to Centrifuge");
-    });
-
-    centrifugeClient.on("disconnect", () => {
-      console.log("Disconnected from Centrifuge");
-    });
-
-    // Function to get the token for the personal channel
-    const getPersonalChannelSubscriptionToken = async () => {
-      return getSubscriptionToken(`${orgId}/${user?.id}`);
-    };
-
-    // Create a subscription to the channel
-    const sub = centrifugeClient.newSubscription(`${orgId}/${user?.id}`, {
-      getToken: getPersonalChannelSubscriptionToken,
-    });
-
-    sub.on("subscribed", () => {
-      // console.log("Subscription confirmeds for general notification:", sub);
-    });
-
-    // message publishing
-    sub.on("publication", (ctx: any) => {
+    const onPublication = (ctx: any) => {
       dispatch({ type: ACTIONS.NOTIFICATIONS, payload: ctx?.data });
       dispatch({ type: ACTIONS.NOTIFY, payload: ctx?.data?.data });
 
@@ -382,22 +331,25 @@ export default function GeneralNotificationConnection() {
       ) {
         dispatch({ type: ACTIONS.CREATE_CALLBACK });
       }
-    });
-
-    sub.on("error", (ctx: any) => {
-      console.log(`Subscription error: ${ctx.message}`);
-    });
-
-    // Connect to Centrifuge and subscribe
-    centrifugeClient.connect();
-    sub.subscribe();
-
-    // Cleanup on component unmount
-    return () => {
-      sub.unsubscribe();
-      centrifugeClient.disconnect();
     };
-  }, [connectUrl, dispatch, orgId]);
+
+    const onError = (ctx: any) => {
+      console.log(`Subscription error: ${ctx.message}`);
+    };
+
+    sub.on("publication", onPublication);
+    sub.on("error", onError);
+
+    if (sub.state !== "subscribed") {
+      sub.subscribe();
+    }
+
+    return () => {
+      sub.off("publication", onPublication);
+      sub.off("error", onError);
+      releaseChannelSubscription(centrifugeClient, channel, sub);
+    };
+  }, [dispatch, orgId, id]);
 
   //
 
