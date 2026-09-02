@@ -18,11 +18,10 @@ import {
   formatBytes,
   getDocumentAccentClass,
   getDocumentCategory,
+  getDocumentPreviewUrl,
   getDocumentTypeLabel,
-  getOfficeEmbedUrl,
-  getPdfEmbedUrl,
+  isValidPreviewSrc,
   normalizeFileExtension,
-  usesOfficeEmbed,
 } from "~/utils/document-files";
 import {
   Popover,
@@ -59,15 +58,12 @@ const DocumentAttachmentCard: React.FC<DocumentAttachmentCardProps> = ({
   const accentClass = getDocumentAccentClass(category);
   const iconSrc = getFileIconClass(mediaItem.file_name);
 
-  const inlinePreviewSrc = useMemo(() => {
-    if (category === "pdf") {
-      return getPdfEmbedUrl(mediaItem.file_link);
-    }
-    if (usesOfficeEmbed(category)) {
-      return getOfficeEmbedUrl(mediaItem.file_link);
-    }
-    return null;
-  }, [category, mediaItem.file_link]);
+  const inlinePreviewSrc = useMemo(
+    () => getDocumentPreviewUrl(category, mediaItem.file_link),
+    [category, mediaItem.file_link]
+  );
+
+  const canInlinePreview = isValidPreviewSrc(inlinePreviewSrc);
 
   const handleDownload = async (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -138,7 +134,7 @@ const DocumentAttachmentCard: React.FC<DocumentAttachmentCardProps> = ({
           </div>
 
           <div className="relative h-[150px] overflow-hidden bg-[#F8F9FA]">
-            {inlinePreviewSrc && !previewError ? (
+            {canInlinePreview && !previewError ? (
               <iframe
                 src={inlinePreviewSrc}
                 title={`Preview of ${mediaItem.file_name}`}

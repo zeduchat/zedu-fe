@@ -5,12 +5,11 @@ import { getFileIconClass } from "../file-management/FileList";
 import {
   getDocumentCategory,
   getDocumentAccentClass,
+  getDocumentPreviewUrl,
   getDocumentTypeLabel,
-  getOfficeEmbedUrl,
-  getPdfEmbedUrl,
+  isValidPreviewSrc,
   isPreviewableDocument,
   normalizeFileExtension,
-  usesOfficeEmbed,
 } from "~/utils/document-files";
 
 interface MediaItem {
@@ -136,12 +135,12 @@ const DocumentPreview: React.FC<{ mediaItem: MediaItem }> = ({ mediaItem }) => {
   const accentClass = getDocumentAccentClass(category);
   const iconSrc = getFileIconClass(mediaItem.file_name);
 
-  const inlinePreviewSrc = useMemo(() => {
-    if (category === "pdf") return getPdfEmbedUrl(mediaItem.file_link);
-    if (usesOfficeEmbed(category))
-      return getOfficeEmbedUrl(mediaItem.file_link);
-    return null;
-  }, [category, mediaItem.file_link]);
+  const inlinePreviewSrc = useMemo(
+    () => getDocumentPreviewUrl(category, mediaItem.file_link),
+    [category, mediaItem.file_link]
+  );
+
+  const canInlinePreview = isValidPreviewSrc(inlinePreviewSrc);
 
   return (
     <div className="mt-2 w-full max-w-[350px] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
@@ -163,7 +162,7 @@ const DocumentPreview: React.FC<{ mediaItem: MediaItem }> = ({ mediaItem }) => {
         </div>
       </div>
       <div className="relative h-[200px] overflow-hidden bg-[#F8F9FA]">
-        {inlinePreviewSrc && !previewError ? (
+        {canInlinePreview && !previewError ? (
           <iframe
             src={inlinePreviewSrc}
             title={`Preview of ${mediaItem.file_name}`}

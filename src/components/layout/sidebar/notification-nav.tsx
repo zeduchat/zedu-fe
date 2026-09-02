@@ -105,10 +105,6 @@ export default function NotificationNav() {
       className={`fixed top-[60px] lg:rounded-tl-[8px] lg:rounded-bl-[8px] bottom-[60px] left-0 lg:left-[85px] h-[100dvh] bg-blue-300 lg:translate-x-0 ${state?.openSidebar ? "translate-x-[85px]" : "-translate-x-full "}
       pt-4 flex flex-col gap-4 sm:w-[350px] transition-transform duration-300 ease-in-out z-30`}
     >
-      <div className="flex items-center justify-between px-4">
-        <OrganisationMenu name="Notifications" />
-      </div>
-
       <div
         id="notificationScrollableDiv"
         className="flex-1 min-h-0 overflow-y-auto [&::-webkit-scrollbar]:hidden text-blue-50 cursor-pointer pb-20"

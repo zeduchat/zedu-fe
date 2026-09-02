@@ -38,8 +38,49 @@ export function ipapiUrl(): string {
   return readEnv("NEXT_PUBLIC_IPAPI_URL");
 }
 
-export function officeEmbedUrl(fileUrl: string): string {
-  const base = readEnv("NEXT_PUBLIC_OFFICE_EMBED_URL");
+export function mediaBaseUrl(): string {
+  return readEnv("NEXT_PUBLIC_MEDIA_URL");
+}
+
+export function mediaStagingBaseUrl(): string {
+  return readEnv("NEXT_PUBLIC_MEDIA_STAGING_URL");
+}
+
+export function resolveMediaFileUrl(fileUrl: string): string | null {
+  if (!fileUrl) return null;
+
+  if (/^https?:\/\//i.test(fileUrl)) {
+    return fileUrl;
+  }
+
+  const base = mediaBaseUrl() || mediaStagingBaseUrl();
+  if (!base) return null;
+
+  const path = fileUrl.startsWith("/") ? fileUrl : `/${fileUrl}`;
+  return `${base}${path}`;
+}
+
+export function isAllowedMediaFileUrl(fileUrl: string): boolean {
+  try {
+    const parsed = new URL(fileUrl);
+    const allowedHosts = [mediaBaseUrl(), mediaStagingBaseUrl()]
+      .filter(Boolean)
+      .map((base) => new URL(base).hostname);
+
+    return allowedHosts.includes(parsed.hostname);
+  } catch {
+    return false;
+  }
+}
+
+export function officeEmbedBaseUrl(): string {
+  return readEnv("NEXT_PUBLIC_OFFICE_EMBED_URL");
+}
+
+export function officeEmbedUrl(fileUrl: string): string | null {
+  const base = officeEmbedBaseUrl();
+  if (!base || !fileUrl) return null;
+
   return `${base}?src=${encodeURIComponent(fileUrl)}`;
 }
 

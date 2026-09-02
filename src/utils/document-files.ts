@@ -1,4 +1,8 @@
-import { officeEmbedUrl } from "~/lib/env-urls";
+import {
+  officeEmbedBaseUrl,
+  officeEmbedUrl,
+  resolveMediaFileUrl,
+} from "~/lib/env-urls";
 
 export type DocumentCategory =
   | "pdf"
@@ -69,11 +73,39 @@ export const getDocumentCategory = (media: {
 export const isPreviewableDocument = (category: DocumentCategory): boolean =>
   category !== "file";
 
-export const getOfficeEmbedUrl = (fileUrl: string): string =>
+export const isOfficeEmbedConfigured = (): boolean =>
+  Boolean(officeEmbedBaseUrl());
+
+export const getOfficeEmbedUrl = (fileUrl: string): string | null =>
   officeEmbedUrl(fileUrl);
 
-export const getPdfEmbedUrl = (fileUrl: string, page = 1): string =>
-  `${fileUrl}#page=${page}&view=FitH&toolbar=0&navpanes=0`;
+export const getPdfEmbedUrl = (fileUrl: string, page = 1): string | null => {
+  const resolvedUrl = resolveMediaFileUrl(fileUrl);
+  if (!resolvedUrl) return null;
+  return `${resolvedUrl}#page=${page}&view=FitH&toolbar=0&navpanes=0`;
+};
+
+export const isValidPreviewSrc = (
+  url: string | null | undefined
+): url is string =>
+  Boolean(
+    url &&
+    (/^https?:\/\//i.test(url) || url.startsWith("/api/document-preview"))
+  );
+
+export const getDocumentPreviewUrl = (
+  category: DocumentCategory,
+  fileUrl: string
+): string | null => {
+  const resolvedUrl = resolveMediaFileUrl(fileUrl);
+  if (!resolvedUrl) return null;
+
+  if (category === "pdf" || usesOfficeEmbed(category)) {
+    return `/api/document-preview?url=${encodeURIComponent(resolvedUrl)}`;
+  }
+
+  return null;
+};
 
 export const usesOfficeEmbed = (category: DocumentCategory): boolean =>
   category === "document" ||
