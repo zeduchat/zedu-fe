@@ -38,13 +38,8 @@ export function ipapiUrl(): string {
   return readEnv("NEXT_PUBLIC_IPAPI_URL");
 }
 
-const DEFAULT_OFFICE_EMBED_URL =
-  "https://view.officeapps.live.com/op/embed.aspx";
-
 export function officeEmbedUrl(fileUrl: string): string {
-  const base =
-    readEnv("NEXT_PUBLIC_OFFICE_EMBED_URL") || DEFAULT_OFFICE_EMBED_URL;
-
+  const base = readEnv("NEXT_PUBLIC_OFFICE_EMBED_URL");
   return `${base}?src=${encodeURIComponent(fileUrl)}`;
 }
 

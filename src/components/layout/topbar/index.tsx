@@ -514,54 +514,6 @@ const Topbar = () => {
       <div className="flex h-full w-3/5 lg:w-auto  items-center lg:py-1 mr-2 lg:mr-0 lg:gap-6">
         <PillWidget />
         <MiniWidget />
-
-        {/* <div className="hidden lg:flex items-center gap-6 bg-white px-2 py-1 rounded-lg ml-auto">
-          <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-            <PopoverTrigger asChild>
-              <div className="flex items-center gap-2 cursor-pointer">
-                <div className="border border-[#d0d0fd] bg-[f1f1fe] rounded-md p-1">
-                  <Icons name="money" svgProps={{ color: "#8686F9" }} />
-                </div>
-                <p className="text-black text-[10px] sm:text-xs">
-                  {state && state.orgData
-                    ? Math.trunc(state.orgData.credit_balance)
-                    : 0}{" "}
-                  <span className="text-[#667085]">AI Credits</span>
-                </p>
-              </div>
-            </PopoverTrigger>
-            <PopoverContent className="w-48 mt-1" align="end">
-              <div className="grid gap-1">
-                <div
-                  className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-2 rounded-md"
-                  onClick={() => {
-                    router.push(
-                      `/${orgSlug}/settings/organisation/billing/all-plans`
-                    );
-                    setIsPopoverOpen(false);
-                  }}
-                >
-                  <CreditCard size={16} />
-                  <p className="text-black text-[10px] sm:text-sm">
-                    View plans
-                  </p>
-                </div>
-                <div
-                  className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-2 rounded-md"
-                  onClick={() => {
-                    window.location.href = `/${orgSlug}/settings/organisation/billing?ai-credits`;
-                    setIsPopoverOpen(false);
-                  }}
-                >
-                  <CircleDollarSign size={16} />
-                  <p className="text-black text-[10px] sm:text-sm">
-                    Top up AI credit
-                  </p>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div> */}
       </div>
     </div>
   );
