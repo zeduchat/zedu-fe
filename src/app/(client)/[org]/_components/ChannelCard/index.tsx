@@ -38,6 +38,7 @@ export const ChannelCard = (props: ComponentProps) => {
     });
     localStorage.setItem("channelId", props?.channels_id);
     localStorage.setItem("channelName", props?.name);
+    dispatch({ type: ACTIONS.CHANNEL_NAME, payload: props?.name });
 
     router.push(`/${orgSlug}/home/channels/${props.channels_id}`);
   };

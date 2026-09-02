@@ -152,13 +152,6 @@ export default function DMNav({ resizerRef, sidebarWidth, sidebarRef }: any) {
   };
 
   const handleRoute = (data: any) => {
-    if (data?.channel_type === "dm") {
-      const participant = data?.participants?.[0];
-      dispatch({ type: ACTIONS.PARTICIPANT, payload: participant });
-    } else {
-      dispatch({ type: ACTIONS.PARTICIPANTS, payload: data?.participants });
-    }
-
     dispatch({
       type: ACTIONS.CHATS,
       payload: { newThreads: data?.preview_thread || [], newPage: 1 },
@@ -167,8 +160,11 @@ export default function DMNav({ resizerRef, sidebarWidth, sidebarRef }: any) {
     localStorage.setItem("channelName", data?.username);
 
     if (data?.channel_type === "dm") {
+      const participant = data?.participants?.[0];
+      dispatch({ type: ACTIONS.PARTICIPANT, payload: participant });
       router.push(`/${orgSlug}/dm/${data?.channel_id}/${data?.participant_id}`);
     } else {
+      dispatch({ type: ACTIONS.PARTICIPANTS, payload: data?.participants });
       router.push(`/${orgSlug}/dm/${data?.channel_id}/dms`);
     }
   };
@@ -189,7 +185,6 @@ export default function DMNav({ resizerRef, sidebarWidth, sidebarRef }: any) {
   };
 
   const handleNewChat = () => {
-    dispatch({ type: ACTIONS.CLEAR_CHATS });
     router.push(`/${orgSlug}/home/people/new-chat`);
   };
 

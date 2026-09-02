@@ -38,8 +38,14 @@ export function ipapiUrl(): string {
   return readEnv("NEXT_PUBLIC_IPAPI_URL");
 }
 
+const DEFAULT_OFFICE_EMBED_URL =
+  "https://view.officeapps.live.com/op/embed.aspx";
+
 export function officeEmbedUrl(fileUrl: string): string {
-  return `${readEnv("NEXT_PUBLIC_OFFICE_EMBED_URL")}?src=${encodeURIComponent(fileUrl)}`;
+  const base =
+    readEnv("NEXT_PUBLIC_OFFICE_EMBED_URL") || DEFAULT_OFFICE_EMBED_URL;
+
+  return `${base}?src=${encodeURIComponent(fileUrl)}`;
 }
 
 export function uiAvatarUrl(name: string): string {

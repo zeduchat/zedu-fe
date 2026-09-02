@@ -1,5 +1,5 @@
 "use client";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import NewChatHeader from "../../../_components/new-chat-header";
 import { User } from "../../../_components/new-chat-header";
 import { PostRequest } from "~/utils/new-request";
@@ -14,6 +14,11 @@ const NewChat = () => {
   const router = useRouter();
   const { state, dispatch } = useContext(DataContext);
   const { orgSlug } = state;
+
+  useEffect(() => {
+    dispatch({ type: ACTIONS.CLEAR_CHATS });
+    dispatch({ type: ACTIONS.PARTICIPANTS, payload: [] });
+  }, [dispatch]);
 
   const handleSendMessage = async (
     id: string,

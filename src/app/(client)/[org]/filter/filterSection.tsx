@@ -58,12 +58,6 @@ const FilterSection: React.FC<FilterSectionProps> = ({
     { id: "sort-2", label: "Oldest to Newest", value: "oldest-to-newest" },
   ];
 
-  const accessOptions: FilterOption[] = [
-    { id: "access-1", label: "Can View", value: "can-view" },
-    { id: "access-2", label: "Can Edit", value: "can-edit" },
-    { id: "access-3", label: "Owner", value: "owner" },
-  ];
-
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const searchInput = (
@@ -104,15 +98,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
         multiSelect={false}
         showSearch={true}
       />
-      {viewType === "Shared with me" && (
-        <Sorting
-          title="Access"
-          options={accessOptions}
-          selectedValues={access}
-          onSelectionChange={onAccessChange}
-          multiSelect={false}
-        />
-      )}
+
       <Sorting
         title={viewType === "Deleted Files" ? "Date Deleted" : "Date Modified"}
         options={dateOptions}
@@ -148,15 +134,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
         multiSelect={false}
         showSearch={true}
       />
-      {viewType === "Shared with me" && (
-        <Sorting
-          title="Access"
-          options={accessOptions}
-          selectedValues={access}
-          onSelectionChange={onAccessChange}
-          multiSelect={false}
-        />
-      )}
+
       <Sorting
         title={viewType === "Deleted Files" ? "Date Deleted" : "Date Modified"}
         options={dateOptions}

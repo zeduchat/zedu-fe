@@ -1,89 +1,35 @@
 "use client";
 import { useContext, useEffect } from "react";
 import { DataContext } from "~/store/GlobalState";
-import axios from "axios";
-import { Centrifuge } from "centrifuge";
 import { ACTIONS } from "~/store/Actions";
 import { useParams } from "next/navigation";
-
-/* eslint-disable */
+import {
+  getSharedCentrifuge,
+  getSubscriptionToken,
+  prepareChannelSubscription,
+  releaseChannelSubscription,
+} from "~/lib/centrifugo/shared-centrifuge";
 
 //
 
 export default function ChannelConnection() {
   const params = useParams();
   const id = params.id as string;
-  const { state, dispatch } = useContext(DataContext);
-
-  const connectUrl: any = process.env.NEXT_PUBLIC_CONNECT_URL;
-
-  // get connection token
-  const getConnectionToken = async () => {
-    const token = localStorage.getItem("token") || "";
-    const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/token/connection`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    return response.data.data.token;
-  };
-
-  //fetch subscription token
-  const getSubscriptionToken = async (channel: string) => {
-    const token = localStorage.getItem("token") || "";
-
-    const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/token/subscription`,
-      { channel },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    return response.data.data.token;
-  };
+  const { dispatch } = useContext(DataContext);
 
   // centrifugo connection for notification
   useEffect(() => {
     if (id) {
-      // Initialize Centrifuge client
-      const centrifugeClient: any = new Centrifuge(connectUrl, {
-        getToken: getConnectionToken,
-        debug: true,
+      const centrifugeClient = getSharedCentrifuge();
+      const sub = prepareChannelSubscription(centrifugeClient, id, {
+        getToken: () => getSubscriptionToken(id),
       });
 
-      centrifugeClient.on("connect", () => {
-        // console.log("Connected to Centrifuge");
-      });
-
-      centrifugeClient.on("disconnect", () => {
-        // console.log("Disconnected from Centrifuge");
-      });
-
-      // Function to get the token for the personal channel
-      const getPersonalChannelSubscriptionToken = async () => {
-        return getSubscriptionToken(id);
+      const onSubscribed = () => {
+        dispatch({ type: ACTIONS.CHANNEL_SUBSCRIPTION, payload: sub });
       };
 
-      // Create a subscription to the channel
-      const sub = centrifugeClient.newSubscription(id, {
-        getToken: getPersonalChannelSubscriptionToken,
-      });
-
-      sub.on("subscribed", () => {
-        // console.log("Subscription confirmed:", sub);
-        dispatch({ type: ACTIONS.CHANNEL_SUBSCRIPTION, payload: sub });
-      });
-
-      // message publishing
-      sub.on("publication", (ctx: any) => {
+      const onPublication = (ctx: any) => {
         const result = ctx?.data;
         // console.log("channel publishing", ctx);
 
@@ -293,23 +239,30 @@ export default function ChannelConnection() {
             },
           });
         }
-      });
+      };
 
-      sub.on("error", (ctx: any) => {
+      const onError = (ctx: any) => {
         console.error(`Subscription error: ${ctx.message}`);
-      });
+      };
 
-      // Connect to Centrifuge and subscribe
-      centrifugeClient.connect();
-      sub.subscribe();
+      sub.on("subscribed", onSubscribed);
+      sub.on("publication", onPublication);
+      sub.on("error", onError);
 
-      // Cleanup on component unmount
+      if (sub.state !== "subscribed") {
+        sub.subscribe();
+      }
+
+      // Cleanup on channel change or unmount — keep the shared connection alive
       return () => {
-        sub.unsubscribe();
-        centrifugeClient.disconnect();
+        sub.off("subscribed", onSubscribed);
+        sub.off("publication", onPublication);
+        sub.off("error", onError);
+        releaseChannelSubscription(centrifugeClient, id, sub);
+        dispatch({ type: ACTIONS.CHANNEL_SUBSCRIPTION, payload: null });
       };
     }
-  }, [id, connectUrl, dispatch]);
+  }, [id, dispatch]);
 
   //
 

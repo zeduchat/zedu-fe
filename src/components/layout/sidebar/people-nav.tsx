@@ -69,7 +69,6 @@ export default function PeopleNav({
   };
 
   const handleNewChat = () => {
-    dispatch({ type: ACTIONS.CLEAR_CHATS });
     router.push(`/${orgSlug}/home/people/new-chat`);
   };
 

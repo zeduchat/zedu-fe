@@ -749,6 +749,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
       showError(message);
     }
   };
+
   const handleRenameFile = async (fileId: string, newName: string) => {
     const fileInfo = files?.find((file) => file.id === fileId);
     if (fileInfo) {
@@ -1189,6 +1190,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
                         Pinned Files
                       </p>
                     </div>
+
                     <div className="grid grid-cols-2 md:grid-cols-12 text-[#1F2937] font-semibold gap-4 px-6 py-3 border-b text-sm bg-gray-50/50">
                       <div className="md:col-span-6 flex items-center gap-3">
                         {isBulkMode && (
@@ -1211,6 +1213,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
                       <div className="md:col-span-1">Size</div>
                       <div className="md:col-span-1 text-right">Actions</div>
                     </div>
+
                     <div className="divide-y border-b border-gray-100">
                       {pinnedFiles.map((file) => (
                         <FileList
@@ -1278,6 +1281,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
               </>
             )}
           </section>
+
           <div className="text-[14px] px-6">
             {isLoadingFiles ? (
               <>{/* Skeleton loader */}</>
@@ -1322,6 +1326,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
                       </>
                     )}
                   </div>
+
                   <div className="divide-y">
                     {currentRegularFiles.map((file) => (
                       <FileList
@@ -1350,6 +1355,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
                       />
                     ))}
                   </div>
+
                   {/* Pagination */}
                   {totalPages > 1 && (
                     <div className="mt-8 flex justify-center mb-10">
@@ -1396,12 +1402,14 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
             )}
           </div>
         </div>
+
         <FileInfo
           file={selectedFile}
           isOpen={isFileInfoOpen}
           onClose={() => setIsFileInfoOpen(false)}
         />
       </div>
+
       {modalState.type === "create-folder" && (
         <CreateFolderModal
           isOpen={true}
