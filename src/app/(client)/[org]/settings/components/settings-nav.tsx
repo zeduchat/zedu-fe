@@ -132,14 +132,6 @@ export default function SettingsNav() {
       className={`fixed top-[60px] lg:left-[85px] h-[calc(100vh-60px)] lg:rounded-tl-[8px] z-30 bg-blue-300 lg:translate-x-0 ${state?.openSidebar ? "translate-x-[85px]" : "-translate-x-full "}
   pt-4 flex flex-col gap-4 w-[270px] transition-transform duration-300 ease-in-out`}
     >
-      <div className="flex items-center justify-between px-4">
-        <div className="flex items-center gap-[5px] md:justify-between w-full">
-          <div className="flex items-center gap-[5px] md:justify-between w-full">
-            <OrganisationMenu />
-          </div>
-        </div>
-      </div>
-
       <div
         className="overflow-auto text-blue-50 cursor-pointer px-3"
         ref={sidebarRef}

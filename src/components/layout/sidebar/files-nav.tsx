@@ -37,23 +37,9 @@ const FilesNav = () => {
 
   return (
     <div
-      className={`fixed top-[60px] bottom-[60px] left-0 lg:left-[85px] z-30 h-[calc(100vh-30px)] bg-blue-300 lg:translate-x-0 pt-4 flex flex-col gap-6 sm:w-[270px] transition-transform duration-300 ease-in-out rounded-tl-[8px] rounded-bl-[8px]
+      className={`fixed top-[60px] bottom-[60px] left-0 lg:left-[85px] z-30 h-[calc(100vh-30px)] bg-blue-300 lg:translate-x-0 pt-4 flex flex-col gap-6 sm:w-[270px] transition-transform duration-300 ease-in-out
     ${state?.openSidebar ? "translate-x-[85px]" : "-translate-x-full "}`}
     >
-      <div className="flex items-center justify-between px-3 gap-4">
-        <div className="flex items-center gap-[5px] md:justify-between w-full">
-          <OrganisationMenu name="Files & documents" />
-        </div>
-        <div className="flex items-center px-3 justify-between gap-2">
-          {/* <EditIcon className="text-[#BABAFB]" size={24} /> */}
-          <XIcon
-            className="block md:hidden text-gray-500 cursor-pointer"
-            onClick={() =>
-              dispatch({ type: ACTIONS.OPEN_SIDEBAR, payload: false })
-            }
-          />
-        </div>
-      </div>
       {/* Main content for the file management sidebar */}
       <section className="flex flex-col gap-[1px] justify-center w-full ">
         {sidebarBtns.map((btnData) => (
