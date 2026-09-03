@@ -14,9 +14,9 @@ import {
   formatBytes,
   getDocumentAccentClass,
   getDocumentCategory,
+  getDocumentPreviewUrl,
   getDocumentTypeLabel,
-  getOfficeEmbedUrl,
-  getPdfEmbedUrl,
+  isValidPreviewSrc,
   normalizeFileExtension,
 } from "~/utils/document-files";
 import ShareFileModal from "./share-file-modal";
@@ -41,12 +41,12 @@ const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
   const typeLabel = getDocumentTypeLabel(category, ext);
   const accentClass = getDocumentAccentClass(category);
 
-  const previewSrc = useMemo(() => {
-    if (category === "pdf") {
-      return getPdfEmbedUrl(mediaItem.file_link);
-    }
-    return getOfficeEmbedUrl(mediaItem.file_link);
-  }, [category, mediaItem.file_link]);
+  const previewSrc = useMemo(
+    () => getDocumentPreviewUrl(category, mediaItem.file_link),
+    [category, mediaItem.file_link]
+  );
+
+  const canPreview = isValidPreviewSrc(previewSrc);
 
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
@@ -57,15 +57,17 @@ const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
   }, [onClose]);
 
   useEffect(() => {
-    setHasError(false);
-    setIsLoading(true);
+    setHasError(!canPreview);
+    setIsLoading(canPreview);
+
+    if (!canPreview) return;
 
     const timer = window.setTimeout(() => {
       setIsLoading(false);
     }, 8000);
 
     return () => window.clearTimeout(timer);
-  }, [mediaItem.id]);
+  }, [mediaItem.id, canPreview]);
 
   const handleDownload = async () => {
     try {
@@ -187,10 +189,11 @@ const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
               </div>
             ) : (
               <iframe
-                src={previewSrc}
+                src={previewSrc ?? undefined}
                 title={mediaItem.file_name}
                 className="h-full w-full border-0 bg-white"
                 onLoad={() => setIsLoading(false)}
+                onError={() => setHasError(true)}
               />
             )}
           </div>

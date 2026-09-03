@@ -142,6 +142,11 @@ const reducers = (state: any, action: any) => {
         ...state,
         channelDetails: payload,
       };
+    case ACTIONS.CHANNEL_NAME:
+      return {
+        ...state,
+        channelName: payload,
+      };
     case ACTIONS.CHANNEL_BAR:
       return {
         ...state,

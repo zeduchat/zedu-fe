@@ -1,10 +1,14 @@
 "use client";
 import { useContext, useEffect } from "react";
 import { DataContext } from "~/store/GlobalState";
-import axios from "axios";
-import { Centrifuge } from "centrifuge";
 import { ACTIONS } from "~/store/Actions";
 import { usePathname } from "next/navigation";
+import {
+  getSharedCentrifuge,
+  getSubscriptionToken,
+  prepareChannelSubscription,
+  releaseChannelSubscription,
+} from "~/lib/centrifugo/shared-centrifuge";
 
 /** eslint-disable */
 
@@ -15,120 +19,63 @@ export default function ReplyConnection() {
   const pathname = usePathname();
   const isThreadsPage = pathname?.includes("/threads");
 
-  const connectUrl: any = process.env.NEXT_PUBLIC_CONNECT_URL;
-
-  // get connection token
-  const getConnectionToken = async () => {
-    const token = localStorage.getItem("token") || "";
-    const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/token/connection`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    return response.data.data.token;
-  };
-
-  //fetch subscription token
-  const getSubscriptionToken = async (channel: string) => {
-    const token = localStorage.getItem("token") || "";
-
-    const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/token/subscription`,
-      { channel },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    return response.data.data.token;
-  };
-
   // centrifugo connection for notification
   useEffect(() => {
-    if (state?.thread?.thread_id) {
-      // Initialize Centrifuge client
-      const centrifugeClient: any = new Centrifuge(connectUrl, {
-        getToken: getConnectionToken,
-        debug: true,
-      });
+    const threadId = state?.thread?.thread_id;
+    if (!threadId) return;
 
-      centrifugeClient.on("connect", () => {
-        console.log("Connected to Centrifuge");
-      });
+    const centrifugeClient = getSharedCentrifuge();
+    const sub = prepareChannelSubscription(centrifugeClient, threadId, {
+      getToken: () => getSubscriptionToken(threadId),
+    });
 
-      centrifugeClient.on("disconnect", () => {
-        console.log("Disconnected from Centrifuge");
-      });
+    const onSubscribed = () => {
+      dispatch({ type: ACTIONS.REPLY_SUBSCRIPTION, payload: sub });
+    };
 
-      // Function to get the token for the personal channel
-      const getPersonalChannelSubscriptionToken = async () => {
-        return getSubscriptionToken(state?.thread?.thread_id);
-      };
+    const onPublication = (ctx: any) => {
+      if (ctx?.data?.type === "message") {
+        dispatch({
+          type: ACTIONS.REPLIES,
+          payload: { newMessage: ctx.data, isRealTime: true },
+        });
+      }
+    };
 
-      // Create a subscription to the channel
-      const sub = centrifugeClient.newSubscription(state?.thread?.thread_id, {
-        getToken: getPersonalChannelSubscriptionToken,
-      });
+    const onError = (ctx: any) => {
+      console.error(`Subscription error: ${ctx.message}`);
+    };
 
-      sub.on("subscribed", () => {
-        // console.log("ReplySubscription confirmed:".sub);
-        dispatch({ type: ACTIONS.REPLY_SUBSCRIPTION, payload: sub });
-      });
+    sub.on("subscribed", onSubscribed);
+    sub.on("publication", onPublication);
+    sub.on("error", onError);
 
-      // message publishing
-      sub.on("publication", (ctx: any) => {
-        // console.log("Reply publishing", ctx?.data);
-
-        if (ctx?.data?.type === "message") {
-          dispatch({
-            type: ACTIONS.REPLIES,
-            payload: { newMessage: ctx.data, isRealTime: true },
-          });
-        }
-      });
-
-      sub.on("error", (ctx: any) => {
-        console.error(`Subscription error: ${ctx.message}`);
-      });
-
-      // Connect to Centrifuge and subscribe
-      centrifugeClient.connect();
+    if (sub.state !== "subscribed") {
       sub.subscribe();
-
-      // Cleanup on component unmount
-      return () => {
-        sub.unsubscribe();
-        centrifugeClient.disconnect();
-      };
+    } else {
+      dispatch({ type: ACTIONS.REPLY_SUBSCRIPTION, payload: sub });
     }
-  }, [connectUrl, dispatch, state?.thread?.thread_id]);
+
+    return () => {
+      sub.off("subscribed", onSubscribed);
+      sub.off("publication", onPublication);
+      sub.off("error", onError);
+      releaseChannelSubscription(centrifugeClient, threadId, sub);
+      dispatch({ type: ACTIONS.REPLY_SUBSCRIPTION, payload: null });
+    };
+  }, [dispatch, state?.thread?.thread_id]);
 
   // Threads page has no channel/DM connection — subscribe to the channel for reply reactions.
   useEffect(() => {
     const channelId = state?.thread?.channels_id;
     if (!isThreadsPage || !channelId) return;
 
-    const centrifugeClient: any = new Centrifuge(connectUrl, {
-      getToken: getConnectionToken,
-      debug: true,
+    const centrifugeClient = getSharedCentrifuge();
+    const sub = prepareChannelSubscription(centrifugeClient, channelId, {
+      getToken: () => getSubscriptionToken(channelId),
     });
 
-    const getChannelSubscriptionToken = async () => {
-      return getSubscriptionToken(channelId);
-    };
-
-    const sub = centrifugeClient.newSubscription(channelId, {
-      getToken: getChannelSubscriptionToken,
-    });
-
-    sub.on("publication", (ctx: any) => {
+    const onPublication = (ctx: any) => {
       const result = ctx?.data;
 
       if (
@@ -146,20 +93,25 @@ export default function ReplyConnection() {
           },
         });
       }
-    });
+    };
 
-    sub.on("error", (ctx: any) => {
+    const onError = (ctx: any) => {
       console.error(`Subscription error: ${ctx.message}`);
-    });
+    };
 
-    centrifugeClient.connect();
-    sub.subscribe();
+    sub.on("publication", onPublication);
+    sub.on("error", onError);
+
+    if (sub.state !== "subscribed") {
+      sub.subscribe();
+    }
 
     return () => {
-      sub.unsubscribe();
-      centrifugeClient.disconnect();
+      sub.off("publication", onPublication);
+      sub.off("error", onError);
+      releaseChannelSubscription(centrifugeClient, channelId, sub);
     };
-  }, [connectUrl, dispatch, isThreadsPage, state?.thread?.channels_id]);
+  }, [dispatch, isThreadsPage, state?.thread?.channels_id]);
 
   //
 

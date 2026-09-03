@@ -1,13 +1,17 @@
 "use client";
 import { useContext, useEffect, useRef } from "react";
 import { DataContext } from "~/store/GlobalState";
-import axios from "axios";
-import { Centrifuge } from "centrifuge";
 import { ACTIONS } from "~/store/Actions";
 import { showInfo } from "~/components/toast/sonner";
 import { playBuzzParticipantJoinSound } from "~/lib/buzz/play-join-sound";
 import { RECORDER_SESSION_MODE } from "~/lib/buzz/session";
 import { useParams } from "next/navigation";
+import {
+  getSharedCentrifuge,
+  getSubscriptionToken,
+  prepareChannelSubscription,
+  releaseChannelSubscription,
+} from "~/lib/centrifugo/shared-centrifuge";
 
 export default function AgoraConnection() {
   const params = useParams();
@@ -49,54 +53,15 @@ export default function AgoraConnection() {
     buzzDataRef.current = buzzData;
   }, [buzzData]);
 
-  const connectUrl: any = process.env.NEXT_PUBLIC_CONNECT_URL;
-
-  const getConnectionToken = async () => {
-    const token = localStorage.getItem("token") || "";
-    const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/token/connection`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    return response.data.data.token;
-  };
-
-  const getSubscriptionToken = async (channel: string) => {
-    const token = localStorage.getItem("token") || "";
-    const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/token/subscription`,
-      { channel },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    return response.data.data.token;
-  };
-
   useEffect(() => {
     if (!id) return;
 
-    const centrifugeClient: any = new Centrifuge(connectUrl, {
-      getToken: getConnectionToken,
-      debug: true,
+    const centrifugeClient = getSharedCentrifuge();
+    const sub = prepareChannelSubscription(centrifugeClient, id, {
+      getToken: () => getSubscriptionToken(id),
     });
 
-    const getPersonalChannelSubscriptionToken = async () => {
-      return getSubscriptionToken(id);
-    };
-
-    const sub = centrifugeClient.newSubscription(id, {
-      getToken: getPersonalChannelSubscriptionToken,
-    });
-
-    sub.on("publication", async (ctx: any) => {
+    const onPublication = async (ctx: any) => {
       const payload = ctx?.data;
       // console.log("agora centrifugo publication received", payload);
       const currentParticipants = participantsRef.current || [];
@@ -264,16 +229,19 @@ export default function AgoraConnection() {
           showInfo("All participants muted");
         }
       }
-    });
+    };
 
-    centrifugeClient.connect();
-    sub.subscribe();
+    sub.on("publication", onPublication);
+
+    if (sub.state !== "subscribed") {
+      sub.subscribe();
+    }
 
     return () => {
-      sub.unsubscribe();
-      centrifugeClient.disconnect();
+      sub.off("publication", onPublication);
+      releaseChannelSubscription(centrifugeClient, id, sub);
     };
-  }, [id, connectUrl, dispatch, user?.user_id]);
+  }, [id, dispatch, user?.user_id]);
 
   return null;
 }

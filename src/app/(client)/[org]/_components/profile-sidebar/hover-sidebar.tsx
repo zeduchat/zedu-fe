@@ -44,6 +44,8 @@ const HoverSidebar = () => {
     localStorage.setItem("channelName", user?.username);
     const orgId = localStorage.getItem("orgId") || "";
 
+    dispatch({ type: ACTIONS.PARTICIPANT, payload: user });
+
     const firstPayload = {
       chat_type: "user",
       participant_id: user?.user_id,

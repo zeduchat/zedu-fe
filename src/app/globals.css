@@ -777,8 +777,43 @@ html.dark .bg-blue-300 .bg-blue-100 {
   background-color: #dbeafe;
 }
 
+html.dark .zedu-marketing {
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --border: 214.3 31.8% 91.4%;
+  color-scheme: light;
+}
+
 html.dark .zedu-marketing,
 html.dark .zedu-marketing .bg-white {
   background-color: #fff;
   color: inherit;
+}
+
+html.dark .zedu-marketing .text-gray-600 {
+  color: #4b5563;
+}
+
+html.dark .zedu-marketing .text-gray-700 {
+  color: #374151;
+}
+
+html.dark .zedu-marketing .text-gray-500 {
+  color: #6b7280;
+}
+
+html.dark .zedu-marketing .text-\[\#344054\] {
+  color: #344054;
+}
+
+html.dark .zedu-marketing .text-black {
+  color: #000;
 }

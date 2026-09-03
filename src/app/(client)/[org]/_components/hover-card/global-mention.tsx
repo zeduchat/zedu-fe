@@ -5,7 +5,6 @@ import * as Popover from "@radix-ui/react-popover";
 import { PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { DataContext } from "~/store/GlobalState";
 import UserHoverCardContent from "./mention";
-import ChannelHoverCardContent from "./channel";
 
 interface GlobalMentionProps {
   id: string;
@@ -33,6 +32,16 @@ const isCurrentUserMention = (id: string, label: string, currentUser?: any) => {
   );
 };
 
+const isChannelMention = (trigger: "@" | "#", id: string, label: string) => {
+  if (trigger === "#") return true;
+
+  const normalizedLabel = normalizeMentionValue(label);
+  return id === "channel" || normalizedLabel === "channel";
+};
+
+const isUserMention = (trigger: "@" | "#", id: string, label: string) =>
+  trigger === "@" && !isChannelMention(trigger, id, label);
+
 export default function GlobalMention({
   id,
   trigger,
@@ -44,6 +53,7 @@ export default function GlobalMention({
   const loggedInUser = currentUser ?? state?.user;
   const isSelfMention =
     trigger === "@" && isCurrentUserMention(id, label, loggedInUser);
+  const showUserCard = isUserMention(trigger, id, label);
 
   const [open, setOpen] = useState(false);
   const openTimer = useRef<NodeJS.Timeout | null>(null);
@@ -59,17 +69,26 @@ export default function GlobalMention({
     closeTimer.current = setTimeout(() => setOpen(false), 250);
   };
 
+  const mentionClassName = isSelfMention
+    ? "text-[#1264a3] bg-[#fff3b0] hover:bg-[#ffe566] dark:text-[#F5D90A] dark:bg-[#4A3F00] dark:hover:bg-[#5C4E00] px-1 rounded cursor-pointer transition-colors font-medium inline-flex items-center mx-[1px]"
+    : "text-[#1264a3] bg-[#e8f0fe] hover:bg-[#d0e2ff] dark:text-[#6CB6FF] dark:bg-[#1A3F66] dark:hover:bg-[#245380] px-1 rounded cursor-pointer transition-colors font-medium inline-flex items-center mx-[1px]";
+
+  if (!showUserCard) {
+    return (
+      <span className={mentionClassName}>
+        {trigger}
+        {label}
+      </span>
+    );
+  }
+
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <span
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
-          className={
-            isSelfMention
-              ? "text-[#1264a3] bg-[#fff3b0] hover:bg-[#ffe566] dark:text-[#F5D90A] dark:bg-[#4A3F00] dark:hover:bg-[#5C4E00] px-1 rounded cursor-pointer transition-colors font-medium inline-flex items-center mx-[1px]"
-              : "text-[#1264a3] bg-[#e8f0fe] hover:bg-[#d0e2ff] dark:text-[#6CB6FF] dark:bg-[#1A3F66] dark:hover:bg-[#245380] px-1 rounded cursor-pointer transition-colors font-medium inline-flex items-center mx-[1px]"
-          }
+          className={mentionClassName}
         >
           {trigger}
           {label}
@@ -84,11 +103,7 @@ export default function GlobalMention({
         align="start"
         className="z-[100] rounded-xl border border-gray-200 bg-white shadow-xl p-0 overflow-hidden animate-in fade-in zoom-in-95 duration-200"
       >
-        {trigger === "@" ? (
-          <UserHoverCardContent userId={id} />
-        ) : (
-          <ChannelHoverCardContent channelId={id} />
-        )}
+        <UserHoverCardContent userId={id} />
       </PopoverContent>
     </Popover.Root>
   );

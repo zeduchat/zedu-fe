@@ -26,6 +26,7 @@ export const DataProvider = ({ children }: DataProviderProps) => {
     thread: null,
 
     channelDetails: null,
+    channelName: "",
     dmDetails: null,
 
     channelBar: false,

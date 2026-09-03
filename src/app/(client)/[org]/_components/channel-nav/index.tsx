@@ -102,7 +102,8 @@ const ChannelHeader = () => {
       <ChannelDetailsDialog>
         <Tooltips side="bottom" text="Get channel details">
           <h2 className="text-base lg:text-lg font-bold hover:bg-gray-100 px-2 py-1 rounded-md">
-            {channelDetails?.name ? "#" : ""} {channelDetails?.name}
+            {channelDetails?.name ? "#" : ""}{" "}
+            {state?.channelName || channelDetails?.name}
           </h2>
         </Tooltips>
       </ChannelDetailsDialog>
