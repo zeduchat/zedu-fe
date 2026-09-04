@@ -177,9 +177,11 @@ const FileList: React.FC<FileListProps> = ({
     >
       <Image
         src={iconSrc}
-        width={24}
-        height={24}
+        width={28}
+        height={28}
         alt={file_name || "File Icon"}
+        unoptimized
+        className="shrink-0"
       />
     </button>
   );

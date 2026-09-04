@@ -1,5 +1,5 @@
 "use client";
-/* eslint-disable no-unused-vars */
+
 import Image from "next/image";
 import Link from "next/link";
 import React, { useContext, useEffect, useLayoutEffect, useState } from "react";
@@ -30,7 +30,6 @@ type DropdownSection = {
   title: string;
   basePath: string;
   overviewHref: string;
-  overviewLabel: string;
   items: NavLink[];
 };
 
@@ -39,7 +38,6 @@ const dropdownSections: DropdownSection[] = [
     title: "Products",
     basePath: "/products",
     overviewHref: "/products",
-    overviewLabel: "Product overview",
     items: [
       { label: "Buzz", href: "/products/buzz" },
       { label: "Channels", href: "/products/channels" },
@@ -50,7 +48,6 @@ const dropdownSections: DropdownSection[] = [
     title: "Solutions",
     basePath: "/solutions",
     overviewHref: "/solutions",
-    overviewLabel: "Solution overview",
     items: [
       { label: "Bootcamps", href: "/solutions/bootcamps" },
       { label: "Schools", href: "/solutions/schools" },
@@ -161,21 +158,6 @@ const Header: React.FC = () => {
                           </Link>
                         </DropdownMenuItem>
                       ))}
-
-                      <div className="my-2 border-t border-gray-200" />
-
-                      <DropdownMenuItem asChild>
-                        <Link
-                          href={section.overviewHref}
-                          className="flex cursor-pointer items-center justify-between gap-2 py-2 font-medium text-[#5F5FE1] hover:text-[#7141F8]"
-                        >
-                          <span className="flex h-full items-end gap-2">
-                            <WidgetIcon />
-                            {section.overviewLabel}
-                          </span>
-                          <ChevronRight className="size-4 text-primary-500" />
-                        </Link>
-                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 ))}
@@ -292,17 +274,6 @@ const Header: React.FC = () => {
                             {item.label}
                           </Link>
                         ))}
-
-                        <div className="my-2 border-t border-white/20" />
-
-                        <Link
-                          href={section.overviewHref}
-                          onClick={() => setIsOpen(false)}
-                          className="flex items-center gap-1 rounded-lg px-4 py-2 font-medium text-[#F8F9FC] transition-colors duration-200 hover:bg-white/10"
-                        >
-                          {section.overviewLabel}
-                          <span className="text-xs">›</span>
-                        </Link>
                       </AccordionContent>
                     </AccordionItem>
                   ))}

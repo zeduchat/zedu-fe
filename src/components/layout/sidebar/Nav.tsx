@@ -92,7 +92,7 @@ export default function ChannelNav({
       <div
         ref={sidebarRef}
         style={{ width: `${sidebarWidth}px` }}
-        className={`fixed top-[60px] lg:rounded-tl-[8px] lg:rounded-bl-[8px] bottom-[60px] left-0 lg:left-[85px] h-[100dvh] bg-blue-300 lg:translate-x-0 ${state?.openSidebar ? "translate-x-[85px]" : "-translate-x-full "}
+        className={`fixed top-[60px] bottom-[60px] left-0 lg:left-[85px] h-[100dvh] bg-blue-300 lg:translate-x-0 ${state?.openSidebar ? "translate-x-[85px]" : "-translate-x-full "}
         pt-4 flex flex-col gap-6 transition-transform duration-300 ease-in-out z-30`}
       >
         <div

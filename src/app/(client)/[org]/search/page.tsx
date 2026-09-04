@@ -213,9 +213,9 @@ export default function Search() {
   const resolvedQuery = buildMessageSearchQuery(baseQuery, filters);
 
   return (
-    <div className="p-6 min-h-screen bg-white">
-      <div className="max-w-5xl mx-auto">
-        <h1 className="text-xl font-semibold text-gray-900 mb-6">
+    <div className="p-6 min-h-screen bg-white dark:bg-zinc-950 w-full">
+      <div className="w-full">
+        <h1 className="text-xl font-semibold text-gray-900 dark:text-zinc-100 mb-6">
           Results for: &quot;{baseQuery}&quot;
         </h1>
         {resolvedQuery !== baseQuery.trim() && filters.type !== "people" && (
@@ -238,10 +238,10 @@ export default function Search() {
 
         {!loading && results.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <p className="text-[28px] text-neutral-900 font-semibold">
+            <p className="text-[28px] text-neutral-900 font-semibold dark:text-zinc-100">
               Couldn&apos;t find anything
             </p>
-            <p className="text-lg text-neutral-600 text-center font-normal mt-2">
+            <p className="text-lg text-neutral-600 text-center font-normal mt-2 dark:text-zinc-400">
               You may want to try adjusting your filters or searching
               <span className="block">with a different keyword.</span>
             </p>
@@ -251,11 +251,11 @@ export default function Search() {
         {!loading && results.length > 0 && (
           <>
             <div className="mb-4">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-zinc-400">
                 {results.length} result{results.length !== 1 ? "s" : ""}
               </p>
             </div>
-            <SearchCards cardData={currentCards} />
+            <SearchCards cardData={currentCards} query={baseQuery} />
 
             {totalPages > 1 && (
               <div className="mt-8 flex justify-center">

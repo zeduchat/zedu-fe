@@ -8,18 +8,20 @@ import { DataContext } from "~/store/GlobalState";
 import { openSearchMessageResult } from "~/lib/search/navigate";
 import type { MessageSearchResult, UserSearchResult } from "~/lib/search/types";
 import { formatSearchTimestamp, stripHtmlAndDecode } from "~/lib/search/format";
+import { HighlightedText } from "~/app/(client)/[org]/_components/search/highlight";
 
 type CardItem = MessageSearchResult | UserSearchResult;
 
 interface CardProps {
   cardData: CardItem[];
+  query?: string;
 }
 
 function isMessageCard(item: CardItem): item is MessageSearchResult {
   return (item as MessageSearchResult).messages !== undefined;
 }
 
-export const SearchCards = ({ cardData }: CardProps) => {
+export const SearchCards = ({ cardData, query = "" }: CardProps) => {
   const router = useRouter();
   const { state, dispatch } = useContext(DataContext);
   const { orgSlug } = state;
@@ -72,7 +74,7 @@ export const SearchCards = ({ cardData }: CardProps) => {
         return (
           <div
             key={key}
-            className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-gray-300 transition-all cursor-pointer"
+            className="w-full bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-gray-300 transition-all cursor-pointer dark:bg-zinc-900 dark:border-zinc-700 dark:hover:border-zinc-500"
             onClick={async () => {
               if (isMessage) {
                 handleMessageCardClick(item);
@@ -81,7 +83,7 @@ export const SearchCards = ({ cardData }: CardProps) => {
               }
             }}
           >
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3 w-full">
               <div className="flex-shrink-0">
                 {avatar ? (
                   <img
@@ -96,12 +98,15 @@ export const SearchCards = ({ cardData }: CardProps) => {
                 )}
               </div>
 
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 w-full">
                 {isMessage ? (
                   <>
                     <div className="flex items-baseline gap-2 mb-1">
-                      <h3 className="text-sm font-bold text-gray-900">
-                        {item.user.user_name}
+                      <h3 className="text-sm font-bold text-gray-900 dark:text-zinc-100">
+                        <HighlightedText
+                          text={item.user.user_name}
+                          query={query}
+                        />
                       </h3>
                       {item.messages[0]?.timestamp && (
                         <span className="ml-auto text-xs text-gray-400 flex items-center gap-1 flex-shrink-0">
@@ -110,35 +115,44 @@ export const SearchCards = ({ cardData }: CardProps) => {
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-700 line-clamp-2 break-words mb-2">
-                      {stripHtmlAndDecode(item.messages[0]?.message || "")}
+                    <p className="text-sm text-gray-700 dark:text-zinc-300 line-clamp-3 break-words mb-2">
+                      <HighlightedText
+                        text={stripHtmlAndDecode(
+                          item.messages[0]?.message || ""
+                        )}
+                        query={query}
+                      />
                     </p>
-                    <span className="inline-flex items-center gap-1 bg-gray-100 rounded px-2 py-0.5 text-xs text-gray-600">
+                    <span className="inline-flex items-center gap-1 bg-gray-100 dark:bg-zinc-800 rounded px-2 py-0.5 text-xs text-gray-600 dark:text-zinc-300">
                       <Hash size={12} />
-                      {item.channel.channel_name}
+                      <HighlightedText
+                        text={item.channel.channel_name}
+                        query={query}
+                      />
                     </span>
                   </>
                 ) : (
                   <>
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-sm font-bold text-gray-900">
-                        {item.name}
+                      <h3 className="text-sm font-bold text-gray-900 dark:text-zinc-100">
+                        <HighlightedText text={item.name} query={query} />
                       </h3>
                       {item.username && (
-                        <span className="text-xs text-gray-500">
-                          @{item.username}
+                        <span className="text-xs text-gray-500 dark:text-zinc-400">
+                          @
+                          <HighlightedText text={item.username} query={query} />
                         </span>
                       )}
                     </div>
                     <div className="flex items-center gap-2 flex-wrap mt-0.5">
                       {item.email && (
-                        <span className="text-sm text-gray-600 truncate">
-                          {item.email}
+                        <span className="text-sm text-gray-600 dark:text-zinc-300 truncate">
+                          <HighlightedText text={item.email} query={query} />
                         </span>
                       )}
                       {item.role && (
-                        <span className="text-xs text-gray-500 bg-gray-100 rounded px-2 py-0.5 capitalize">
-                          {item.role}
+                        <span className="text-xs text-gray-500 bg-gray-100 dark:bg-zinc-800 dark:text-zinc-300 rounded px-2 py-0.5 capitalize">
+                          <HighlightedText text={item.role} query={query} />
                         </span>
                       )}
                     </div>
