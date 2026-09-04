@@ -101,7 +101,6 @@ export default function UserHoverCardContent({ userId }: { userId: string }) {
         <div className="border-t border-gray-100 p-4">
           <div className="flex gap-2">
             <div className="h-9 flex-1 bg-gray-200 rounded-lg" />
-            <div className="h-9 w-20 bg-gray-200 rounded-lg" />
           </div>
         </div>
       </div>
@@ -154,12 +153,12 @@ export default function UserHoverCardContent({ userId }: { userId: string }) {
               <MessageSquare size={16} /> Message
             </Button>
 
-            <Button
+            {/* <Button
               variant="outline"
               className="px-3 h-9 font-bold text-[13px] border-gray-300 gap-1.5"
             >
               <Headset size={16} /> Buzz
-            </Button>
+            </Button> */}
           </div>
         )}
       </div>

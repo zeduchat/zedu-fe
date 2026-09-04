@@ -194,9 +194,9 @@ export const BuzzParticipant = ({
                   <MicOff className="size-4" fontWeight={1} />
                 )}
               </Button>
-              <Button className="flex items-center justify-center h-8 w-8 bg-black/40 hover:bg-black/60 rounded-full text-white p-0 border-0">
+              {/* <Button className="flex items-center justify-center h-8 w-8 bg-black/40 hover:bg-black/60 rounded-full text-white p-0 border-0">
                 <EllipsisVertical className="size-4" fontWeight={1} />
-              </Button>
+              </Button> */}
             </div>
           </div>
         </div>

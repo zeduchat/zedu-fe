@@ -18,9 +18,10 @@ export const PinnedFile = ({ file }: PinnedFileProps) => {
       <div className="flex items-center gap-2">
         <Image
           src={iconSrc}
-          width={24}
-          height={24}
+          width={28}
+          height={28}
           alt=""
+          unoptimized
           className="shrink-0"
         />
         <div className="flex flex-col px-2">

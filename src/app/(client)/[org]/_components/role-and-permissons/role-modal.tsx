@@ -140,55 +140,47 @@ const RoleModal: React.FC<StorageOffloadModalProps> = ({
     setButtonLoading(true);
     const permission_list = toPermissionListPayload(permissions);
 
-    try {
-      if (isNew) {
-        const response = await PostRequest(
-          `/organisations/${state.orgId}/roles`,
-          {
-            name: roleName.trim(),
-            description: roleDescription.trim(),
-            permission_list,
-          }
-        );
-
-        if (response?.status === 200 || response?.status === 201) {
-          const newRole = response.data?.data || response.data;
-          await refreshOrgRoles();
-          showSuccess("Role created successfully");
-          if (onRoleCreated) {
-            onRoleCreated(newRole);
-          }
-          onClose();
-        } else {
-          throw new Error("Failed to create role");
+    if (isNew) {
+      const response = await PostRequest(
+        `/organisations/${state.orgId}/roles`,
+        {
+          name: roleName.trim(),
+          description: roleDescription.trim(),
+          permission_list,
         }
-      } else {
-        const response = await PutRequest(
-          `/organisations/${state.orgId}/roles/${roleId}`,
-          {
-            name: roleName.trim(),
-            description: roleDescription.trim(),
-            permission_list,
-          }
-        );
+      );
 
-        if (
-          response?.status === 200 ||
-          response?.status === 201 ||
-          response?.data?.status === "success"
-        ) {
-          showSuccess("Role updated successfully");
-          await refreshOrgRoles();
-          onClose();
-        } else {
-          throw new Error("Failed to update role");
+      if (response?.status === 200 || response?.status === 201) {
+        const newRole = response.data?.data || response.data;
+        await refreshOrgRoles();
+        showSuccess("Role created successfully");
+        if (onRoleCreated) {
+          onRoleCreated(newRole);
         }
+        onClose();
       }
-    } catch {
-      showError(isNew ? "Failed to create role" : "Failed to update role");
-    } finally {
-      setButtonLoading(false);
+    } else {
+      const response = await PutRequest(
+        `/organisations/${state.orgId}/roles/${roleId}`,
+        {
+          name: roleName.trim(),
+          description: roleDescription.trim(),
+          permission_list,
+        }
+      );
+
+      if (
+        response?.status === 200 ||
+        response?.status === 201 ||
+        response?.data?.status === "success"
+      ) {
+        showSuccess(response?.data?.message || "Role updated successfully");
+        await refreshOrgRoles();
+        onClose();
+      }
     }
+
+    setButtonLoading(false);
   };
 
   const getCharacterCount = () => {
