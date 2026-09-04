@@ -8,7 +8,7 @@ import { DataContext } from "~/store/GlobalState";
 import { openSearchMessageResult } from "~/lib/search/navigate";
 import type { MessageSearchResult, UserSearchResult } from "~/lib/search/types";
 import { formatSearchTimestamp, stripHtmlAndDecode } from "~/lib/search/format";
-import { HighlightedText } from "~/lib/search/highlight";
+import { HighlightedText } from "~/app/(client)/[org]/_components/search/highlight";
 
 type CardItem = MessageSearchResult | UserSearchResult;
 
