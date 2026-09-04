@@ -129,7 +129,7 @@ const BuzzProductsPage = () => {
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-start">
               <ArrowBtn text="Start a buzz" linkToHome />
-              <OutlineBtn text="Watch a Demo" />
+              {/* <OutlineBtn text="Watch a Demo" /> */}
             </div>
           </div>
 

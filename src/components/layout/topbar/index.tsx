@@ -42,12 +42,18 @@ import {
   resolveChannelIdForOrgSwitch,
 } from "~/utils/org-switch";
 import { RequirePermission } from "~/components/rbac/RequirePermission";
+import { useRBAC } from "~/hooks/useRBAC";
+import { isOwnerOrAdministrator } from "~/utils/rbac";
 
 const Topbar = () => {
   const name: string = localStorage.getItem("channelName") || "";
   const { state, dispatch } = useContext(DataContext);
   const pathname = usePathname();
   const { orgSlug, orgMembers, orgData } = state;
+  const { userRole } = useRBAC();
+  const settingsHref = isOwnerOrAdministrator(userRole)
+    ? `/${orgSlug}/settings/organisation/general`
+    : `/${orgSlug}/settings/personal/account`;
   const [organisations, setOrganisations] = useState<any>(null);
   const [orgloading, setOrgloading] = useState(true);
   const [pinnedCallback, setPinnedCallback] = useState(false);
@@ -185,7 +191,7 @@ const Topbar = () => {
                   </div>
                   <div className="flex gap-2 pb-3">
                     <Link
-                      href={`/${orgSlug}/settings/personal/account`}
+                      href={settingsHref}
                       className="flex-grow border border-gray-300 text-gray-700 text-sm py-2 rounded-md hover:bg-gray-50 flex items-center justify-center gap-1"
                       onClick={() => setIsSheetOpen(false)}
                     >
@@ -369,7 +375,7 @@ const Topbar = () => {
                   {/* Buttons section */}
                   <div className="flex gap-2  pb-2 ">
                     <Link
-                      href={`/${orgSlug}/settings/personal/account`}
+                      href={settingsHref}
                       className="flex-grow border border-gray-300 text-gray-700 text-sm py-1 rounded-md hover:bg-gray-50 flex items-center justify-center gap-1"
                     >
                       <Settings size={16} />

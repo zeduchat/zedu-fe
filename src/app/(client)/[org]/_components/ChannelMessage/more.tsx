@@ -138,14 +138,14 @@ const MessageContextMenu = ({ item }: any) => {
             transition={{ duration: 0.1 }}
             className="popover-content"
           >
-            <div className="group flex items-center justify-between px-4 py-1 my-3 text-sm text-gray-700 hover:bg-blue-500 hover:text-white cursor-pointer">
+            {/* <div className="group flex items-center justify-between px-4 py-1 my-3 text-sm text-gray-700 hover:bg-blue-500 hover:text-white cursor-pointer">
               <div className="flex items-center gap-2">
                 <BellOff size={16} />
                 <span>Turn off notifications for replies</span>
               </div>
             </div>
 
-            <hr />
+            <hr /> */}
 
             <div className="group flex items-center justify-between px-4 py-1 my-2 text-sm text-gray-700 hover:bg-blue-500 hover:text-white cursor-pointer">
               <div className="flex items-center gap-2">
@@ -159,7 +159,7 @@ const MessageContextMenu = ({ item }: any) => {
 
             <hr />
 
-            <div className="group flex items-center justify-between px-4 py-1 my-2 text-sm text-gray-700 hover:bg-blue-500 hover:text-white cursor-pointer">
+            {/* <div className="group flex items-center justify-between px-4 py-1 my-2 text-sm text-gray-700 hover:bg-blue-500 hover:text-white cursor-pointer">
               <div className="flex items-center gap-2">
                 <Clock size={16} />
                 <span>Remind me about this</span>
@@ -169,7 +169,7 @@ const MessageContextMenu = ({ item }: any) => {
               </span>
             </div>
 
-            <hr />
+            <hr /> */}
 
             <div
               onClick={handleCopyLink}
@@ -231,15 +231,6 @@ const MessageContextMenu = ({ item }: any) => {
 
             <hr />
 
-            <div className="group flex items-center justify-between px-4 py-1 my-2 text-sm text-gray-700 hover:bg-blue-500 hover:text-white cursor-pointer">
-              <div className="flex items-center gap-2">
-                <Users size={16} />
-                <span>Start a huddle in thread...</span>
-              </div>
-            </div>
-
-            <hr />
-
             {user?.user_id === item?.user_id && (
               <>
                 <div
@@ -271,13 +262,6 @@ const MessageContextMenu = ({ item }: any) => {
                 <hr />
               </>
             )}
-
-            <div className="group flex items-center justify-between px-4 py-1 my-2 text-sm text-gray-700 hover:bg-blue-500 hover:text-white cursor-pointer">
-              <div className="flex items-center gap-2">
-                <MoreHorizontal size={16} />
-                <span>More message shortcuts...</span>
-              </div>
-            </div>
           </motion.div>
         </PopoverContent>
       </Popover>
