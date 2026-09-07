@@ -136,8 +136,9 @@ const DocumentPreview: React.FC<{ mediaItem: MediaItem }> = ({ mediaItem }) => {
   const iconSrc = getFileIconClass(mediaItem.file_name);
 
   const inlinePreviewSrc = useMemo(
-    () => getDocumentPreviewUrl(category, mediaItem.file_link),
-    [category, mediaItem.file_link]
+    () =>
+      getDocumentPreviewUrl(category, mediaItem.file_link, mediaItem.file_name),
+    [category, mediaItem.file_link, mediaItem.file_name]
   );
 
   const canInlinePreview = isValidPreviewSrc(inlinePreviewSrc);

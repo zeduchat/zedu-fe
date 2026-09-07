@@ -92,6 +92,7 @@
     "ai": "^5.0.62",
     "aos": "^2.3.4",
     "axios": "^1.7.3",
+    "browser-image-compression": "2.0.2",
     "cent.js": "^6.1.0",
     "centrifuge": "^5.2.2",
     "class-variance-authority": "^0.7.1",

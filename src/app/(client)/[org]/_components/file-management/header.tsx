@@ -9,6 +9,7 @@ import {
 import { LucideProps } from "lucide-react";
 import { AddFolderIcon } from "~/svgs";
 import { UploadRequest } from "~/utils/new-request";
+import { compressImage } from "~/utils/compress-image";
 import { FileDetails } from "./FileInfo";
 import { useUpload } from "~/store/UploadContext";
 import UploadProgressPopover from "./UploadProgressPopover";
@@ -30,7 +31,7 @@ interface ActionBtnsProps {
 interface HeaderProps {
   onNewFolderClick: () => void;
   title?: string;
-  // eslint-disable-next-line
+
   onFileUpload: (file: FileDetails) => void;
   // Bulk mode props
   isBulkMode?: boolean;
@@ -122,7 +123,8 @@ const Header = ({
       updateUploadProgress(tempId.toString(), 10);
 
       const formData = new FormData();
-      formData.append("files", file);
+      const fileToUpload = await compressImage(file);
+      formData.append("files", fileToUpload);
 
       updateUploadProgress(tempId.toString(), 30);
       const response = await UploadRequest("/files/upload-files", formData);

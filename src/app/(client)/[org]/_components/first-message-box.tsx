@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { UploadRequest } from "~/utils/new-request";
+import { compressImage } from "~/utils/compress-image";
 import { useParams } from "next/navigation";
 import { uuidv7 } from "uuidv7";
 import { EditorContent } from "@tiptap/react";
@@ -108,7 +109,8 @@ const FirstMessageBox = ({ sendMessage }: any) => {
       setUploadingImages((prev) => [...prev, media.id]);
 
       const formData = new FormData();
-      formData.append("files", media.file);
+      const fileToUpload = await compressImage(media.file);
+      formData.append("files", fileToUpload);
 
       try {
         const res = await UploadRequest(`/files/upload-files`, formData);
