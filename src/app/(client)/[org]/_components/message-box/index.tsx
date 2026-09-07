@@ -51,6 +51,7 @@ import Loading from "~/components/ui/loading";
 import Picker from "~/components/theme/themed-emoji-picker";
 import Tooltips from "../tooltip";
 import { UploadRequest } from "~/utils/new-request";
+import { compressImage } from "~/utils/compress-image";
 import UseTextEditor from "../editor";
 import { VoiceRecorder } from "../voice/voice-recorder";
 import { VoiceThumbnails } from "../voice/voice-thumbnails";
@@ -114,7 +115,7 @@ const MessageBox = ({ subscription, sendMessage, show = true }: any) => {
     };
   }, [media]);
 
-  const handleImagePaste = (file: File) => {
+  const handleImagePaste = async (file: File) => {
     const fileWithId = {
       id: Date.now() + Math.random(),
       file,
@@ -126,7 +127,8 @@ const MessageBox = ({ subscription, sendMessage, show = true }: any) => {
     setUploadingImages((prev) => [...prev, fileWithId.id]);
 
     const formData = new FormData();
-    formData.append("files", file);
+    const fileToUpload = await compressImage(file);
+    formData.append("files", fileToUpload);
 
     UploadRequest(`/files/upload-files`, formData)
       .then((res) => {
@@ -188,7 +190,8 @@ const MessageBox = ({ subscription, sendMessage, show = true }: any) => {
       setUploadingImages((prev) => [...prev, media.id]);
 
       const formData = new FormData();
-      formData.append("files", media.file);
+      const fileToUpload = await compressImage(media.file);
+      formData.append("files", fileToUpload);
 
       try {
         const res = await UploadRequest(`/files/upload-files`, formData);
