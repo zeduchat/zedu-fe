@@ -16,6 +16,7 @@ import axios from "axios";
 import { ACTIONS } from "~/store/Actions";
 import { timezones } from "./timezones";
 import { showError, showSuccess } from "~/components/toast/sonner";
+import { compressImage } from "~/utils/compress-image";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 const EditProfileDialog = ({ isOpen, onClose }: any) => {
@@ -61,7 +62,8 @@ const EditProfileDialog = ({ isOpen, onClose }: any) => {
     formData.append("timezone", timezone);
     formData.append("name_pronounciation", namePronunciation);
     if (avatarFile) {
-      formData.append("avatar_file", avatarFile);
+      const compressedAvatar = await compressImage(avatarFile);
+      formData.append("avatar_file", compressedAvatar);
     }
 
     setButtonLoading(true);

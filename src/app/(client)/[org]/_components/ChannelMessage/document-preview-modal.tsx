@@ -42,8 +42,9 @@ const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
   const accentClass = getDocumentAccentClass(category);
 
   const previewSrc = useMemo(
-    () => getDocumentPreviewUrl(category, mediaItem.file_link),
-    [category, mediaItem.file_link]
+    () =>
+      getDocumentPreviewUrl(category, mediaItem.file_link, mediaItem.file_name),
+    [category, mediaItem.file_link, mediaItem.file_name]
   );
 
   const canPreview = isValidPreviewSrc(previewSrc);

@@ -95,13 +95,21 @@ export const isValidPreviewSrc = (
 
 export const getDocumentPreviewUrl = (
   category: DocumentCategory,
-  fileUrl: string
+  fileUrl: string,
+  fileName?: string
 ): string | null => {
   const resolvedUrl = resolveMediaFileUrl(fileUrl);
   if (!resolvedUrl) return null;
 
   if (category === "pdf" || usesOfficeEmbed(category)) {
-    return `/api/document-preview?url=${encodeURIComponent(resolvedUrl)}`;
+    const params = new URLSearchParams({
+      url: resolvedUrl,
+      category,
+    });
+    if (fileName) {
+      params.set("filename", fileName);
+    }
+    return `/api/document-preview?${params.toString()}`;
   }
 
   return null;
