@@ -27,7 +27,7 @@ const imageHostnames = [
 
 const nextConfig = {
   reactStrictMode: false,
-  output: "standalone",
+  output: process.env.VERCEL ? undefined : "standalone",
   typescript: {
     ignoreBuildErrors: true,
   },
