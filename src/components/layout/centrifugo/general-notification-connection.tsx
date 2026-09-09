@@ -130,6 +130,20 @@ export default function GeneralNotificationConnection() {
             thread_count: ctx.data.data.thread_count,
           },
         });
+        dispatch({ type: ACTIONS.HOME_DMS_CALLBACK });
+      }
+
+      const notificationType = String(result?.notification_type || "");
+      const isDmNewMessage =
+        notificationType === "new_message" &&
+        (result?.section === "dm_channels_section" ||
+          result?.data?.channel_type === "dm" ||
+          ctx?.data?.data?.channel_type === "dm" ||
+          result?.data?.chat_type === "user" ||
+          ctx?.data?.data?.chat_type === "user");
+
+      if (isDmNewMessage) {
+        dispatch({ type: ACTIONS.HOME_DMS_CALLBACK });
       }
 
       // Org threads sidebar badge (server-maintained unseen count)

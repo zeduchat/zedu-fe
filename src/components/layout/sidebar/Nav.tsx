@@ -96,7 +96,7 @@ export default function ChannelNav({
         pt-4 flex flex-col gap-6 transition-transform duration-300 ease-in-out z-30`}
       >
         <div
-          className="overflow-auto [&::-webkit-scrollbar]:hidden text-blue-50 cursor-pointer pb-20"
+          className="flex-1 min-h-0 overflow-y-auto text-blue-50 cursor-pointer pb-20 [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.4)_transparent] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/35 hover:[&::-webkit-scrollbar-thumb]:bg-white/55"
           onScroll={handleScroll}
           onClick={() =>
             dispatch({ type: ACTIONS.OPEN_SIDEBAR, payload: false })
@@ -290,8 +290,11 @@ export default function ChannelNav({
                   </div>
                 </div>
                 <AccordionContent onClick={handleClose}>
-                  {state.homeDms.map((item: any, index: number) => (
-                    <div className="mb-1" key={index}>
+                  {state.homeDms.map((item: any) => (
+                    <div
+                      className="mb-1"
+                      key={item?.channel_id || item?.channels_id}
+                    >
                       <PeopleHomeCard {...item} />
                     </div>
                   ))}

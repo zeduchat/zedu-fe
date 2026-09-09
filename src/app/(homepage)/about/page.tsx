@@ -134,7 +134,7 @@ const AboutPage = () => {
         <div className="flex w-full max-w-md flex-col  justify-center gap-2 sm:flex-row items-center sm:gap-3">
           <ArrowBtn
             text="Explore the product"
-            href="/products"
+            href="/auth/login"
             className="w-full justify-center sm:w-auto max-w-[240px]"
           />
           <OutlineBtn

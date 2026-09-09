@@ -92,11 +92,11 @@ export const BuzzList = () => {
 
       <div id="buzzsScrollable" className="flex-1 overflow-y-auto">
         {showHero && (
-          <div className="relative mx-5 mt-5 overflow-hidden rounded-xl border border-[#ABEFC6] bg-[#ECFDF3]">
+          <div className="relative mx-5 mt-5 overflow-hidden rounded-xl border border-[#ABEFC6] bg-[#ECFDF3] dark:border-emerald-800/50 dark:bg-[#163226]">
             <button
               type="button"
               onClick={dismissHero}
-              className="absolute right-3 top-3 rounded-md p-1 text-[#667085] transition hover:bg-white/60"
+              className="absolute right-3 top-3 rounded-md p-1 text-[#667085] transition hover:bg-white/60 dark:text-zinc-400 dark:hover:bg-white/10"
               aria-label="Dismiss"
             >
               <X className="size-4" />
@@ -104,10 +104,10 @@ export const BuzzList = () => {
 
             <div className="flex flex-col gap-5 p-5 md:flex-row md:items-center md:justify-between">
               <div className="max-w-xl pr-8">
-                <h2 className="text-[20px] font-bold leading-tight text-[#1D2939]">
+                <h2 className="text-[20px] font-bold leading-tight text-[#1D2939] dark:text-zinc-100">
                   Instantly connect over audio or video
                 </h2>
-                <p className="mt-2 text-sm leading-6 text-[#667085]">
+                <p className="mt-2 text-sm leading-6 text-[#667085] dark:text-zinc-400">
                   Buzzs are lightweight audio and video spaces for your team.
                   Start one for a channel, a quick sync, or an impromptu
                   conversation.
@@ -123,18 +123,18 @@ export const BuzzList = () => {
                 </button>
               </div>
 
-              <div className="hidden h-28 w-56 shrink-0 rounded-xl border border-[#ABEFC6] bg-white/70 p-4 md:flex md:flex-col md:justify-between">
+              <div className="hidden h-28 w-56 shrink-0 rounded-xl border border-[#ABEFC6] bg-white/70 p-4 dark:border-emerald-800/40 dark:bg-white/5 md:flex md:flex-col md:justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="size-8 rounded-full bg-[#F2F4F7]" />
-                  <div className="size-8 rounded-full bg-[#E0EAFF]" />
+                  <div className="size-8 rounded-full bg-[#F2F4F7] dark:bg-zinc-700" />
+                  <div className="size-8 rounded-full bg-[#E0EAFF] dark:bg-blue-900/50" />
                   <div className="flex size-8 items-center justify-center rounded-full bg-[#1264A3] text-xs font-bold text-white">
                     +3
                   </div>
                 </div>
-                <div className="flex items-center justify-center gap-3 rounded-lg bg-[#F9FAFB] py-2">
-                  <span className="size-2 rounded-full bg-[#667085]" />
-                  <span className="size-2 rounded-full bg-[#667085]" />
-                  <span className="size-2 rounded-full bg-[#667085]" />
+                <div className="flex items-center justify-center gap-3 rounded-lg bg-[#F9FAFB] py-2 dark:bg-zinc-800/80">
+                  <span className="size-2 rounded-full bg-[#667085] dark:bg-zinc-500" />
+                  <span className="size-2 rounded-full bg-[#667085] dark:bg-zinc-500" />
+                  <span className="size-2 rounded-full bg-[#667085] dark:bg-zinc-500" />
                   <span className="size-2 rounded-full bg-[#1264A3]" />
                 </div>
               </div>

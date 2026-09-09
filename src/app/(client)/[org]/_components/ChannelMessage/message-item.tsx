@@ -144,6 +144,70 @@ const MessageItem: React.FC<MessageItemProps> = ({ item }) => {
     .replace(/\n{2,}/g, "\n\n")
     .replace(/^\n+|\n+$/g, "");
 
+  const { imageItems, otherItems } = useMemo(() => {
+    const images: MediaItem[] = [];
+    const others: { mediaItem: MediaItem; category: MediaCategory }[] = [];
+
+    for (const mediaItem of item.media ?? []) {
+      const category = getMediaCategory(mediaItem);
+      if (category === "image") {
+        images.push(mediaItem);
+      } else {
+        others.push({ mediaItem, category });
+      }
+    }
+
+    return { imageItems: images, otherItems: others };
+  }, [item.media]);
+
+  const imageGridClass =
+    imageItems.length === 1
+      ? "grid-cols-1"
+      : imageItems.length === 2
+        ? "grid-cols-2"
+        : imageItems.length === 3
+          ? "grid-cols-3"
+          : imageItems.length === 4
+            ? "grid-cols-2 sm:grid-cols-4"
+            : "grid-cols-2 sm:grid-cols-3 md:grid-cols-5";
+
+  const renderNonImageMedia = (
+    mediaItem: MediaItem,
+    category: MediaCategory
+  ) => {
+    switch (category) {
+      case "document":
+        return (
+          <DocumentAttachmentCard
+            key={mediaItem.id}
+            mediaItem={mediaItem}
+            item={item}
+            onOpenPreview={() => setPreviewDocument(mediaItem)}
+          />
+        );
+      case "audio":
+        return (
+          <VoiceMessage key={mediaItem.id} mediaItem={mediaItem} item={item} />
+        );
+      case "video":
+        return (
+          <VideoWithDownload
+            key={mediaItem.id}
+            mediaItem={mediaItem}
+            item={item}
+          />
+        );
+      default:
+        return (
+          <FileWithDownload
+            key={mediaItem.id}
+            mediaItem={mediaItem}
+            item={item}
+          />
+        );
+    }
+  };
+
   const messageHasLinks = hasLinks(trimmedMessage);
 
   const handleMessageLinkClick = useCallback(
@@ -405,57 +469,25 @@ const MessageItem: React.FC<MessageItemProps> = ({ item }) => {
 
       {messageHasLinks && <PreviewLinks item={item} />}
 
-      {item.media && item.media.length > 0 && (
-        <div className="mt-2 flex items-start flex-wrap gap-4">
-          {item?.media?.map((mediaItem: MediaItem) => {
-            const category = getMediaCategory(mediaItem);
+      {imageItems.length > 0 && (
+        <div className={`mt-2 grid w-full gap-2 ${imageGridClass}`}>
+          {imageItems.map((mediaItem) => (
+            <ImageWithDownload
+              key={mediaItem.id}
+              mediaItem={mediaItem}
+              setIsOpen={setIsOpen}
+              setImage={setImage}
+              item={item}
+            />
+          ))}
+        </div>
+      )}
 
-            switch (category) {
-              case "document":
-                return (
-                  <DocumentAttachmentCard
-                    key={mediaItem.id}
-                    mediaItem={mediaItem}
-                    item={item}
-                    onOpenPreview={() => setPreviewDocument(mediaItem)}
-                  />
-                );
-              case "audio":
-                return (
-                  <VoiceMessage
-                    key={mediaItem.id}
-                    mediaItem={mediaItem}
-                    item={item}
-                  />
-                );
-              case "video":
-                return (
-                  <VideoWithDownload
-                    key={mediaItem.id}
-                    mediaItem={mediaItem}
-                    item={item}
-                  />
-                );
-              case "image":
-                return (
-                  <ImageWithDownload
-                    key={mediaItem.id}
-                    mediaItem={mediaItem}
-                    setIsOpen={setIsOpen}
-                    setImage={setImage}
-                    item={item}
-                  />
-                );
-              default:
-                return (
-                  <FileWithDownload
-                    key={mediaItem.id}
-                    mediaItem={mediaItem}
-                    item={item}
-                  />
-                );
-            }
-          })}
+      {otherItems.length > 0 && (
+        <div className="mt-2 flex items-start flex-wrap gap-4">
+          {otherItems.map(({ mediaItem, category }) =>
+            renderNonImageMedia(mediaItem, category)
+          )}
         </div>
       )}
 
@@ -606,14 +638,14 @@ const ImageWithDownload: React.FC<{
 
   return (
     <div
-      className="relative rounded-md overflow-hidden w-full md:w-[350px] h-[300px]"
+      className="relative min-w-0"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <img
         src={mediaItem.file_link}
         alt={mediaItem.file_name}
-        className="w-full md:w-[350px] h-[300px] rounded-md object-cover border cursor-pointer"
+        className="w-full max-h-60 cursor-pointer object-contain"
         onClick={() => {
           setIsOpen(true);
           setImage(mediaItem);

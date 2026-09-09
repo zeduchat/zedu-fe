@@ -746,7 +746,11 @@ const MessageBox = ({ subscription, sendMessage, show = true }: any) => {
               }
             >
               <SendHorizonal
-                color={isEmpty && media?.length === 0 ? "#999" : "black"}
+                className={
+                  isEmpty && media?.length === 0 && voiceThumbnails.length === 0
+                    ? "text-[#999] dark:text-zinc-500"
+                    : "text-zinc-900 dark:text-zinc-100"
+                }
               />
             </button>
           </div>

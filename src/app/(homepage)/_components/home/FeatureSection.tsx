@@ -1,3 +1,4 @@
+"use client";
 import Image from "next/image";
 import { ArrowBtn, OutlineBtn } from "../ui/Button";
 import { FeatureCard } from "../ui/FeatureCard";
@@ -6,8 +7,10 @@ import {
   features,
   otherFeatures,
 } from "../../_lib/featureSectionData";
+import { useRouter } from "next/navigation";
 
 export const FeatureSection = () => {
+  const router = useRouter();
   return (
     <>
       <section className="relative isolate flex w-full flex-col items-center gap-5 overflow-hidden px-4 py-12 text-center sm:gap-6 sm:px-8 sm:py-16 lg:gap-8 lg:px-12">
@@ -48,7 +51,10 @@ export const FeatureSection = () => {
                 communication, collaboration, and AI-powered education.
               </p>
               <div>
-                <OutlineBtn text="Start Your Cohort" />
+                <OutlineBtn
+                  text="Start Your Cohort"
+                  onClick={() => router.push("/auth/login")}
+                />
               </div>
             </div>
 
