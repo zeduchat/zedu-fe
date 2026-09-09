@@ -9,7 +9,6 @@ import Link from "@tiptap/extension-link";
 import { DataContext } from "~/store/GlobalState";
 import { ACTIONS } from "~/store/Actions";
 
-/* eslint-disable */
 const UseTextEditor = (subscription?: any) => {
   const { state, dispatch } = useContext(DataContext);
   const name = localStorage.getItem("channelName") || "";
@@ -36,8 +35,6 @@ const UseTextEditor = (subscription?: any) => {
       Mention.configure({
         HTMLAttributes: {
           class: "mention",
-          style:
-            "color: blue; font-weight: normal; background:#F1F1FE; padding-left:2px; padding-right:2px",
         },
         suggestion: {
           items: (query) => {

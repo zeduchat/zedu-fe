@@ -884,6 +884,11 @@ const reducers = (state: any, action: any) => {
         ...state,
         createCallback: !state.createCallback,
       };
+    case ACTIONS.HOME_DMS_CALLBACK:
+      return {
+        ...state,
+        homeDmsCallback: !state.homeDmsCallback,
+      };
     case ACTIONS.DELETE_CALLBACK:
       return {
         ...state,

@@ -507,6 +507,12 @@ code {
   border-radius: 3px;
 }
 
+.mention[data-id="channel"],
+.mention[data-label="channel" i] {
+  color: #9a6700;
+  background: #fff3b0;
+}
+
 /* Raise Hand Animations */
 @keyframes slide-up {
   from {
@@ -617,6 +623,12 @@ html.dark .custom-message pre.slack-code-block {
 html.dark .mention {
   background: #1a3f66;
   color: #6cb6ff;
+}
+
+html.dark .mention[data-id="channel"],
+html.dark .mention[data-label="channel" i] {
+  background: #4a3f00;
+  color: #f5d90a;
 }
 
 html.dark .absolute button .name-span {

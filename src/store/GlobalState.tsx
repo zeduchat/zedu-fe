@@ -152,6 +152,7 @@ export const DataProvider = ({ children }: DataProviderProps) => {
     joinCallback: false,
     leaveCallback: false,
     createCallback: false,
+    homeDmsCallback: false,
     deleteCallback: false,
     dmRenderCallback: false,
   };

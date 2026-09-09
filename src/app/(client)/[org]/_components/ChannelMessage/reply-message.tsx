@@ -116,7 +116,32 @@ const ReplyMessages = ({
       `/reactions/${reactionId}/thread/${item?.thread_id}`
     );
     if (res?.status === 200 || res?.status === 201) {
-      setUsernames(res?.data?.data?.usernames);
+      const names = (res?.data?.data?.usernames || [])
+        .map((name: any) =>
+          typeof name === "string"
+            ? name.trim()
+            : (
+                name?.username ||
+                name?.user_name ||
+                name?.display_name ||
+                ""
+              ).trim()
+        )
+        .filter(Boolean);
+
+      const currentUserName = (
+        user?.username ||
+        user?.display_name ||
+        user?.full_name ||
+        ""
+      ).trim();
+
+      // API often omits the current user on self-reactions
+      if (names.length === 0 && currentUserName) {
+        setUsernames([currentUserName]);
+      } else {
+        setUsernames(names);
+      }
     }
   };
 
@@ -202,19 +227,12 @@ const ReplyMessages = ({
 
         <div className="flex flex-wrap items-center gap-2 rounded-md mt-1">
           {item?.reactions?.map((emoji: any, index: number) => {
-            const reactedUsernames = usernames || [];
-            const currentUserUsername = user?.username;
-
-            const displayNames = reactedUsernames.map((name: string) =>
-              name === currentUserUsername ? "you" : name
-            );
+            const displayNames = (usernames || []).filter(Boolean);
 
             let namesListString = "";
-            if (displayNames.length === 0) {
-              namesListString = " ";
-            } else if (displayNames.length === 1) {
+            if (displayNames.length === 1) {
               namesListString = displayNames[0];
-            } else {
+            } else if (displayNames.length > 1) {
               const last = displayNames[displayNames.length - 1];
               const rest = displayNames.slice(0, -1).join(", ");
               namesListString = `${rest} and ${last}`;

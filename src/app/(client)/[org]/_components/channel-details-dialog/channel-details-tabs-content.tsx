@@ -12,6 +12,19 @@ import Loading from "~/components/ui/loading";
 import { UnarchiveChannelDialog } from "./unarchive-channel";
 import GlobalSearch from "../global-search";
 import moment from "moment";
+import { Checkbox } from "~/components/ui/checkbox";
+import { Trash2, X } from "lucide-react";
+import { useRBAC } from "~/hooks/useRBAC";
+import { showSuccess } from "~/components/toast/sonner";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
 
 export function AboutTabContainer({ setIsOpen }: any) {
   const [buttonLoading, setButtonLoading] = useState(false);
@@ -102,10 +115,66 @@ export function AboutTabContainer({ setIsOpen }: any) {
   );
 }
 
+const getChannelUserId = (item: any) =>
+  item?.id ?? item?.user_id ?? item?.profile?.user_id ?? item?.profile?.id;
+
 export function PeopleTabContainer() {
   const { state, dispatch } = useContext(DataContext);
   const { channelDetails } = state;
+  const params = useParams();
+  const channelId = (channelDetails?.id || params.id) as string;
+  const { hasPermission } = useRBAC();
+  const canRemovePeople = hasPermission("remove:people");
   const [filteredData, setFilteredData] = useState(channelDetails?.users);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [removing, setRemoving] = useState(false);
+
+  const selectedUsers = (channelDetails?.users || []).filter((user: any) =>
+    selectedIds.includes(String(getChannelUserId(user)))
+  );
+  const selectedCount = selectedIds.length;
+  const selectedNames = selectedUsers
+    .map((user: any) => `@${user?.profile?.username || "user"}`)
+    .filter(Boolean);
+
+  const toggleSelected = (userId: string, checked: boolean) => {
+    setSelectedIds((prev) => {
+      if (checked) {
+        return prev.includes(userId) ? prev : [...prev, userId];
+      }
+      return prev.filter((id) => id !== userId);
+    });
+  };
+
+  const handleRemoveSelected = async () => {
+    if (!canRemovePeople || selectedIds.length === 0 || !channelId) return;
+
+    setRemoving(true);
+    const res = await PostRequest("/channels/remove-multiple", {
+      channel_id: channelId,
+      user_ids: selectedIds,
+    });
+
+    if (res?.status === 200 || res?.status === 201) {
+      const remainingUsers = (channelDetails?.users || []).filter(
+        (user: any) => !selectedIds.includes(String(getChannelUserId(user)))
+      );
+      dispatch({
+        type: ACTIONS.CHANNEL_DETAILS,
+        payload: { ...channelDetails, users: remainingUsers },
+      });
+      dispatch({
+        type: ACTIONS.CHANNEL_CALLBACK,
+        payload: !state?.channelCallback,
+      });
+      showSuccess(res?.data?.message || "People removed from channel");
+      setSelectedIds([]);
+      setConfirmOpen(false);
+    }
+
+    setRemoving(false);
+  };
 
   return (
     <div>
@@ -116,46 +185,74 @@ export function PeopleTabContainer() {
         onSearchResults={setFilteredData}
       />
 
-      <Button
-        onClick={() =>
-          dispatch({ type: ACTIONS.CHANNEL_INVITE, payload: true })
-        }
-        className="h-fit p-0 py-3 gap-2 font-semibold text-[#101828] text-[0.9375rem]"
-      >
-        <div className="w-8 aspect-square rounded-full bg-[#E6F1FF] flex justify-center items-center">
-          <UserPlusIcon />
-        </div>
-        Add people
-      </Button>
+      <div className="flex items-center justify-between gap-2">
+        <Button
+          onClick={() =>
+            dispatch({ type: ACTIONS.CHANNEL_INVITE, payload: true })
+          }
+          className="h-fit p-0 py-3 gap-2 font-semibold text-[#101828] dark:text-zinc-100 text-[0.9375rem]"
+        >
+          <div className="w-8 aspect-square rounded-full bg-[#E6F1FF] dark:bg-[#1A3F66] flex justify-center items-center">
+            <UserPlusIcon />
+          </div>
+          Add people
+        </Button>
+
+        {canRemovePeople && selectedCount > 0 && (
+          <Button
+            variant="ghost"
+            onClick={() => setConfirmOpen(true)}
+            className="h-fit p-0 py-3 gap-1.5 font-semibold text-[#D31103] dark:text-red-400 text-[0.9375rem] hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-[#D31103] dark:hover:text-red-300"
+            aria-label="Remove selected people from channel"
+          >
+            <Trash2 size={16} />
+            Remove {selectedCount > 1 ? `(${selectedCount})` : ""}
+          </Button>
+        )}
+      </div>
 
       {/* USERS DISPLAYED */}
       <div className="max-h-[300px] overflow-auto">
         {filteredData?.map((item: any) => {
+          const userId = String(getChannelUserId(item) ?? "");
+          const isSelected = userId ? selectedIds.includes(userId) : false;
+
           return (
             <div
-              key={item}
+              key={userId || item?.profile?.username}
               className="flex justify-start items-center gap-2.5 py-3"
             >
+              {canRemovePeople && userId && (
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={(checked) =>
+                    toggleSelected(userId, checked === true)
+                  }
+                  className="border-[#ADADEA] dark:border-zinc-500"
+                  aria-label={`Select @${item?.profile?.username}`}
+                />
+              )}
+
               <figure className="relative aspect-square w-[2.25rem] rounded-[0.4375rem]">
                 <Image
                   src={item?.profile?.avatar_url || images?.user}
                   alt=""
                   fill
-                  className="border rounded"
+                  className="border border-[#E6EAEF] dark:border-white/15 rounded"
                 />
                 <span
-                  className={`absolute z-50 -bottom-1 -right-1 inline-block w-[0.625rem] aspect-square border-[1.5px] border-white rounded-full ${
+                  className={`absolute z-50 -bottom-1 -right-1 inline-block w-[0.625rem] aspect-square border-[1.5px] border-white dark:border-[#222529] rounded-full ${
                     item?.profile?.online ? "bg-[#00AD51]" : "bg-[#F97316]"
                   }`}
                 ></span>
               </figure>
 
               <div className="flex items-center gap-2">
-                <p className="font-medium text-[#101828] text-[0.9375rem]">
+                <p className="font-medium text-[#101828] dark:text-zinc-100 text-[0.9375rem]">
                   @{item?.profile?.username}
                 </p>
-                <span className="inline-block bg-[#E6EAEF] w-[0.375rem] aspect-square rounded-full"></span>
-                <p className="text-[#475467] text-[0.8125rem]">
+                <span className="inline-block bg-[#E6EAEF] dark:bg-zinc-600 w-[0.375rem] aspect-square rounded-full"></span>
+                <p className="text-[#475467] dark:text-zinc-400 text-[0.8125rem]">
                   {item?.profile?.username}
                 </p>
               </div>
@@ -163,6 +260,68 @@ export function PeopleTabContainer() {
           );
         })}
       </div>
+
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent
+          onClick={(e) => e.stopPropagation()}
+          className="p-0 gap-0 bg-background dark:bg-[#222529]"
+        >
+          <DialogHeader className="py-4 px-6 border-b border-[#E6EAEF] dark:border-white/10">
+            <DialogTitle className="font-black text-[1.375rem] text-[#1D2939] dark:text-zinc-100">
+              Remove from channel?
+            </DialogTitle>
+          </DialogHeader>
+
+          <DialogClose className="absolute right-5 top-4 text-[#344054] dark:text-zinc-300 p-1 border border-input dark:border-white/15 rounded-[0.3125rem]">
+            <X className="size-5 text-[#344054] dark:text-zinc-300" />
+          </DialogClose>
+
+          <DialogDescription
+            asChild
+            className="text-sm text-[#344054] dark:text-zinc-300 space-y-3 p-5"
+          >
+            <div>
+              {selectedCount === 1 ? (
+                <p>
+                  Are you sure you want to remove{" "}
+                  <span className="font-semibold text-[#101828] dark:text-zinc-100">
+                    {selectedNames[0]}
+                  </span>{" "}
+                  from #{channelDetails?.name}? They will lose access to this
+                  channel until they are added again.
+                </p>
+              ) : (
+                <p>
+                  Are you sure you want to remove{" "}
+                  <span className="font-semibold text-[#101828] dark:text-zinc-100">
+                    {selectedCount} people
+                  </span>{" "}
+                  from #{channelDetails?.name}? They will lose access to this
+                  channel until they are added again.
+                </p>
+              )}
+              {selectedCount > 1 && selectedNames.length > 0 && (
+                <p className="text-[#667085] dark:text-zinc-400">
+                  {selectedNames.join(", ")}
+                </p>
+              )}
+            </div>
+          </DialogDescription>
+
+          <DialogFooter className="flex justify-end space-x-2 p-5">
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button
+              onClick={handleRemoveSelected}
+              disabled={removing}
+              variant="destructive"
+            >
+              Remove {removing && <Loading />}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -26,6 +26,7 @@ export const ACTIONS = {
   CHATS: "CHATS",
   DMS: "DMS",
   HOME_DMS: "HOME_DMS",
+  HOME_DMS_CALLBACK: "HOME_DMS_CALLBACK",
   REPLIES: "REPLIES",
 
   // =-----------------------

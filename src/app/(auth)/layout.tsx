@@ -4,6 +4,27 @@ import { useRouter } from "next/navigation";
 import React, { useContext, useEffect, useState } from "react";
 import { DataContext, DataProvider } from "~/store/GlobalState";
 
+function getLoggedInRedirectPath(orgSlugFromState?: string) {
+  const storedOrgSlug = localStorage.getItem("orgSlug") || "";
+  let user: {
+    current_organisation_slug?: string;
+    is_onboarded?: boolean;
+  } | null = null;
+
+  try {
+    user = JSON.parse(localStorage.getItem("user") || "null");
+  } catch {
+    user = null;
+  }
+
+  const orgSlug =
+    orgSlugFromState || storedOrgSlug || user?.current_organisation_slug || "";
+
+  if (!orgSlug) return null;
+
+  return user?.is_onboarded === false ? `/${orgSlug}/welcome` : `/${orgSlug}`;
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -14,15 +35,17 @@ export default function RootLayout({
   const { state } = useContext(DataContext);
   const { orgSlug } = state;
 
-  //
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      router.push(`/${orgSlug}`);
-      return;
+      const redirectPath = getLoggedInRedirectPath(orgSlug);
+      if (redirectPath) {
+        router.replace(redirectPath);
+        return;
+      }
     }
     setLoading(false);
-  }, [router]);
+  }, [orgSlug, router]);
 
   if (loading) return;
 
