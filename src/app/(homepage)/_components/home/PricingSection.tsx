@@ -35,7 +35,7 @@ export const PricingSection = ({
           </p>
         ) : null}
 
-        <div className="inline-flex items-center rounded-full bg-neutral-100 p-1">
+        {/* <div className="inline-flex items-center rounded-full bg-neutral-100 p-1">
           <button
             type="button"
             onClick={() => setBillingCycle("monthly")}
@@ -61,11 +61,11 @@ export const PricingSection = ({
             <span>Yearly</span>
             <span className="ml-1 text-xs text-primary-500">SAVE 16.6%</span>
           </button>
-        </div>
+        </div> */}
       </div>
 
       {/* cards */}
-      <div className="grid w-full max-w-7xl grid-cols-1  place-items-center gap-8 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 lg:gap-6">
+      <div className="grid w-full max-w-7xl grid-cols-1 mt-6 place-items-center gap-8 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 lg:gap-6">
         {plans.map((plan) => (
           <PricingCard
             key={plan.key}

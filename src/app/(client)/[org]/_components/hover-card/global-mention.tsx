@@ -69,9 +69,13 @@ export default function GlobalMention({
     closeTimer.current = setTimeout(() => setOpen(false), 250);
   };
 
-  const mentionClassName = isSelfMention
-    ? "text-[#1264a3] bg-[#fff3b0] hover:bg-[#ffe566] dark:text-[#F5D90A] dark:bg-[#4A3F00] dark:hover:bg-[#5C4E00] px-1 rounded cursor-pointer transition-colors font-medium inline-flex items-center mx-[1px]"
-    : "text-[#1264a3] bg-[#e8f0fe] hover:bg-[#d0e2ff] dark:text-[#6CB6FF] dark:bg-[#1A3F66] dark:hover:bg-[#245380] px-1 rounded cursor-pointer transition-colors font-medium inline-flex items-center mx-[1px]";
+  const isChannel = isChannelMention(trigger, id, label);
+
+  const mentionClassName = isChannel
+    ? "text-[#9A6700] bg-[#FFF3B0] hover:bg-[#FFE566] dark:text-[#F5D90A] dark:bg-[#4A3F00] dark:hover:bg-[#5C4E00] px-1 rounded cursor-pointer transition-colors font-medium inline-flex items-center mx-[1px]"
+    : isSelfMention
+      ? "text-[#1264a3] bg-[#fff3b0] hover:bg-[#ffe566] dark:text-[#F5D90A] dark:bg-[#4A3F00] dark:hover:bg-[#5C4E00] px-1 rounded cursor-pointer transition-colors font-medium inline-flex items-center mx-[1px]"
+      : "text-[#1264a3] bg-[#e8f0fe] hover:bg-[#d0e2ff] dark:text-[#6CB6FF] dark:bg-[#1A3F66] dark:hover:bg-[#245380] px-1 rounded cursor-pointer transition-colors font-medium inline-flex items-center mx-[1px]";
 
   if (!showUserCard) {
     return (

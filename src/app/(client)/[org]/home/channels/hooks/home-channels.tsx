@@ -76,22 +76,35 @@ const UseHomeChannel = () => {
 
   // visibility dms
   useEffect(() => {
-    if (orgId) {
-      const fetchChannels = async () => {
-        const res = await GetRequest(
-          `/organisations/${orgId}/dms/visible?page=1&limit=10`
-        );
+    if (!orgId) return;
 
-        if (res?.status === 200 || res?.status === 201) {
-          dispatch({
-            type: ACTIONS.HOME_DMS,
-            payload: res?.data?.data ?? [],
-          });
-        }
-      };
-      fetchChannels();
-    }
-  }, [orgId, dispatch, state?.triggerCallback, state?.createCallback]);
+    let cancelled = false;
+    const timeoutId = window.setTimeout(async () => {
+      const res = await GetRequest(
+        `/organisations/${orgId}/dms/visible?page=1&limit=10`
+      );
+
+      if (cancelled) return;
+
+      if (res?.status === 200 || res?.status === 201) {
+        dispatch({
+          type: ACTIONS.HOME_DMS,
+          payload: res?.data?.data ?? [],
+        });
+      }
+    }, 200);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [
+    orgId,
+    dispatch,
+    state?.triggerCallback,
+    state?.createCallback,
+    state?.homeDmsCallback,
+  ]);
 
   useEffect(() => {
     if (!orgId || !state?.token) return;
