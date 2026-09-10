@@ -21,6 +21,19 @@ export const showInfo = (message: string, description?: string) => {
   });
 };
 
+export const showRecordingSaved = (filesPath: string) => {
+  toast.success("Recording saved", {
+    description: "Find this Buzz recording on the Files page.",
+    duration: 8000,
+    action: {
+      label: "Open Files",
+      onClick: () => {
+        window.location.assign(filesPath);
+      },
+    },
+  });
+};
+
 export const showLoading = (message: string) => {
   return toast.loading(message, {
     duration: Number.POSITIVE_INFINITY,

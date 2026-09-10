@@ -19,7 +19,7 @@ import {
 } from "~/components/ui/popover";
 import { cn } from "~/lib/utils";
 import { InviteModal } from "./buzzInviteModal";
-import { showInfo } from "~/components/toast/sonner";
+import { showInfo, showRecordingSaved } from "~/components/toast/sonner";
 import { PostRequest } from "~/utils/new-request";
 import { DataContext } from "~/store/GlobalState";
 import { ACTIONS } from "~/store/Actions";
@@ -57,7 +57,8 @@ export function BuzzMenu({
   const [isOpen, setIsOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const { state, dispatch } = useContext(DataContext);
-  const { buzzData, user, buzzIsScreenSharing, buzzAgoraUintUids } = state;
+  const { buzzData, user, buzzIsScreenSharing, buzzAgoraUintUids, orgSlug } =
+    state;
   const { isVideoPublishing } = useChannelBuzzContext();
 
   const isHost = String(buzzData?.host_id) === String(user?.user_id);
@@ -137,7 +138,7 @@ export function BuzzMenu({
               is_recording: false,
             },
           });
-          showInfo("Recording stopped");
+          showRecordingSaved(`/${orgSlug || ""}/files`);
         }
       } finally {
         dispatch({ type: ACTIONS.BUZZ_STOPPING_RECORDING, payload: false });
