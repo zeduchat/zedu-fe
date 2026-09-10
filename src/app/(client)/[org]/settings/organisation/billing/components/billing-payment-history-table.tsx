@@ -111,9 +111,9 @@ export default function BillingPaymentHistoryTable({
       cell: ({ row }) => (
         <div className="flex flex-col">
           <span className="text-gray-900 font-semibold">
-            ${row.original.fee.toFixed(2)}
+            ₦{row.original.fee.toFixed(2)}
           </span>
-          <span className="text-[#667085] text-xs">USD</span>
+          <span className="text-[#667085] text-xs">NGN</span>
         </div>
       ),
     },

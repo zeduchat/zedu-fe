@@ -49,10 +49,10 @@ const InvoicePage = () => {
         description: "Zedu Starter Plan",
         period: "for May 31 2025 - June 31 2025",
         date: "1 June 2025",
-        amount: "$13.45",
+        amount: "₦13.45",
         vatPercent: "6.25%",
-        vat: "$1.25",
-        total: "$15.00",
+        vat: "₦1.25",
+        total: "₦15.00",
       },
     ],
     paymentMethod: {

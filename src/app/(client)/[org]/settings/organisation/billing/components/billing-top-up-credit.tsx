@@ -96,7 +96,7 @@ const BillingTopUpCredits: React.FC<TopUpCreditsProps> = ({
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0 mb-0">
           <h3 className="text-xl font-bold text-gray-900">Top-Up AI Credits</h3>
           <span className="text-sm text-black bg-[#F2F4F7] font-bold px-4 py-2 rounded-lg whitespace-nowrap w-fit mt-2 sm:mt-0">
-            ${creditPrice} • {creditsPerDollar}{" "}
+            ₦{creditPrice} • {creditsPerDollar}{" "}
             <span className="text-gray-500 font-[300]">AI credits</span>
           </span>
         </div>
@@ -125,7 +125,7 @@ const BillingTopUpCredits: React.FC<TopUpCreditsProps> = ({
                     className="text-gray-800 !placeholder:text-gray-400 text-sm sm:text-base"
                   >
                     {selectedOption
-                      ? `${selectedOption.name} - ${selectedOption.credits.toLocaleString()} credits ($${selectedOption.price})`
+                      ? `${selectedOption.name} - ${selectedOption.credits.toLocaleString()} credits (₦${selectedOption.price})`
                       : "Select a credit package"}
                   </SelectValue>
                 </SelectTrigger>
@@ -137,7 +137,7 @@ const BillingTopUpCredits: React.FC<TopUpCreditsProps> = ({
                       className="py-1 px-2 cursor-pointer hover:bg-gray-100 data-[state=checked]:bg-gray-100 data-[state=checked]:font-medium text-sm sm:text-base"
                     >
                       {option.name} - {option.credits.toLocaleString()} credits
-                      (${option.price})
+                      (₦{option.price})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -164,7 +164,7 @@ const BillingTopUpCredits: React.FC<TopUpCreditsProps> = ({
                 </div>
               ) : (
                 <span className="text-sm sm:text-base whitespace-nowrap">
-                  Pay ${totalCost.toFixed(0)}
+                  Pay ₦{totalCost.toFixed(0)}
                   {/* •{" "}
                   {new Intl.NumberFormat("en-US").format(
                     creditAmount * creditsPerDollar

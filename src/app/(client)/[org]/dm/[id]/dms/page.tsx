@@ -76,6 +76,10 @@ const DmPage = () => {
       type: ACTIONS.CHATS,
       payload: { newMessage: optimisticMessage },
     });
+    dispatch({
+      type: ACTIONS.UPDATE_DM_PREVIEW,
+      payload: { channelId: id, message: content },
+    });
 
     const payload = {
       content: content,

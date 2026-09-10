@@ -262,7 +262,11 @@ function createSuggestionRender(getPopulateFn: () => PopulateFn) {
   };
 }
 
-const UseTextEditor = (subscription?: any, handleImagePaste?: any) => {
+const UseTextEditor = (
+  subscription?: any,
+  handleImagePaste?: any,
+  handleTyping?: (isTyping: boolean) => void
+) => {
   const { state, dispatch } = useContext(DataContext);
   const name = localStorage.getItem("channelName") || "";
   const [isEmpty, setIsEmpty] = useState(true);
@@ -270,6 +274,8 @@ const UseTextEditor = (subscription?: any, handleImagePaste?: any) => {
   const memberPopulateRef = useRef<PopulateFn>(null!);
   const channelPopulateRef = useRef<PopulateFn>(null!);
   const slashPopulateRef = useRef<PopulateFn>(null!);
+  const handleTypingRef = useRef(handleTyping);
+  handleTypingRef.current = handleTyping;
 
   const populateMemberMentions: PopulateFn = (
     component,
@@ -769,12 +775,9 @@ const UseTextEditor = (subscription?: any, handleImagePaste?: any) => {
     onUpdate: ({ editor }) => {
       const isContentEmpty = editor.isEmpty;
       setIsEmpty(isContentEmpty);
+      handleTypingRef.current?.(!isContentEmpty);
     },
-    // autofocus: true,
-    // onUpdate: () => {
-    //   handleTyping(true);
-    // },
-    // onBlur: () => handleTyping(false),
+    onBlur: () => handleTypingRef.current?.(false),
     editorProps: {
       handlePaste(view, event, slice) {
         const items = event.clipboardData?.items;

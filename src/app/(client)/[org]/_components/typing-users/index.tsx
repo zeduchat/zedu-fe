@@ -1,27 +1,53 @@
 "use client";
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
+import { ACTIONS } from "~/store/Actions";
 import { DataContext } from "~/store/GlobalState";
 
+const TYPING_EXPIRE_MS = 4000;
+
 const TypingUsers = () => {
-  const { state } = useContext(DataContext);
+  const { state, dispatch } = useContext(DataContext);
   const { userTyping } = state;
 
-  //
+  useEffect(() => {
+    if (!userTyping?.length) return;
+
+    const interval = setInterval(() => {
+      const now = Date.now();
+      userTyping.forEach((typer: any) => {
+        if (now - (typer?.at || 0) > TYPING_EXPIRE_MS) {
+          dispatch({
+            type: ACTIONS.USER_TYPING,
+            payload: { userId: typer.id, typing: false },
+          });
+        }
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [userTyping, dispatch]);
+
+  if (!userTyping?.length) return null;
+
+  const names = userTyping
+    .map((typer: any) => (typeof typer === "string" ? typer : typer?.username))
+    .filter(Boolean);
+
+  if (!names.length) return null;
+
+  let label = "";
+  if (names.length === 1) {
+    label = `${names[0]} is typing…`;
+  } else if (names.length === 2) {
+    label = `${names[0]} and ${names[1]} are typing…`;
+  } else {
+    label = "Several people are typing…";
+  }
 
   return (
-    <>
-      {userTyping?.length > 0 && (
-        <p className="ml-8 text-xs">
-          {userTyping?.map((username: any, index: number) => (
-            <span key={index}>
-              {username}
-              {index < userTyping?.length - 1 ? ", " : ""}
-            </span>
-          ))}
-          {userTyping?.length === 1 ? " is typing" : " are typing"}
-        </p>
-      )}
-    </>
+    <p className="mx-5 mt-1 mb-2 text-xs text-[#667085] dark:text-zinc-400">
+      {label}
+    </p>
   );
 };
 

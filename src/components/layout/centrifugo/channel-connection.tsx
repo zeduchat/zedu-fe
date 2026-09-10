@@ -33,7 +33,26 @@ export default function ChannelConnection() {
         const result = ctx?.data;
         // console.log("channel publishing", ctx);
 
+        if (ctx?.data?.type === "typing") {
+          dispatch({
+            type: ACTIONS.USER_TYPING,
+            payload: {
+              userId: ctx.data?.user?.id || ctx.data?.user?.user_id,
+              username: ctx.data?.user?.username,
+              typing: ctx.data?.typing,
+            },
+          });
+          return;
+        }
+
         if (ctx?.data?.type === "message") {
+          dispatch({
+            type: ACTIONS.USER_TYPING,
+            payload: {
+              userId: ctx.data?.user_id,
+              typing: false,
+            },
+          });
           dispatch({
             type: ACTIONS.MESSAGES,
             payload: { newMessage: ctx.data, isRealTime: true },
@@ -260,6 +279,7 @@ export default function ChannelConnection() {
         sub.off("error", onError);
         releaseChannelSubscription(centrifugeClient, id, sub);
         dispatch({ type: ACTIONS.CHANNEL_SUBSCRIPTION, payload: null });
+        dispatch({ type: ACTIONS.CLEAR_TYPING });
       };
     }
   }, [id, dispatch]);
