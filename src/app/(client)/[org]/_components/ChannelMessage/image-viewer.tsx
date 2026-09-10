@@ -1,6 +1,13 @@
 "use client";
 
-import { MinusIcon, PlusIcon, RefreshCwIcon, X } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  MinusIcon,
+  PlusIcon,
+  RefreshCwIcon,
+  X,
+} from "lucide-react";
 import moment from "moment";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -9,10 +16,37 @@ import images from "~/assets/images";
 
 const IMAGE_VIEWER_Z_INDEX = 99999;
 
-const ImageViewer = ({ onClose, item, image }: any) => {
+const ImageViewer = ({ onClose, item, image, images }: any) => {
+  const gallery =
+    Array.isArray(images) && images.length > 0 ? images : image ? [image] : [];
+  const canNavigate = gallery.length > 1;
+
   const [mounted, setMounted] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [rotation, setRotation] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(() => {
+    const idx = gallery.findIndex(
+      (img: any) => img?.id === image?.id || img?.file_link === image?.file_link
+    );
+    return idx >= 0 ? idx : 0;
+  });
+
+  const currentImage = gallery[currentIndex] || image;
+
+  const resetView = () => {
+    setZoomLevel(1);
+    setRotation(0);
+  };
+
+  const goTo = (nextIndex: number) => {
+    if (!canNavigate) return;
+    const total = gallery.length;
+    setCurrentIndex(((nextIndex % total) + total) % total);
+    resetView();
+  };
+
+  const goPrev = () => goTo(currentIndex - 1);
+  const goNext = () => goTo(currentIndex + 1);
 
   useEffect(() => {
     setMounted(true);
@@ -33,12 +67,14 @@ const ImageViewer = ({ onClose, item, image }: any) => {
   const MIN_ZOOM = 0.5;
 
   useEffect(() => {
-    const onEsc = (e: KeyboardEvent) => {
+    const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft") goPrev();
+      if (e.key === "ArrowRight") goNext();
     };
-    document.addEventListener("keydown", onEsc);
-    return () => document.removeEventListener("keydown", onEsc);
-  }, [onClose]);
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onClose, currentIndex, canNavigate, gallery.length]);
 
   // Function to handle zooming in
   const handleZoomIn = () => {
@@ -51,8 +87,7 @@ const ImageViewer = ({ onClose, item, image }: any) => {
   };
 
   const handleReset = () => {
-    setZoomLevel(1);
-    setRotation(0);
+    resetView();
   };
 
   const zoomProgress = ((zoomLevel - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM)) * 100;
@@ -67,7 +102,7 @@ const ImageViewer = ({ onClose, item, image }: any) => {
       <div className="relative flex justify-between items-start text-white">
         <div className="flex items-center gap-3">
           <Image
-            src={image?.file_link || images?.user}
+            src={currentImage?.file_link || images?.user}
             width={80}
             height={80}
             alt="Image thumbnail"
@@ -79,7 +114,8 @@ const ImageViewer = ({ onClose, item, image }: any) => {
             <p className="font-medium">{item?.username}</p>
             <p className="flex flex-wrap text-sm text-gray-300">
               {moment(item.created_at).startOf("minute").fromNow()} in #
-              {item?.channel_name} – {image?.file_name}
+              {item?.channel_name} – {currentImage?.file_name}
+              {canNavigate ? ` (${currentIndex + 1}/${gallery.length})` : ""}
             </p>
           </div>
         </div>
@@ -93,16 +129,38 @@ const ImageViewer = ({ onClose, item, image }: any) => {
       </div>
 
       {/* Center image */}
-      <div className="flex-grow flex items-center justify-center overflow-hidden">
+      <div className="relative flex-grow flex items-center justify-center overflow-hidden">
+        {canNavigate && (
+          <button
+            type="button"
+            onClick={goPrev}
+            className="absolute left-2 sm:left-6 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
+            aria-label="Previous image"
+          >
+            <ChevronLeft size={28} />
+          </button>
+        )}
+
         <img
-          src={image?.file_link}
-          alt={image?.file_name || "full image"}
+          src={currentImage?.file_link}
+          alt={currentImage?.file_name || "full image"}
           style={{
             transform: `scale(${zoomLevel}) rotate(${rotation}deg)`,
             transition: "transform 0.1s ease-out", // Smooth transition for visual effect
           }}
           className="max-h-[90vh] max-w-full object-contain"
         />
+
+        {canNavigate && (
+          <button
+            type="button"
+            onClick={goNext}
+            className="absolute right-2 sm:right-6 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
+            aria-label="Next image"
+          >
+            <ChevronRight size={28} />
+          </button>
+        )}
       </div>
 
       <div className="flex justify-between items-center text-white">
