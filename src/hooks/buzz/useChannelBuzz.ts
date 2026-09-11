@@ -11,7 +11,11 @@ import {
   type PlaceholderTrackSession,
 } from "~/lib/buzz/recording-placeholder-track";
 import { PostRequest } from "~/utils/new-request";
-import { showError, showInfo } from "~/components/toast/sonner";
+import {
+  showError,
+  showInfo,
+  showRecordingSaved,
+} from "~/components/toast/sonner";
 import type {
   IAgoraRTC,
   ILocalAudioTrack,
@@ -42,6 +46,7 @@ export const useChannelBuzz = (options: UseBuzzOptions = {}) => {
   const { state, dispatch } = useContext(DataContext);
   const {
     orgId,
+    orgSlug,
     user,
     buzzData,
     hasJoined,
@@ -767,6 +772,7 @@ export const useChannelBuzz = (options: UseBuzzOptions = {}) => {
           type: ACTIONS.BUZZ_DATA,
           payload: { ...buzzData, is_recording: false },
         });
+        showRecordingSaved(`/${orgSlug || ""}/files`);
       }
 
       if (videoTrack) {
@@ -839,6 +845,7 @@ export const useChannelBuzz = (options: UseBuzzOptions = {}) => {
     buzzParticipants,
     resetScreenShareClient,
     user?.user_id,
+    orgSlug,
   ]);
 
   // End the buzz call for all participants
@@ -852,6 +859,7 @@ export const useChannelBuzz = (options: UseBuzzOptions = {}) => {
           type: ACTIONS.BUZZ_DATA,
           payload: { ...buzzData, is_recording: false },
         });
+        showRecordingSaved(`/${orgSlug || ""}/files`);
       }
 
       if (videoTrack) {
@@ -914,6 +922,7 @@ export const useChannelBuzz = (options: UseBuzzOptions = {}) => {
     dispatch,
     buzzParticipants,
     resetScreenShareClient,
+    orgSlug,
   ]);
 
   // Toggle full page view

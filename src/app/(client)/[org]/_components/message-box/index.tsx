@@ -53,6 +53,8 @@ import Tooltips from "../tooltip";
 import { UploadRequest } from "~/utils/new-request";
 import { compressImage } from "~/utils/compress-image";
 import UseTextEditor from "../editor";
+import UseTyping from "../typing-users/use-typing";
+import TypingUsers from "../typing-users";
 import { VoiceRecorder } from "../voice/voice-recorder";
 import { VoiceThumbnails } from "../voice/voice-thumbnails";
 import data from "@emoji-mart/data";
@@ -146,7 +148,12 @@ const MessageBox = ({ subscription, sendMessage, show = true }: any) => {
       });
   };
 
-  const { editor, isEmpty } = UseTextEditor(subscription, handleImagePaste);
+  const { handleTyping } = UseTyping(subscription);
+  const { editor, isEmpty } = UseTextEditor(
+    subscription,
+    handleImagePaste,
+    handleTyping
+  );
 
   const handleSave = () => {
     if (!text || !url) return;
@@ -237,6 +244,8 @@ const MessageBox = ({ subscription, sendMessage, show = true }: any) => {
     const hasMediaContent = medias.length > 0;
 
     if (!hasTextContent && !hasMediaContent) return;
+
+    handleTyping(false);
 
     // Convert emoticons in the plain text, but apply them inside the HTML
     const textWithEmoticonsConverted =
@@ -756,6 +765,7 @@ const MessageBox = ({ subscription, sendMessage, show = true }: any) => {
           </div>
         </div>
       </div>
+      <TypingUsers />
     </>
   );
 };

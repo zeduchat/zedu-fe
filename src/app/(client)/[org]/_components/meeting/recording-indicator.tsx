@@ -5,7 +5,7 @@ import { Loader2, Square } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { DataContext } from "~/store/GlobalState";
 import { PostRequest } from "~/utils/new-request";
-import { showInfo } from "~/components/toast/sonner";
+import { showRecordingSaved } from "~/components/toast/sonner";
 import { ACTIONS } from "~/store/Actions";
 
 const RecordingIndicator = ({
@@ -19,6 +19,7 @@ const RecordingIndicator = ({
     buzzData,
     buzzStoppingRecording: isStopping,
     buzzStartingRecording: isStarting,
+    orgSlug,
   } = state;
 
   const isPending = isStarting || isStopping;
@@ -45,7 +46,7 @@ const RecordingIndicator = ({
             is_recording: false,
           },
         });
-        showInfo("Recording stopped");
+        showRecordingSaved(`/${orgSlug || ""}/files`);
       }
     } finally {
       dispatch({ type: ACTIONS.BUZZ_STOPPING_RECORDING, payload: false });

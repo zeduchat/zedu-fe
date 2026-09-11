@@ -18,6 +18,7 @@ import Link from "next/link";
 import InviteModal from "~/app/(client)/[org]/_components/invite-modal";
 import ChannelInviteModal from "~/app/(client)/[org]/_components/invite-modal/channel";
 import OrganisationMenu from "~/app/(client)/[org]/_components/org-dropdown";
+import Tooltips from "~/app/(client)/[org]/_components/tooltip";
 import { formatCount } from "~/utils/utils";
 // import AddColleagueDialog from "~/app/(client)/[org]/_components/colleagues/add-colleagues-modal";
 // import { ColleaguesCard } from "~/app/(client)/[org]/_components/colleagues/card";
@@ -282,12 +283,16 @@ export default function ChannelNav({
                       </h3>
                     </div>
                   </AccordionTrigger>
-                  <div
-                    className="flex items-center justify-center h-6 w-6 bg-blue-500 rounded gap-1 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={handleNewChat}
-                  >
-                    <PlusIcon className="size-4" />
-                  </div>
+                  <Tooltips text="Start a new chat" side="top">
+                    <button
+                      type="button"
+                      className="flex items-center justify-center h-6 w-6 bg-blue-500 rounded gap-1 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={handleNewChat}
+                      aria-label="Start a new chat"
+                    >
+                      <PlusIcon className="size-4" />
+                    </button>
+                  </Tooltips>
                 </div>
                 <AccordionContent onClick={handleClose}>
                   {state.homeDms.map((item: any) => (

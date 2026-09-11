@@ -1,24 +1,49 @@
-import { useContext } from "react";
-import debounce from "lodash.debounce";
+import { useCallback, useContext, useRef } from "react";
 import { DataContext } from "~/store/GlobalState";
+
+const TYPING_THROTTLE_MS = 2000;
 
 const UseTyping = (subscription: any) => {
   const { state } = useContext(DataContext);
+  const lastStartRef = useRef(0);
+  const subscriptionRef = useRef(subscription);
+  const userRef = useRef(state?.user);
 
-  const handleTyping = debounce((isTyping: boolean) => {
-    if (subscription) {
-      subscription?.publish({
+  subscriptionRef.current = subscription;
+  userRef.current = state?.user;
+
+  const publishTyping = (isTyping: boolean) => {
+    const sub = subscriptionRef.current;
+    const user = userRef.current;
+    if (!sub || !user) return;
+
+    try {
+      sub.publish({
         user: {
-          id: state?.user?.id,
-          username: state?.user?.username,
+          id: user.user_id || user.id,
+          username: user.username || user.name,
         },
         typing: isTyping,
         type: "typing",
       });
-    } else {
-      // console.log("Subscription or user data is missing");
+    } catch {
+      // Ignore publish errors so typing never blocks the editor.
     }
-  }, 50);
+  };
+
+  const handleTyping = useCallback((isTyping: boolean) => {
+    if (!isTyping) {
+      lastStartRef.current = 0;
+      publishTyping(false);
+      return;
+    }
+
+    const now = Date.now();
+    if (now - lastStartRef.current < TYPING_THROTTLE_MS) return;
+    lastStartRef.current = now;
+    publishTyping(true);
+  }, []);
+
   return {
     handleTyping,
   };

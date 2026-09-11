@@ -495,6 +495,7 @@ const MessageItem: React.FC<MessageItemProps> = ({ item }) => {
         <ImageViewer
           item={item}
           image={image}
+          images={imageItems}
           onClose={() => setIsOpen(false)}
         />
       )}

@@ -4,6 +4,7 @@ import React, { useState, useRef, useContext } from "react";
 import { Avatar, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import MenuDropdown from "./menu-dropdown";
+import { ViewMembersModal } from "./view-members-modal";
 import Loading from "~/components/ui/loading";
 import { useParams } from "next/navigation";
 import { PostRequest } from "~/utils/new-request";
@@ -14,6 +15,7 @@ import { cn } from "~/lib/utils";
 
 const ChatHeader = ({ participants }: any) => {
   const [isMenuDropdownOpen, setIsMenuDropdownOpen] = useState(false);
+  const [viewMembersOpen, setViewMembersOpen] = useState(false);
   const menuDropdownRef = useRef<HTMLDivElement>(null);
   const { state, dispatch } = useContext(DataContext);
   const { user } = state;
@@ -108,7 +110,12 @@ const ChatHeader = ({ participants }: any) => {
         </button>
 
         {/* avatar badge group */}
-        <div className="flex rounded-[5px] border border-[#E6EAEF] p-2 h-9">
+        <button
+          type="button"
+          onClick={() => setViewMembersOpen(true)}
+          className="flex rounded-[5px] border border-[#E6EAEF] p-2 h-9 cursor-pointer hover:bg-[#F6F7F9]"
+          aria-label="View members"
+        >
           <div className="flex items-center gap-1.5">
             {participants?.map((member: any) => (
               <Avatar
@@ -132,7 +139,7 @@ const ChatHeader = ({ participants }: any) => {
               </span>
             )}
           </div>
-        </div>
+        </button>
 
         <div className="relative" ref={menuDropdownRef}>
           <Button
@@ -151,6 +158,13 @@ const ChatHeader = ({ participants }: any) => {
           />
         </div>
       </div>
+
+      <ViewMembersModal
+        isOpen={viewMembersOpen}
+        onClose={() => setViewMembersOpen(false)}
+        channelId={id}
+        participants={participants}
+      />
     </nav>
   );
 };

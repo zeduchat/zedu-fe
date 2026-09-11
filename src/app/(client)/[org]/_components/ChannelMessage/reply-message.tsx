@@ -27,6 +27,7 @@ import {
   TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { TooltipArrow } from "@radix-ui/react-tooltip";
+import moment from "moment";
 
 const ReplyMessages = ({
   item,
@@ -204,13 +205,7 @@ const ReplyMessages = ({
             </span>
 
             <span className="text-xs text-[#98A2B3]">
-              {new Date(item?.created_at)
-                .toLocaleTimeString([], {
-                  hour: "numeric",
-                  minute: "2-digit",
-                  hour12: true,
-                })
-                .replace(/\s?(am|pm)/i, "")}
+              {moment(item?.created_at).format("MMMM Do [at] h:mm A")}
             </span>
           </div>
         )}

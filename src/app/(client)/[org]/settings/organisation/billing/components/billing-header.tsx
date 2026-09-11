@@ -25,7 +25,7 @@ const BillingHeader: React.FC<HeaderProps> = ({
         {onComparePlan ? (
           <Button
             onClick={onComparePlan}
-            className="w-full sm:w-auto px-4 py-2 border border-[#8860F8] text-[#7141F8] rounded-md hover:bg-purple-50 transition-colors text-sm cursor-pointer"
+            className="w-full sm:w-auto px-4 py-2 border border-[#8860F8] text-[#7141F8] rounded-md hover:bg-purple-50 dark:hover:bg-purple-950/40 transition-colors text-sm cursor-pointer"
           >
             Compare Plans
           </Button>

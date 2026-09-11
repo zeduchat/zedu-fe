@@ -121,7 +121,7 @@ const ColleaguesSidebar = ({ user }: any) => {
               <div className="flex gap-[10px] items-center">
                 <Phone size={20} color="#475467" />
                 <span className="text-sm text-[#6868F7]">{user?.phone}</span>
-                <span className="text-sm text-[#667085]">whatsapp only</span>
+                {/* <span className="text-sm text-[#667085]">whatsapp only</span> */}
               </div>
               <CopyToClipboardWithTooltip textToCopy={user?.phone}>
                 <CopyIcon />

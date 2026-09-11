@@ -652,8 +652,15 @@ html.dark .bg-white {
 }
 
 html.dark .bg-\[\#F6F7F9\],
-html.dark .bg-\[\#f6f7f9\] {
+html.dark .bg-\[\#f6f7f9\],
+html.dark .bg-\[\#F6F7F6\],
+html.dark .bg-\[\#f6f7f6\] {
   background-color: #1a1d21;
+}
+
+html.dark .bg-\[\#F1F1FE\],
+html.dark .bg-\[\#f1f1fe\] {
+  background-color: rgba(113, 65, 248, 0.16);
 }
 
 html.dark .bg-gray-50,
@@ -710,6 +717,7 @@ html.dark .text-black,
 html.dark .text-gray-800,
 html.dark .text-gray-900,
 html.dark .text-\[\#101828\],
+html.dark .text-\[\#111827\],
 html.dark .text-\[\#1D2939\],
 html.dark .text-\[\#1F2937\],
 html.dark .text-\[\#344054\],
@@ -739,6 +747,7 @@ html.dark .border-gray-200,
 html.dark .border-gray-300,
 html.dark .border-gray-100,
 html.dark .border-\[\#E6EAEF\],
+html.dark .border-\[\#EAECF0\],
 html.dark .border-\[\#D0D5DD\],
 html.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]),
 html.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
