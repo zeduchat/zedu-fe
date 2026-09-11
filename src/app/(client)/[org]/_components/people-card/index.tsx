@@ -157,7 +157,7 @@ export const PeopleHomeCard = (props: ComponentProps) => {
             <div
               className={cn(
                 "text-[10px] absolute -bottom-1 -right-2 h-[15px] w-[15px] rounded text-white flex items-center justify-center",
-                "bg-blue-200"
+                "bg-black"
               )}
             >
               {props?.username?.split(", ").length}

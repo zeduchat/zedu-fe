@@ -151,9 +151,29 @@ export default function ChatConnection() {
         // console.log("chat conn", ctx);
         const { data } = ctx;
         // console.log("DM chat publishing", data);
+
+        if (data?.type === "typing") {
+          dispatch({
+            type: ACTIONS.USER_TYPING,
+            payload: {
+              userId: data?.user?.id || data?.user?.user_id,
+              username: data?.user?.username,
+              typing: data?.typing,
+            },
+          });
+          return;
+        }
+
         dispatch({ type: ACTIONS.AGENT_STATE, payload: ctx?.data });
 
         if (data?.type === "message" && data.user_type === "user") {
+          dispatch({
+            type: ACTIONS.USER_TYPING,
+            payload: {
+              userId: data?.user_id,
+              typing: false,
+            },
+          });
           dispatch({
             type: ACTIONS.CHATS,
             payload: { newMessage: data, isRealTime: true },
@@ -438,6 +458,7 @@ export default function ChatConnection() {
         sub.off("error", onError);
         releaseChannelSubscription(centrifugeClient, id, sub);
         dispatch({ type: ACTIONS.CHAT_SUBSCRIPTION, payload: null });
+        dispatch({ type: ACTIONS.CLEAR_TYPING });
       };
     }
   }, [id, dispatch]);

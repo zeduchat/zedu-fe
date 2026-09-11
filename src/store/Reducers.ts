@@ -187,6 +187,30 @@ const reducers = (state: any, action: any) => {
         ...state,
         dms: payload,
       };
+    case ACTIONS.UPDATE_DM_PREVIEW: {
+      const { channelId, message } = action.payload;
+      const list = state.dms || [];
+      const match = list.find(
+        (dm: any) =>
+          String(dm.channel_id || dm.channels_id) === String(channelId)
+      );
+      if (!match) return state;
+
+      return {
+        ...state,
+        dms: [
+          {
+            ...match,
+            preview_message: message,
+            last_read_at: new Date().toISOString(),
+          },
+          ...list.filter(
+            (dm: any) =>
+              String(dm.channel_id || dm.channels_id) !== String(channelId)
+          ),
+        ],
+      };
+    }
     case ACTIONS.HOME_DMS:
       return {
         ...state,
@@ -351,6 +375,51 @@ const reducers = (state: any, action: any) => {
       return {
         ...state,
         chatSubscription: payload,
+      };
+    case ACTIONS.USER_TYPING: {
+      const { userId, username, typing } = payload || {};
+      const currentId = String(state.user?.user_id || state.user?.id || "");
+      if (!userId || String(userId) === currentId) return state;
+
+      const list = state.userTyping || [];
+      if (typing) {
+        const exists = list.some(
+          (typer: any) => String(typer.id) === String(userId)
+        );
+        if (exists) {
+          return {
+            ...state,
+            userTyping: list.map((typer: any) =>
+              String(typer.id) === String(userId)
+                ? {
+                    ...typer,
+                    username: username || typer.username || "Someone",
+                    at: Date.now(),
+                  }
+                : typer
+            ),
+          };
+        }
+        return {
+          ...state,
+          userTyping: [
+            ...list,
+            { id: userId, username: username || "Someone", at: Date.now() },
+          ],
+        };
+      }
+
+      return {
+        ...state,
+        userTyping: list.filter(
+          (typer: any) => String(typer.id) !== String(userId)
+        ),
+      };
+    }
+    case ACTIONS.CLEAR_TYPING:
+      return {
+        ...state,
+        userTyping: [],
       };
     case ACTIONS.REPLY_SUBSCRIPTION:
       return {

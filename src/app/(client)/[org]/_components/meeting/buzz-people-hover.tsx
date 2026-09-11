@@ -112,7 +112,7 @@ const BuzzPeopleHover = ({
                     : "cursor-not-allowed opacity-50"
                 )}
               >
-                All muted
+                Mute all
               </button>
               {/* <button
                                 type="button"

@@ -207,14 +207,14 @@ const MessageContextMenu = ({ item }: any) => {
               </div>
             )}
 
-            <hr />
+            {/* <hr />
 
             <div className="group flex items-center justify-between px-4 py-1 my-2 text-sm text-gray-700 hover:bg-blue-500 hover:text-white cursor-pointer">
               <div className="flex items-center gap-2">
                 <Users size={16} />
                 <span>Start a huddle in thread...</span>
               </div>
-            </div>
+            </div> */}
 
             <hr />
 

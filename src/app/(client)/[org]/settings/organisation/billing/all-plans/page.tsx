@@ -263,7 +263,7 @@ const Page = () => {
 
                         {isCurrentPlan && (
                           <div className="">
-                            <div className="flex items-center gap-2 bg-gradient-to-b from-white to-[#F2EFFA] text-purple-700 px-3 py-2 border border-[#F1F1FE] rounded-full text-sm font-medium">
+                            <div className="flex items-center gap-2 bg-gradient-to-b from-white to-[#F2EFFA] text-purple-700 px-3 py-2 border border-[#F1F1FE] rounded-full text-sm font-medium dark:from-[#2C2D30] dark:to-[#2D2463] dark:text-purple-200 dark:border-white/10">
                               <Check size={16} />
                               Current Plan
                             </div>
@@ -274,7 +274,10 @@ const Page = () => {
                       <div className="relative z-10 px-6 py-6 bg-white border-b border-[#EAECF0]">
                         <div className="flex items-center gap-1">
                           <span className="text-3xl font-semibold text-black">
-                            ${plan.fee.toLocaleString()}
+                            ₦
+                            {plan.fee === 0
+                              ? "0"
+                              : `${plan.fee.toLocaleString()}K`}
                           </span>
                           <span className="text-[#344054] self-end">
                             per month
@@ -291,7 +294,9 @@ const Page = () => {
 
                       <div className="relative z-10">
                         <div className="bg-[#F9FAFB] px-6 py-2.5">
-                          <h4 className="text-[#111827]">Includes:</h4>
+                          <h4 className="text-[#111827] dark:text-zinc-100">
+                            Includes:
+                          </h4>
                         </div>
                         <ul className="space-y-4 p-6 bg-white min-h-[230px]">
                           {planFeatures.map(
