@@ -31,7 +31,7 @@ export default function ChannelConnection() {
 
       const onPublication = (ctx: any) => {
         const result = ctx?.data;
-        // console.log("channel publishing", ctx);
+        console.log("channel publishing", ctx);
 
         if (ctx?.data?.type === "typing") {
           dispatch({
@@ -53,6 +53,13 @@ export default function ChannelConnection() {
               typing: false,
             },
           });
+          dispatch({
+            type: ACTIONS.MESSAGES,
+            payload: { newMessage: ctx.data, isRealTime: true },
+          });
+        }
+
+        if (ctx?.data?.type === "thread") {
           dispatch({
             type: ACTIONS.MESSAGES,
             payload: { newMessage: ctx.data, isRealTime: true },

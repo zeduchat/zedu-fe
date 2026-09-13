@@ -84,7 +84,7 @@ export default function GeneralNotificationConnection() {
 
       const result = ctx?.data;
 
-      console.log("general notification", ctx?.data);
+      // console.log("general notification", ctx?.data);
 
       if (
         result?.section === "thread_message" &&
