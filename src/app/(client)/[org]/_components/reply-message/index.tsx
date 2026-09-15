@@ -3,8 +3,9 @@ import React, { useContext, useEffect, useState } from "react";
 import { DataContext } from "~/store/GlobalState";
 import InfiniteScroll from "react-infinite-scroll-component";
 import ReplyMessages from "../ChannelMessage/reply-message";
+import Thread from "../ChannelMessage/thread";
 import UserAvatar from "~/components/layout/user-avatar";
-import { Bookmark, Forward, MoreVertical, Pin, SmilePlus } from "lucide-react";
+import { Pin } from "lucide-react";
 import MessageItem from "../ChannelMessage/message-item";
 import { GetRequest, PutRequest } from "~/utils/new-request";
 import { ACTIONS } from "~/store/Actions";
@@ -171,59 +172,46 @@ const ReplyMessage = ({ fetchMoreData, hasMore }: any) => {
 
         {thread && (
           <div className="px-3 mt-4 mb-2">
-            <div className="flex">
-              {/* <div className="w-[40px] h-[40px] mr-2 size-10"> */}
-              <UserAvatar
-                item={thread}
-                size="sm"
-                className="mr-2"
-                alt="avatar"
-              />
-              {/* </div> */}
+            {thread?.type === "thread" ? (
+              <Thread item={thread} compact />
+            ) : (
+              <div className="flex">
+                <UserAvatar
+                  item={thread}
+                  size="sm"
+                  className="mr-2"
+                  alt="avatar"
+                />
 
-              <div>
-                <div className="w-full flex items-center gap-2">
-                  <span className="font-bold text-[15px] text-[#1D2939]">
-                    {thread?.username || thread?.email}
-                  </span>
+                <div>
+                  <div className="w-full flex items-center gap-2">
+                    <span className="font-bold text-[15px] text-[#1D2939]">
+                      {thread?.username || thread?.email}
+                    </span>
 
-                  <span className="text-xs text-[#98A2B3]">
-                    {new Date(thread?.created_at)
-                      .toLocaleTimeString([], {
-                        hour: "numeric",
-                        minute: "2-digit",
-                        hour12: true,
-                      })
-                      .replace(/ AM| PM/, "")}
-                  </span>
-                </div>
-
-                <div className="relative flex items-start justify-between">
-                  <div className="flex items-center gap-2">
-                    <MessageItem item={thread} />
-
-                    <span className="text-[9px] text-neutral-500">
-                      {thread?.edited ? "(edited)" : ""}
+                    <span className="text-xs text-[#98A2B3]">
+                      {new Date(thread?.created_at)
+                        .toLocaleTimeString([], {
+                          hour: "numeric",
+                          minute: "2-digit",
+                          hour12: true,
+                        })
+                        .replace(/ AM| PM/, "")}
                     </span>
                   </div>
-                </div>
 
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center ml-4 absolute right-5 -top-6 z-20 bg-white shadow-md rounded-[8px] border border-[#E6EAEF] p-[2px]">
-                  <button className="py-[7px] px-[10px] hover:bg-gray-200 rounded">
-                    <SmilePlus size={18} className="text-[#667085]" />
-                  </button>
-                  <button className="py-[7px] px-[10px] hover:bg-gray-200 rounded">
-                    <Forward size={18} className="text-[#667085]" />
-                  </button>
-                  <button className="py-[7px] px-[10px] hover:bg-gray-200 rounded">
-                    <Bookmark size={18} className="text-[#667085]" />
-                  </button>
-                  <button className="py-[7px] px-[10px] hover:bg-gray-200 rounded">
-                    <MoreVertical size={18} className="text-[#667085]" />
-                  </button>
+                  <div className="relative flex items-start justify-between">
+                    <div className="flex items-center gap-2">
+                      <MessageItem item={thread} />
+
+                      <span className="text-[9px] text-neutral-500">
+                        {thread?.edited ? "(edited)" : ""}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Show horizontal divider with "35 replies" after the first item */}
             {replies?.length > 0 && (
