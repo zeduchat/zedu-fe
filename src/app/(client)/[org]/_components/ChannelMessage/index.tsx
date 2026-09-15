@@ -160,61 +160,56 @@ const ChannelsMessage = () => {
 
               return (
                 <React.Fragment key={index}>
-                  {item?.type === "thread" ? (
-                    <Thread item={item} />
-                  ) : (
-                    <>
-                      {isEdit && thread?.thread_id === item?.thread_id ? (
-                        <div
-                          className={`flex mb-5 mt-2 z-10 px-5 py-3 bg-blue-50 w-full`}
-                        >
-                          <div className="mb-2 mr-3">
-                            <UserAvatar item={item} size="md" />
-                          </div>
+                  {isEdit && thread?.thread_id === item?.thread_id ? (
+                    <div
+                      className={`flex mb-5 mt-2 z-10 px-5 py-3 bg-blue-50 w-full`}
+                    >
+                      <div className="mb-2 mr-3">
+                        <UserAvatar item={item} size="md" />
+                      </div>
 
-                          <EditMessageBox
-                            subscription={state?.channelSubscription}
-                            sendMessage={handleEditMessage}
-                          />
+                      <EditMessageBox
+                        subscription={state?.channelSubscription}
+                        sendMessage={handleEditMessage}
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      id={`thread-${item.thread_id}`}
+                      className={`${item.is_pinned ? "bg-yellow-50" : isSaved ? "bg-primary-50" : item?.type === "thread" ? "" : "hover:bg-gray-50"} duration-500 ease-in-out`}
+                    >
+                      {item?.is_pinned ? (
+                        <div className="flex items-center gap-2 bg-yellow-50 pl-10 text-[13px] font-semibold text-blue-100 pt-2">
+                          <Pin size={13} className="text-[#667085] mt-[3px]" />
+                          Pinned by{" "}
+                          {user?.email === item?.pinned_details?.email
+                            ? "you"
+                            : item?.pinned_details?.username}
                         </div>
-                      ) : (
+                      ) : isSaved ? (
                         <div
                           id={`thread-${item.thread_id}`}
-                          className={`${item.is_pinned ? "bg-yellow-50" : isSaved ? "bg-primary-50" : "hover:bg-gray-50"} duration-500 ease-in-out`}
+                          className={`flex items-center gap-2 pl-10 text-[13px] font-bold text-blue-100 pt-2`}
                         >
-                          {item?.is_pinned ? (
-                            <div className="flex items-center gap-2 bg-yellow-50 pl-10 text-[13px] font-semibold text-blue-100 pt-2">
-                              <Pin
-                                size={13}
-                                className="text-[#667085] mt-[3px]"
-                              />
-                              Pinned by{" "}
-                              {user?.email === item?.pinned_details?.email
-                                ? "you"
-                                : item?.pinned_details?.username}
-                            </div>
-                          ) : isSaved ? (
-                            <div
-                              id={`thread-${item.thread_id}`}
-                              className={`flex items-center gap-2 pl-10 text-[13px] font-bold text-blue-100 pt-2`}
-                            >
-                              <BookmarkFilledIcon
-                                fontSize={13}
-                                className="text-[#667085]"
-                              />
-                              Saved for Later
-                            </div>
-                          ) : null}
-
-                          <Message
-                            item={item}
-                            shouldShowAvatar={shouldShowAvatar}
-                            setPopupId={setPopupId}
-                            popupId={popupId}
+                          <BookmarkFilledIcon
+                            fontSize={13}
+                            className="text-[#667085]"
                           />
+                          Saved for Later
                         </div>
+                      ) : null}
+
+                      {item?.type === "thread" ? (
+                        <Thread item={item} />
+                      ) : (
+                        <Message
+                          item={item}
+                          shouldShowAvatar={shouldShowAvatar}
+                          setPopupId={setPopupId}
+                          popupId={popupId}
+                        />
                       )}
-                    </>
+                    </div>
                   )}
                 </React.Fragment>
               );
