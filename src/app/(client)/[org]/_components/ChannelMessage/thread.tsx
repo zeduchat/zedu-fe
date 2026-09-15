@@ -1,13 +1,21 @@
 "use client";
 
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   MessageCircleMore,
   SmilePlus,
   Bookmark,
   BookmarkCheck,
+  Webhook,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Mail,
+  User,
+  Link2,
+  Hash,
+  Sparkles,
 } from "lucide-react";
-import UserAvatar from "~/components/layout/user-avatar";
 import { DataContext } from "~/store/GlobalState";
 import { ACTIONS } from "~/store/Actions";
 import { useParams, usePathname } from "next/navigation";
@@ -19,7 +27,6 @@ import {
 } from "~/components/ui/popover";
 import EmojiPicker from "~/components/theme/themed-emoji-picker";
 import data from "@emoji-mart/data";
-import UserHoverCard from "../hover-card/user";
 import {
   DeleteSavedMessage,
   GetRequest,
@@ -35,6 +42,45 @@ import {
 import { TooltipArrow } from "@radix-ui/react-tooltip";
 import { cn } from "~/lib/utils";
 
+type ParsedField = {
+  label: string | null;
+  value: string;
+};
+
+const parseWebhookFields = (message: string): ParsedField[] => {
+  return String(message || "")
+    .split("\\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const match = line.match(/^(.*?):\s*(.*)$/);
+      if (match) {
+        return { label: match[1].trim(), value: match[2].trim() };
+      }
+      return { label: null, value: line };
+    });
+};
+
+const fieldIcon = (label: string | null) => {
+  const key = (label || "").toLowerCase();
+  if (key.includes("email")) return Mail;
+  if (key.includes("name")) return User;
+  if (key.includes("url") || key.includes("link")) return Link2;
+  if (key.includes("id")) return Hash;
+  return Sparkles;
+};
+
+const formatCardTime = (dateValue?: string) => {
+  if (!dateValue) return "";
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
+
 const Thread = ({
   item,
   compact = false,
@@ -43,7 +89,7 @@ const Thread = ({
   compact?: boolean;
 }) => {
   const { state, dispatch } = useContext(DataContext);
-  const { bookmarks, user, orgMembers } = state;
+  const { bookmarks, user } = state;
   const pathname = usePathname();
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
@@ -54,9 +100,13 @@ const Thread = ({
   const [showMobileActions, setShowMobileActions] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const isOnline = orgMembers?.find(
-    (member: any) => member.id === item.user_id
-  )?.online;
+  const isSuccess = item?.status === "success";
+  const fields = useMemo(
+    () => parseWebhookFields(item?.message),
+    [item?.message]
+  );
+  const sourceName = item?.username || item?.webhook_name || "Incoming webhook";
+  const eventTitle = item?.event_name || "Webhook event";
 
   const handleReply = () => {
     dispatch({
@@ -86,11 +136,6 @@ const Thread = ({
       reaction: emoji,
     };
     await PostRequest(`/reactions/${id}`, payload);
-  };
-
-  const handleOpen = () => {
-    dispatch({ type: ACTIONS.USER_DATA, payload: item });
-    dispatch({ type: ACTIONS.HOVER_PROFILE, payload: true });
   };
 
   const toggleSave = async () => {
@@ -189,83 +234,137 @@ const Thread = ({
     }
   };
 
-  const messageLines = String(item?.message || "").split("\\n");
-
   return (
     <div
       ref={containerRef}
       onClick={handleMessageClick}
-      className={`relative bg-white group hover:bg-gray-50 py-2 transition-colors flex items-start px-3 border-2 rounded-lg ${compact ? "mx-0 my-0" : "mx-5 my-5"} ${item?.status === "success" ? "border-[#00CC5F]" : "border-[#F81404]"}`}
+      className={cn(
+        "@container relative group overflow-hidden rounded-2xl border bg-white transition-all duration-300",
+        "shadow-[0_10px_40px_-18px_rgba(16,24,40,0.18)] hover:shadow-[0_18px_50px_-20px_rgba(87,87,205,0.28)]",
+        compact ? "mx-0 my-0" : "mx-3 my-4 sm:mx-5",
+        isSuccess
+          ? "border-emerald-200/70 hover:border-emerald-300"
+          : "border-rose-200/80 hover:border-rose-300"
+      )}
     >
-      <div className="min-w-8 mr-2 flex items-center justify-center">
-        <div className="relative hidden lg:inline-flex">
-          <UserHoverCard
-            item={item}
-            handleOpen={handleOpen}
-            isOnline={isOnline}
-          />
-        </div>
-        <div
-          className="relative flex lg:hidden cursor-pointer"
-          onClick={handleOpen}
-        >
-          <UserAvatar item={item} size="md" />
-        </div>
-      </div>
+      <div
+        className={cn(
+          "absolute inset-y-0 left-0 w-[5px]",
+          isSuccess
+            ? "bg-gradient-to-b from-emerald-400 via-teal-400 to-emerald-600"
+            : "bg-gradient-to-b from-rose-400 via-orange-400 to-rose-600"
+        )}
+      />
 
-      <div className="w-full min-w-0">
-        <div className="flex items-center gap-2">
-          <span
-            className="font-bold pb-1 text-[15px] text-[#1D2939] cursor-pointer"
-            onClick={handleOpen}
-          >
-            {item?.username}
-          </span>
+      <div
+        className={cn(
+          "relative flex flex-col gap-3 border-b bg-white px-3 py-3 pl-4",
+          "@sm:flex-row @sm:items-start @sm:px-4 @sm:py-3.5 @sm:pl-5",
+          isSuccess ? "border-emerald-100" : "border-rose-100"
+        )}
+      >
+        <div className="flex min-w-0 flex-1 items-start gap-3">
+          <div className="relative shrink-0">
+            <div className="flex size-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#5757CD] to-[#8B7CFF] text-white shadow-lg shadow-indigo-200/70 @sm:size-11">
+              <Webhook className="size-5" />
+            </div>
+            <span
+              className={cn(
+                "absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full border-2 border-white",
+                isSuccess ? "bg-emerald-500" : "bg-rose-500"
+              )}
+            />
+          </div>
 
-          <span className="text-xs text-[#98A2B3]">
-            {new Date(item?.created_at).toLocaleTimeString([], {
-              hour: "numeric",
-              minute: "2-digit",
-              hour12: true,
-            })}
-          </span>
-        </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="break-words text-[15px] font-bold tracking-tight text-[#101828]">
+                {sourceName}
+              </p>
+              <span className="inline-flex items-center gap-1 rounded-full border border-[#E4E7EC] bg-white/80 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#667085]">
+                Webhook
+              </span>
+            </div>
 
-        <div className="relative flex items-start justify-between">
-          <div className="gap-2">
-            <small className="text-sm font-bold text-neutral-700">
-              {item?.event_name}
-            </small>
-
-            <small className="text-sm text-neutral-500 mb-1">
-              {messageLines.map((line: string, index: number) => {
-                const match = line.match(/^(.*?):\s*(.*)$/);
-                return (
-                  <p
-                    key={index}
-                    style={{
-                      whiteSpace: "pre-line",
-                      wordBreak: "break-word",
-                      overflowWrap: "break-word",
-                    }}
-                    className="mb-1"
-                  >
-                    {match ? (
-                      <>
-                        <strong>{match[1]}:</strong> &nbsp;&nbsp; {match[2]}
-                      </>
-                    ) : (
-                      line
-                    )}
-                  </p>
-                );
-              })}
-            </small>
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[#667085]">
+              <span className="inline-flex items-center gap-1">
+                <Clock className="size-3.5 text-[#98A2B3]" />
+                {formatCardTime(item?.created_at)}
+              </span>
+              {item?.action_type ? (
+                <span className="capitalize text-[#98A2B3]">
+                  {item.action_type.replaceAll("_", " ")}
+                </span>
+              ) : null}
+            </div>
           </div>
         </div>
 
+        <span
+          className={cn(
+            "inline-flex w-fit shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold",
+            isSuccess
+              ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+              : "bg-rose-50 text-rose-700 ring-1 ring-rose-200"
+          )}
+        >
+          {isSuccess ? (
+            <CheckCircle2 className="size-3.5" />
+          ) : (
+            <XCircle className="size-3.5" />
+          )}
+          {isSuccess ? "Delivered" : "Failed"}
+        </span>
+      </div>
+
+      <div
+        className={cn(
+          "relative px-3 pb-3 pl-4",
+          compact ? "pt-3" : "pt-3 @sm:px-4 @sm:pl-5 @sm:pt-4"
+        )}
+      >
+        <h3 className="break-words text-[16px] font-semibold leading-snug text-[#101828]">
+          {eventTitle}
+        </h3>
+
+        {fields.length > 0 && (
+          <div
+            className={cn(
+              "mt-3 grid grid-cols-1 gap-2",
+              !compact && fields.length > 1 && "@lg:grid-cols-2"
+            )}
+          >
+            {fields.map((field, index) => {
+              const Icon = fieldIcon(field.label);
+              const isEmail = /@/.test(field.value);
+
+              return (
+                <div
+                  key={`${field.label}-${index}`}
+                  className="min-w-0 rounded-xl border border-[#EEF0F4] bg-[#FBFBFD] px-3 py-2.5"
+                >
+                  {field.label ? (
+                    <div className="mb-1 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#98A2B3]">
+                      <Icon className="size-3" />
+                      {field.label}
+                    </div>
+                  ) : null}
+                  <p
+                    className={cn(
+                      "break-words text-[13px] leading-5 text-[#344054]",
+                      isEmail && "font-medium text-[#5757CD]"
+                    )}
+                  >
+                    {field.value}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         {!compact && (
-          <div className="flex flex-wrap items-center gap-2 rounded-md mt-1">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             {item?.reactions?.map((emoji: any, index: number) => {
               const displayNames = (usernames || []).filter(Boolean);
 
@@ -285,16 +384,16 @@ const Thread = ({
                       <div
                         onMouseEnter={() => reactionUsers(emoji.reaction_id)}
                         onClick={(e) => handleClick(emoji, e)}
-                        className="bg-primary-50 text-[13px] cursor-pointer text-blue-100 border border-blue-400 flex items-center justify-center h-[27px] py-1 px-3 rounded-2xl"
+                        className="flex h-[28px] cursor-pointer items-center justify-center rounded-full border border-indigo-200 bg-[#F4F3FF] px-3 py-1 text-[13px] text-[#5757CD]"
                       >
                         {emoji?.reaction} {emoji?.reaction_count}
                       </div>
                     </TooltipTrigger>
 
-                    <TooltipContent className="bg-black text-white p-2 rounded-md text-sm">
+                    <TooltipContent className="rounded-md bg-black p-2 text-sm text-white">
                       <TooltipArrow className="fill-black" />
 
-                      <div className="text-5xl mx-auto text-center bg-white rounded-lg flex items-center justify-center p-2 w-[70px] mb-2">
+                      <div className="mx-auto mb-2 flex w-[70px] items-center justify-center rounded-lg bg-white p-2 text-center text-5xl">
                         {emoji.reaction}
                       </div>
                       {namesListString && (
@@ -315,7 +414,7 @@ const Thread = ({
                     <PopoverTrigger asChild>
                       {item?.reactions?.length > 0 && (
                         <div
-                          className="bg-primary-50 text-[13px] cursor-pointer text-blue-100 h-[27px] flex items-center justify-center py-1 px-3 rounded-full border hover:border-blue-400"
+                          className="flex h-[28px] cursor-pointer items-center justify-center rounded-full border border-[#E4E7EC] bg-white px-3 py-1 text-[#667085] hover:border-[#5757CD]"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <SmilePlus size={16} />
@@ -323,13 +422,13 @@ const Thread = ({
                       )}
                     </PopoverTrigger>
                   </TooltipTrigger>
-                  <TooltipContent className="bg-black text-white p-2 rounded-md text-sm">
+                  <TooltipContent className="rounded-md bg-black p-2 text-sm text-white">
                     <TooltipArrow className="fill-black" />
                     <span>Add reaction...</span>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-              <PopoverContent className="p-0 w-full max-w-xs z-50" align="end">
+              <PopoverContent className="z-50 w-full max-w-xs p-0" align="end">
                 <EmojiPicker data={data} onEmojiSelect={onEmojiClick} />
               </PopoverContent>
             </Popover>
@@ -344,53 +443,50 @@ const Thread = ({
             handleReply={handleReply}
           />
         )}
+      </div>
 
-        <div
-          className={cn(
-            "flex items-center absolute right-3 -top-2 z-10 bg-white shadow-md rounded-[8px] border border-[#E6EAEF] p-[2px] transition-all duration-200",
-            "lg:opacity-0 lg:group-hover:opacity-100 lg:flex",
-            showMobileActions
-              ? "opacity-100 scale-100 pointer-events-auto"
-              : "opacity-0 scale-95 pointer-events-none lg:pointer-events-auto lg:scale-100 lg:opacity-0"
-          )}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {!compact && !pathname?.includes("/agents") && (
-            <Popover
-              open={isEmojiPickerOpen}
-              onOpenChange={setIsEmojiPickerOpen}
-            >
-              <PopoverTrigger asChild>
-                <button className="py-[7px] px-[10px] hover:bg-gray-200 rounded">
-                  <SmilePlus size={18} className="text-[#667085]" />
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="p-0 w-full max-w-xs z-50" align="end">
-                <EmojiPicker data={data} onEmojiSelect={onEmojiClick} />
-              </PopoverContent>
-            </Popover>
-          )}
+      <div
+        className={cn(
+          "absolute right-2 top-2 z-10 flex items-center rounded-[10px] border border-[#E6EAEF] bg-white/95 p-[2px] shadow-md backdrop-blur transition-all duration-200 @sm:right-3 @sm:top-3",
+          "lg:flex lg:opacity-0 lg:group-hover:opacity-100",
+          showMobileActions
+            ? "pointer-events-auto scale-100 opacity-100"
+            : "pointer-events-none scale-95 opacity-0 lg:pointer-events-auto lg:scale-100 lg:opacity-0"
+        )}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {!compact && !pathname?.includes("/agents") && (
+          <Popover open={isEmojiPickerOpen} onOpenChange={setIsEmojiPickerOpen}>
+            <PopoverTrigger asChild>
+              <button className="rounded-lg px-[10px] py-[7px] hover:bg-[#F2F4F7]">
+                <SmilePlus size={18} className="text-[#667085]" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="z-50 w-full max-w-xs p-0" align="end">
+              <EmojiPicker data={data} onEmojiSelect={onEmojiClick} />
+            </PopoverContent>
+          </Popover>
+        )}
 
-          {!compact && !pathname?.includes("/agents") && (
-            <button
-              className="py-[7px] px-[10px] hover:bg-gray-200 rounded"
-              onClick={handleReply}
-            >
-              <MessageCircleMore size={18} className="text-[#667085]" />
-            </button>
-          )}
-
+        {!compact && !pathname?.includes("/agents") && (
           <button
-            onClick={isSaved ? toggleRemove : toggleSave}
-            className="py-[7px] px-[10px] hover:bg-gray-200 rounded"
+            className="rounded-lg px-[10px] py-[7px] hover:bg-[#F2F4F7]"
+            onClick={handleReply}
           >
-            {isSaved ? (
-              <BookmarkCheck size={18} className="text-primary-500" />
-            ) : (
-              <Bookmark size={18} className="text-[#667085]" />
-            )}
+            <MessageCircleMore size={18} className="text-[#667085]" />
           </button>
-        </div>
+        )}
+
+        <button
+          onClick={isSaved ? toggleRemove : toggleSave}
+          className="rounded-lg px-[10px] py-[7px] hover:bg-[#F2F4F7]"
+        >
+          {isSaved ? (
+            <BookmarkCheck size={18} className="text-primary-500" />
+          ) : (
+            <Bookmark size={18} className="text-[#667085]" />
+          )}
+        </button>
       </div>
     </div>
   );
