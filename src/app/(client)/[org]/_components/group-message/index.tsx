@@ -27,7 +27,7 @@ const GroupMessage = ({ participants }: any) => {
   const { fetchMoreData, hasMore, loading } = UsePeopleMessage();
   const { state, dispatch } = useContext(DataContext);
   const { chats, user, notify, bookmarks, dataId, isEdit, thread } = state;
-  const groupedMessages = groupMessagesByDate(chats);
+  const groupedMessages = groupMessagesByDate(loading ? [] : chats);
   const [showBadge, setShowBadge] = useState(false);
   const params = useParams();
   const id = params.id as string;

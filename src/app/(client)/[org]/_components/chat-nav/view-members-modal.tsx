@@ -7,6 +7,7 @@ import { DataContext } from "~/store/GlobalState";
 import { GetRequest } from "~/utils/new-request";
 import Loading from "~/components/ui/loading";
 import UserAvatar from "~/components/layout/user-avatar";
+import { isUserDeactivated } from "~/utils/user-deactivation";
 import { Input } from "~/components/ui/input";
 
 type GroupParticipant = {
@@ -18,6 +19,9 @@ type GroupParticipant = {
   avatar_url?: string;
   default_avatar_url?: string;
   online?: boolean;
+  is_deactivated?: boolean;
+  is_restricted?: boolean;
+  status?: string;
 };
 
 interface ViewMembersModalProps {
@@ -171,17 +175,18 @@ export const ViewMembersModal: React.FC<ViewMembersModalProps> = ({
                   >
                     <div className="relative shrink-0">
                       <UserAvatar
-                        src={member.avatar_url}
-                        defaultAvatarUrl={member.default_avatar_url}
+                        item={member}
                         alt={memberDisplayName(member)}
                         size="sm"
                         className="rounded-[7px]"
                       />
-                      <span
-                        className={`absolute -right-0.5 -bottom-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${
-                          member.online ? "bg-[#00AD51]" : "bg-[#F97316]"
-                        }`}
-                      />
+                      {!isUserDeactivated(member) && (
+                        <span
+                          className={`absolute -right-0.5 -bottom-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${
+                            member.online ? "bg-[#00AD51]" : "bg-[#F97316]"
+                          }`}
+                        />
+                      )}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold text-[#101828] text-[15px] truncate">

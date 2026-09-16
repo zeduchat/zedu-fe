@@ -45,6 +45,8 @@ export type Member = {
     | "accepted";
   created_at: string;
   entity_type: "bot" | "user";
+  is_deactivated?: boolean;
+  is_restricted?: boolean;
 };
 
 export type MembersProps = {

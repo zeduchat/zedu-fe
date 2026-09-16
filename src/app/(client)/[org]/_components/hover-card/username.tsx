@@ -3,15 +3,15 @@
 import * as Popover from "@radix-ui/react-popover";
 import { Clock } from "lucide-react";
 import moment from "moment";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useContext, useRef, useState } from "react";
-import images from "~/assets/images";
 import { PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { ACTIONS } from "~/store/Actions";
 import { DataContext } from "~/store/GlobalState";
 import { ChatBubbleIcon } from "~/svgs";
 import { PostRequest } from "~/utils/new-request";
+import UserAvatar from "~/components/layout/user-avatar";
+import { isUserDeactivated } from "~/utils/user-deactivation";
 
 export default function UsernameHover({ item }: any) {
   const [open, setOpen] = useState(false);
@@ -84,13 +84,7 @@ export default function UsernameHover({ item }: any) {
         align="start"
       >
         <div className="flex items-center gap-4">
-          <Image
-            src={item?.avatar_url ? item?.avatar_url : item?.default_avatar_url}
-            alt="avatar"
-            width={80}
-            height={80}
-            className="rounded-[7px] border size-20 object-cover"
-          />
+          <UserAvatar item={item} size="xl" alt="avatar" />
           <div>
             <p className="font-semibold text-[15px] text-black">
               {item?.username || item?.full_name?.trim()}{" "}
@@ -119,13 +113,15 @@ export default function UsernameHover({ item }: any) {
             Set a status
           </button>
         ) : (
-          <button
-            onClick={handleMessage}
-            className="flex items-center justify-center gap-1 mt-3 w-full border text-sm font-medium border-gray-300 rounded-md py-1.5 hover:bg-gray-50 transition"
-          >
-            <ChatBubbleIcon />
-            Message
-          </button>
+          !isUserDeactivated(item) && (
+            <button
+              onClick={handleMessage}
+              className="flex items-center justify-center gap-1 mt-3 w-full border text-sm font-medium border-gray-300 rounded-md py-1.5 hover:bg-gray-50 transition"
+            >
+              <ChatBubbleIcon />
+              Message
+            </button>
+          )
         )}
       </PopoverContent>
     </Popover.Root>

@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
+import Image, { type StaticImageData } from "next/image";
 import images from "~/assets/images";
 
 interface FallbackImageProps {
-  src?: string;
-  defaultAvatarUrl?: string;
+  src?: string | StaticImageData;
+  defaultAvatarUrl?: string | StaticImageData;
   alt?: string;
   userType?: "user" | "bot" | string;
   width?: number;

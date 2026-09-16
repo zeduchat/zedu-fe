@@ -3,6 +3,8 @@ export type MessageSearchResult = {
     user_id: string;
     user_name: string;
     avatar_url: string;
+    is_deactivated?: boolean;
+    is_restricted?: boolean;
   };
   messages: Array<{
     message_id: string;
@@ -28,6 +30,8 @@ export type UserSearchResult = {
   created_at: string;
   entity_type: string;
   avatar_url?: string;
+  is_deactivated?: boolean;
+  is_restricted?: boolean;
 };
 
 export type SearchSortBy = "relevance" | "newest" | "oldest" | string;

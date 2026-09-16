@@ -1,6 +1,5 @@
 import { Phone, Star, X } from "lucide-react";
 import React, { useContext, useEffect } from "react";
-import Image from "next/image";
 import { Button } from "~/components/ui/button";
 import {
   BellSimpleSlashIcon,
@@ -11,13 +10,14 @@ import {
   MailIcon,
   ChatBubbleIcon,
 } from "~/svgs";
-import images from "~/assets/images";
 import { DataContext } from "~/store/GlobalState";
 import { ACTIONS } from "~/store/Actions";
 import { usePathname, useRouter } from "next/navigation";
 import { CopyToClipboardWithTooltip } from "../copy-to-clipboard";
 import ProfileStatus from "./profile-status";
 import { PostRequest } from "~/utils/new-request";
+import UserAvatar from "~/components/layout/user-avatar";
+import { isUserDeactivated } from "~/utils/user-deactivation";
 
 const HoverSidebar = () => {
   const { state, dispatch } = useContext(DataContext);
@@ -81,28 +81,26 @@ const HoverSidebar = () => {
       {/* Profile body */}
       <div className="py-5 flex flex-col gap-5 overflow-y-auto [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full">
         <div className="flex flex-col gap-5 px-5">
-          <Image
-            src={
-              user?.avatar_url ||
-              user?.default_avatar_url ||
-              (user?.user_type == "user" || user?.user_type === ""
-                ? images?.user
-                : images?.bot)
-            }
+          <UserAvatar
+            item={user}
+            size="profile"
             alt={user?.username ?? "avatar"}
-            width={250}
-            height={250}
-            className="rounded-[9px] border h-[250px] w-[250px] object-cover"
-            unoptimized
+            imageClassName="rounded-[9px] object-cover"
+            className="rounded-[9px]"
           />
 
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-[#101828] text-[22px] font-black">
                   {user?.username || user?.full_name}
+                  {isUserDeactivated(user) && (
+                    <span className="ml-1.5 font-normal text-[#ABABAD]">
+                      (deactivated)
+                    </span>
+                  )}
                 </h2>
-                {isOnline && (
+                {isOnline && !isUserDeactivated(user) && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
                     <span className="size-1.5 rounded-full bg-green-600" />
                     Online
@@ -128,15 +126,16 @@ const HoverSidebar = () => {
             )}
           </div>
 
-          {user?.user_id !== currentUser?.user_id && (
-            <button
-              onClick={handleMessage}
-              className="flex items-center justify-center gap-2 w-full bg-blue-500 hover:bg-blue-500/90 text-white font-semibold text-[13px] rounded-md py-2.5 transition"
-            >
-              <ChatBubbleIcon />
-              Message
-            </button>
-          )}
+          {user?.user_id !== currentUser?.user_id &&
+            !isUserDeactivated(user) && (
+              <button
+                onClick={handleMessage}
+                className="flex items-center justify-center gap-2 w-full bg-blue-500 hover:bg-blue-500/90 text-white font-semibold text-[13px] rounded-md py-2.5 transition"
+              >
+                <ChatBubbleIcon />
+                Message
+              </button>
+            )}
 
           {/* <div className="flex gap-3 items-center">
             <Button

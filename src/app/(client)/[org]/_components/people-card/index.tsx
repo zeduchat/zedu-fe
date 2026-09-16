@@ -11,6 +11,7 @@ import { DeleteRequest, PatchRequest, PostRequest } from "~/utils/new-request";
 import { X } from "lucide-react";
 import Loading from "~/components/ui/loading";
 import { showSuccess } from "~/components/toast/sonner";
+import { isUserDeactivated } from "~/utils/user-deactivation";
 
 interface ComponentProps {
   username: string;
@@ -24,6 +25,7 @@ interface ComponentProps {
   participants?: any[];
   online?: boolean;
   is_suggested?: boolean;
+  is_deactivated?: boolean;
 }
 
 export const PeopleHomeCard = (props: ComponentProps) => {
@@ -119,6 +121,8 @@ export const PeopleHomeCard = (props: ComponentProps) => {
     }
   };
 
+  const isDeactivated = isUserDeactivated(props);
+
   return (
     <li
       className={cn(
@@ -137,9 +141,10 @@ export const PeopleHomeCard = (props: ComponentProps) => {
               size="tiny"
               alt="dms"
               imageClassName="rounded"
+              isDeactivated={isDeactivated}
             />
 
-            {isOnline && (
+            {isOnline && !isDeactivated && (
               <div className="absolute -bottom-1 -right-1 bg-green-500 h-[8px] w-[8px] border border-white rounded-full" />
             )}
           </div>
@@ -152,6 +157,7 @@ export const PeopleHomeCard = (props: ComponentProps) => {
               userType="user"
               size="tiny"
               imageClassName="rounded"
+              isDeactivated={isDeactivated}
             />
 
             <div

@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { Clock, Hash, Loader2, Search, User, X } from "lucide-react";
+import { Clock, Hash, Loader2, Search, X } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useDebounce } from "use-debounce";
 import { DataContext } from "~/store/GlobalState";
@@ -8,6 +8,8 @@ import { openSearchMessageResult } from "~/lib/search/navigate";
 import type { MessageSearchResult, UserSearchResult } from "~/lib/search/types";
 import { formatSearchTimestamp, stripHtmlAndDecode } from "~/lib/search/format";
 import { PostRequest } from "~/utils/new-request";
+import UserAvatar from "~/components/layout/user-avatar";
+import { DeactivationBadge } from "~/components/layout/deactivation-badge";
 
 const RECENT_SEARCHES_KEY = "recentSearches";
 const PREVIEW_LIMIT = 4;
@@ -450,22 +452,18 @@ export const SearchInput = ({ name, orgId }: SearchInputProps) => {
                             }`}
                           >
                             <div className="flex items-center gap-3">
-                              {avatar ? (
-                                <img
-                                  src={avatar}
-                                  alt={person.name}
-                                  className="h-8 w-8 rounded-full object-cover"
-                                />
-                              ) : (
-                                <div className="h-8 w-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-semibold">
-                                  {person.name?.charAt(0)?.toUpperCase() || (
-                                    <User className="h-4 w-4" />
-                                  )}
-                                </div>
-                              )}
+                              <UserAvatar
+                                item={person}
+                                src={avatar}
+                                size="sidebar"
+                                alt={person.name}
+                                imageClassName="rounded-full"
+                                className="rounded-full"
+                              />
                               <div className="min-w-0">
-                                <p className="text-sm font-semibold text-gray-900 truncate">
+                                <p className="text-sm font-semibold text-gray-900 truncate inline-flex items-center gap-1.5">
                                   {person.name}
+                                  <DeactivationBadge user={person} size="sm" />
                                 </p>
                                 <p className="text-xs text-gray-500 truncate">
                                   @{person.username}
