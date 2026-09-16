@@ -29,7 +29,7 @@ const ChannelsMessage = () => {
   const { fetchMoreData, hasMore, loading } = UseChannel();
   const { state, dispatch } = useContext(DataContext);
   const { messages, user, isEdit, thread, notify, bookmarks, dataId } = state;
-  const groupedMessages = groupMessagesByDate(loading ? [] : messages);
+  const groupedMessages = groupMessagesByDate(messages);
   const params = useParams();
   const id = params.id as string;
   const [showBadge, setShowBadge] = useState(false);

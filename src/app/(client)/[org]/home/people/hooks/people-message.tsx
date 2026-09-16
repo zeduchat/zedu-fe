@@ -1,5 +1,5 @@
 import { useParams } from "next/navigation";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ACTIONS } from "~/store/Actions";
 import { DataContext } from "~/store/GlobalState";
 import { GetRequest } from "~/utils/new-request";
@@ -13,16 +13,6 @@ const UsePeopleMessage = () => {
   const [page, setPage] = useState<number>(1);
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [loading, setLoading] = useState(true);
-  const [activeId, setActiveId] = useState(id);
-  const idRef = useRef(id);
-  idRef.current = id;
-
-  if (id !== activeId) {
-    setActiveId(id);
-    setLoading(true);
-    setHasMore(true);
-    setPage(1);
-  }
 
   useEffect(() => {
     if (!id || !token) return;
@@ -72,13 +62,10 @@ const UsePeopleMessage = () => {
   }, [id, token, dispatch, state?.triggerCallback]);
 
   const fetchThreads = async (newPage: number) => {
-    const requestId = id;
     try {
       const res = await GetRequest(
-        `/dms/channels/${requestId}/threads?page=${newPage}&limit=50`
+        `/dms/channels/${id}/threads?page=${newPage}&limit=50`
       );
-
-      if (idRef.current !== requestId) return;
 
       if (res?.status === 200 || res?.status === 201) {
         const newThreads = Array.isArray(res.data?.data) ? res.data?.data : [];
@@ -98,13 +85,10 @@ const UsePeopleMessage = () => {
       }
       setLoading(false);
     } catch (error) {
-      if (idRef.current !== requestId) return;
       console.error("Error fetching threads:", error);
       setHasMore(false);
     } finally {
-      if (idRef.current === requestId) {
-        setPage(newPage);
-      }
+      setPage(newPage);
     }
   };
 
