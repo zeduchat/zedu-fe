@@ -1,6 +1,5 @@
 import { LucidePhone, Phone, Star, X } from "lucide-react";
 import { useContext } from "react";
-import Image from "next/image";
 import { Button } from "~/components/ui/button";
 import {
   BellSimpleSlashIcon,
@@ -10,12 +9,13 @@ import {
   HideUserIcon,
   MailIcon,
 } from "~/svgs";
-import images from "~/assets/images";
 import { DataContext } from "~/store/GlobalState";
 import { ACTIONS } from "~/store/Actions";
 
 import { CopyToClipboardWithTooltip } from "../copy-to-clipboard";
 import ProfileStatus from "./profile-status";
+import UserAvatar from "~/components/layout/user-avatar";
+import { isUserDeactivated } from "~/utils/user-deactivation";
 
 const ProfileSidebar = ({ user }: any) => {
   const { dispatch } = useContext(DataContext);
@@ -44,29 +44,27 @@ const ProfileSidebar = ({ user }: any) => {
       <div className="py-3 flex flex-col gap-3 flex-1 overflow-hidden">
         <div className="flex flex-col gap-5 px-5">
           <div className="">
-            <Image
-              src={
-                user?.avatar_url ||
-                user?.default_avatar_url ||
-                (user?.user_type == "user" || user?.user_type === ""
-                  ? images?.user
-                  : images?.bot)
-              }
+            <UserAvatar
+              item={user}
+              size="profile"
               alt={user?.username ?? "avatar"}
-              width={250}
-              height={250}
-              className="rounded-[9px] border h-[250px] w-[250px] object-cover"
-              quality={100}
+              imageClassName="rounded-[9px] object-cover"
+              className="rounded-[9px]"
             />
           </div>
 
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-[#101828] text-[22px] font-black">
                   {user?.username || user?.full_name}
+                  {isUserDeactivated(user) && (
+                    <span className="ml-1.5 font-normal text-[#ABABAD]">
+                      (deactivated)
+                    </span>
+                  )}
                 </h2>
-                {user?.online && (
+                {user?.online && !isUserDeactivated(user) && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
                     <span className="size-1.5 rounded-full bg-green-600" />
                     Online

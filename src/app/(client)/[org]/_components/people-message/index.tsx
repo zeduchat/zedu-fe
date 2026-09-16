@@ -21,6 +21,7 @@ import { ArrowDownIcon, Pin } from "lucide-react";
 import { BookmarkFilledIcon } from "@radix-ui/react-icons";
 import UsernameHover from "../hover-card/username";
 import UserAvatar from "~/components/layout/user-avatar";
+import { isUserDeactivated } from "~/utils/user-deactivation";
 import { useMessageHighlight } from "~/hooks/use-message-highlight";
 import { useMessageDeepLink } from "~/hooks/use-message-deep-link";
 
@@ -28,7 +29,7 @@ const PeopleMessage = ({ participant }: any) => {
   const { fetchMoreData, hasMore, loading } = UsePeopleMessage();
   const { state, dispatch } = useContext(DataContext);
   const { chats, user, isEdit, thread, notify, bookmarks, dataId } = state;
-  const groupedMessages = groupMessagesByDate(chats);
+  const groupedMessages = groupMessagesByDate(loading ? [] : chats);
   const params = useParams();
   const id = params.id as string;
   const [showBadge, setShowBadge] = useState(false);
@@ -236,11 +237,13 @@ const PeopleMessage = ({ participant }: any) => {
                 className="rounded-lg"
               />
 
-              <div
-                className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border border-white ${
-                  participant?.online ? "bg-[#00AD51]" : "bg-[#F97316]"
-                }`}
-              />
+              {!isUserDeactivated(participant) && (
+                <div
+                  className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border border-white ${
+                    participant?.online ? "bg-[#00AD51]" : "bg-[#F97316]"
+                  }`}
+                />
+              )}
             </div>
             <h3 className="text-lg font-bold text-[#1D2939]">
               {participant?.username}

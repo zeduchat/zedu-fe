@@ -1,14 +1,14 @@
 import { Phone, SettingsIcon, Star, X } from "lucide-react";
 import React, { useContext, useEffect } from "react";
-import Image from "next/image";
 import { Button } from "~/components/ui/button";
 import { BellSimpleSlashIcon, ClockIcon, CopyIcon, MailIcon } from "~/svgs";
-import images from "~/assets/images";
 import { DataContext } from "~/store/GlobalState";
 import { ACTIONS } from "~/store/Actions";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { CopyToClipboardWithTooltip } from "../copy-to-clipboard";
 import ProfileStatus from "./profile-status";
+import UserAvatar from "~/components/layout/user-avatar";
+import { isUserDeactivated } from "~/utils/user-deactivation";
 
 const ColleaguesSidebar = ({ user }: any) => {
   const { state, dispatch } = useContext(DataContext);
@@ -45,27 +45,27 @@ const ColleaguesSidebar = ({ user }: any) => {
       <div className="py-5 flex flex-col gap-5 overflow-y-auto [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full">
         <div className="flex flex-col gap-5 px-5">
           <div className="">
-            <Image
-              src={
-                user?.avatar_url ||
-                user?.default_avatar_url ||
-                (user?.user_type === "user" || user?.user_type === ""
-                  ? images?.user
-                  : images?.bot)
-              }
+            <UserAvatar
+              item={user}
+              size="profile"
               alt={user?.username ?? "avatar"}
-              width={250}
-              height={250}
-              className="rounded-[9px] border"
-              quality={100}
+              imageClassName="rounded-[9px] object-cover"
+              className="rounded-[9px]"
             />
           </div>
 
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-[#101828] text-[22px] font-black">
-                {user?.username}
-              </h2>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-[#101828] text-[22px] font-black">
+                  {user?.username}
+                  {isUserDeactivated(user) && (
+                    <span className="ml-1.5 font-normal text-[#ABABAD]">
+                      (deactivated)
+                    </span>
+                  )}
+                </h2>
+              </div>
             </div>
             <p className="text-[#344054] text-lg">{user?.title}</p>
 

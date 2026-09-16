@@ -19,6 +19,7 @@ import OrganisationMenu from "~/app/(client)/[org]/_components/org-dropdown";
 import { formatCount, stripHtmlTags } from "~/utils/utils";
 import { cn } from "~/lib/utils";
 import UserAvatar from "~/components/layout/user-avatar";
+import { isUserDeactivated } from "~/utils/user-deactivation";
 import { useOrganisationDms } from "~/hooks/useOrganisationDms";
 import { PostRequest } from "~/utils/new-request";
 
@@ -269,16 +270,12 @@ export default function DMNav({ resizerRef, sidebarWidth, sidebarRef }: any) {
                       }
                     >
                       <div className="relative">
-                        <UserAvatar
-                          src={dm.avatar_url}
-                          defaultAvatarUrl={dm.default_avatar_url}
-                          userType={dm.user_type}
-                          size="2xs"
-                          alt="avatar"
-                        />
-                        <span
-                          className={`absolute -right-1 -bottom-1 ${dm?.participants?.some((p: any) => p.online) ? "bg-[#00AD51]" : "bg-[#F97316]"} w-[8px] h-[8px] rounded-full border border-white`}
-                        />
+                        <UserAvatar item={dm} size="2xs" alt="avatar" />
+                        {!isUserDeactivated(dm) && (
+                          <span
+                            className={`absolute -right-1 -bottom-1 ${dm?.participants?.some((p: any) => p.online) ? "bg-[#00AD51]" : "bg-[#F97316]"} w-[8px] h-[8px] rounded-full border border-white`}
+                          />
+                        )}
                       </div>
                       <div className="flex-1">
                         <div className="relative flex justify-between items-start mb-1">

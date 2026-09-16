@@ -12,6 +12,7 @@ import ThreadsSidebar from "~/app/(client)/[org]/_components/threads-sidebar";
 import UsePeopleReply from "../../../../channels/hooks/people-reply";
 import HoverSidebar from "~/app/(client)/[org]/_components/profile-sidebar/hover-sidebar";
 import { ACTIONS } from "~/store/Actions";
+import { isUserDeactivated } from "~/utils/user-deactivation";
 
 const DmPage = () => {
   const { state, dispatch } = useContext(DataContext);
@@ -32,14 +33,27 @@ const DmPage = () => {
         `/organisations/${orgId}/dms/participants/${id}`
       );
       if (res?.status === 200 || res?.status === 201) {
-        setParticipant(res?.data?.data.participants[0]);
+        const people = res?.data?.data?.participants || [];
+        const match =
+          people.find(
+            (person: any) =>
+              String(
+                person?.user_id ?? person?.id ?? person?.participant_id
+              ) === String(id2)
+          ) ||
+          people.find(
+            (person: any) =>
+              String(person?.user_id ?? person?.id) !== String(user?.user_id)
+          ) ||
+          people[0];
+        setParticipant(match);
       }
     };
 
     if (orgId && id) {
       getUser();
     }
-  }, [id, orgId]);
+  }, [id, id2, orgId, user?.user_id, previewParticipant]);
 
   const handleSendMessage = async (
     id: string,
@@ -146,12 +160,18 @@ const DmPage = () => {
           showProfile={showProfile}
         />
 
-        <div className="absolute bottom-0 w-full">
-          <MessageBox
-            subscription={state?.chatSubscription}
-            sendMessage={handleSendMessage}
-          />
-        </div>
+        {isUserDeactivated(previewParticipant || participant) ? (
+          <div className="absolute bottom-0 w-full border-t border-[#E6EAEF] bg-[#F8F8F8] px-5 py-4 text-sm text-[#616061]">
+            This person is deactivated and can no longer receive messages.
+          </div>
+        ) : (
+          <div className="absolute bottom-0 w-full">
+            <MessageBox
+              subscription={state?.chatSubscription}
+              sendMessage={handleSendMessage}
+            />
+          </div>
+        )}
       </div>
 
       {/* Master Side Panels Container - Holds all right-aligned panels */}

@@ -6,7 +6,8 @@ import { useContext, useRef, useState } from "react";
 import { ACTIONS } from "~/store/Actions";
 import { Button } from "~/components/ui/button";
 import { DataContext } from "~/store/GlobalState";
-import FallbackImage from "~/components/layout/fallback-image";
+import UserAvatar from "~/components/layout/user-avatar";
+import { isUserDeactivated } from "~/utils/user-deactivation";
 import MenuDropdown from "../channel-nav/menu-dropdown";
 import Tooltips from "../tooltip";
 import { cn } from "~/lib/utils";
@@ -86,17 +87,20 @@ const PeopleHeader = ({ user }: { user: any }) => {
         onClick={handleOpen}
       >
         <div className="relative size-9">
-          <FallbackImage
-            src={user.avatar_url || user.default_avatar_url}
+          <UserAvatar
+            item={user}
+            size="sm"
             alt="dm"
-            userType={user.user_type}
-            className="rounded-[6px] size-9 object-cover border"
+            imageClassName="rounded-[6px]"
+            className="rounded-[6px]"
           />
-          <div
-            className={`absolute -bottom-0.5 -right-1 w-2 h-2 rounded-full border border-white ${
-              user?.online ? "bg-[#00AD51]" : "bg-[#F97316]"
-            }`}
-          />
+          {!isUserDeactivated(user) && (
+            <div
+              className={`absolute -bottom-0.5 -right-1 w-2 h-2 rounded-full border border-white ${
+                user?.online ? "bg-[#00AD51]" : "bg-[#F97316]"
+              }`}
+            />
+          )}
         </div>
 
         <h2 className="text-[#1D2939] text-base lg:text-lg font-bold">
@@ -105,19 +109,21 @@ const PeopleHeader = ({ user }: { user: any }) => {
       </div>
 
       <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={handleCall}
-          className={cn(
-            "inline-flex items-center justify-center gap-2 px-4 h-9 rounded-md font-medium relative border"
-          )}
-        >
-          {startLoading ? (
-            <Loading color="black" />
-          ) : (
-            <HeadphonesIcon size={16} />
-          )}
-        </button>
+        {!isUserDeactivated(user) && (
+          <button
+            type="button"
+            onClick={handleCall}
+            className={cn(
+              "inline-flex items-center justify-center gap-2 px-4 h-9 rounded-md font-medium relative border"
+            )}
+          >
+            {startLoading ? (
+              <Loading color="black" />
+            ) : (
+              <HeadphonesIcon size={16} />
+            )}
+          </button>
+        )}
       </div>
     </nav>
   );

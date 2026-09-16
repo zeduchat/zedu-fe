@@ -21,8 +21,8 @@ import {
 import { Button } from "~/components/ui/button";
 import Icons from "~/app/(client)/[org]/_components/billing/icons";
 import { cn } from "~/lib/utils";
-import Image from "next/image";
-import images from "~/assets/images";
+import UserAvatar from "~/components/layout/user-avatar";
+import { DeactivationBadge } from "~/components/layout/deactivation-badge";
 import TableEmptyState from "../table-empty-state";
 import { Member } from "./type";
 import { Pencil, Search, Trash2, UserCheck } from "lucide-react";
@@ -109,20 +109,17 @@ export default function MembersTable({
       ),
       cell: ({ row }) => (
         <div className="flex items-center gap-4">
-          <div className="rounded-md h-[30px] w-[30px] overflow-hidden">
-            <Image
-              src={
-                row.original.avatar_url ||
-                row.original.default_avatar_url ||
-                images?.user
-              }
-              alt=""
-              width={40}
-              height={40}
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <span className="text-gray-700">{row.original.email}</span>
+          <UserAvatar
+            item={row.original}
+            size="xs"
+            alt=""
+            className="rounded-md"
+            imageClassName="rounded-md"
+          />
+          <span className="text-gray-700 inline-flex items-center gap-2">
+            {row.original.email}
+            <DeactivationBadge user={row.original} size="sm" />
+          </span>
         </div>
       ),
     },

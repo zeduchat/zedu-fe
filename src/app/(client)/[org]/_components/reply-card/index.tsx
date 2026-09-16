@@ -1,8 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { format as timeformat } from "timeago.js";
-import images from "~/assets/images";
+import UserAvatar from "~/components/layout/user-avatar";
 
 type User = {
   id?: number | string;
@@ -12,6 +11,7 @@ type User = {
   avatar_url?: string;
   default_avatar_url?: string;
   user_type?: string;
+  is_deactivated?: boolean;
 };
 
 type ReplySummaryProps = {
@@ -62,18 +62,12 @@ export default function ReplyCard({
             key={index}
             className="w-6 h-6 rounded-md border overflow-hidden"
           >
-            <Image
-              src={
-                user?.avatar_url
-                  ? user?.avatar_url
-                  : user?.user_type == "user" || user?.user_type === ""
-                    ? user?.default_avatar_url || images?.user
-                    : images?.bot
-              }
+            <UserAvatar
+              item={user}
+              size="2xs"
               alt={`User ${user.id}`}
-              width={24}
-              height={24}
-              className="object-cover"
+              className="rounded-md"
+              imageClassName="rounded-md object-cover"
             />
           </div>
         ))}
