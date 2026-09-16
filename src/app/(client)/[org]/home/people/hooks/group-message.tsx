@@ -1,5 +1,5 @@
 import { useParams } from "next/navigation";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ACTIONS } from "~/store/Actions";
 import { DataContext } from "~/store/GlobalState";
 import { GetRequest } from "~/utils/new-request";
@@ -13,26 +13,13 @@ const UseGroupMessage = () => {
   const [page, setPage] = useState<number>(1);
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [loading, setLoading] = useState(true);
-  const [activeId, setActiveId] = useState(id);
-  const idRef = useRef(id);
-  idRef.current = id;
-
-  if (id !== activeId) {
-    setActiveId(id);
-    setLoading(true);
-    setHasMore(true);
-    setPage(1);
-  }
 
   // get persisted chats data
   const fetchThreads = async (newPage: number = 1) => {
-    const requestId = id;
     try {
       const res = await GetRequest(
-        `/group-dms/channels/${requestId}/threads?page=${newPage}&limit=30`
+        `/group-dms/channels/${id}/threads?page=${newPage}&limit=30`
       );
-
-      if (idRef.current !== requestId) return;
 
       if (res?.status === 200 || res?.status === 201) {
         const newThreads = Array.isArray(res.data?.data) ? res.data?.data : [];
@@ -52,23 +39,18 @@ const UseGroupMessage = () => {
       }
       setLoading(false);
     } catch (error) {
-      if (idRef.current !== requestId) return;
       console.error("Error fetching threads:", error);
       setHasMore(false);
     } finally {
-      if (idRef.current === requestId) {
-        setPage(newPage);
-      }
+      setPage(newPage);
     }
   };
 
   useEffect(() => {
     if (id && token) {
-      fetchThreads(1).finally(() => {
-        if (idRef.current === id) {
-          dispatch({ type: ACTIONS.MESSAGE_LOADING, payload: false });
-        }
-      });
+      fetchThreads(1).finally(() =>
+        dispatch({ type: ACTIONS.MESSAGE_LOADING, payload: false })
+      );
     }
   }, [id, token, state?.replies, state?.triggerCallback]);
 
