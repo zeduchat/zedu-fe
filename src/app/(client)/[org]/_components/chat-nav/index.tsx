@@ -12,6 +12,10 @@ import { DataContext } from "~/store/GlobalState";
 import { ACTIONS } from "~/store/Actions";
 import { showError } from "~/components/toast/sonner";
 import { cn } from "~/lib/utils";
+import {
+  DEACTIVATED_AVATAR_SRC,
+  isUserDeactivated,
+} from "~/utils/user-deactivation";
 
 const ChatHeader = ({ participants }: any) => {
   const [isMenuDropdownOpen, setIsMenuDropdownOpen] = useState(false);
@@ -124,9 +128,11 @@ const ChatHeader = ({ participants }: any) => {
               >
                 <AvatarImage
                   src={
-                    member.avatar_url ||
-                    member.default_avatar_url ||
-                    "/images/user.png"
+                    isUserDeactivated(member)
+                      ? DEACTIVATED_AVATAR_SRC
+                      : member.avatar_url ||
+                        member.default_avatar_url ||
+                        DEACTIVATED_AVATAR_SRC
                   }
                   alt="avatar"
                 />

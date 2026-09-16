@@ -9,6 +9,8 @@ import { openSearchMessageResult } from "~/lib/search/navigate";
 import type { MessageSearchResult, UserSearchResult } from "~/lib/search/types";
 import { formatSearchTimestamp, stripHtmlAndDecode } from "~/lib/search/format";
 import { HighlightedText } from "~/app/(client)/[org]/_components/search/highlight";
+import UserAvatar from "~/components/layout/user-avatar";
+import { DeactivationBadge } from "~/components/layout/deactivation-badge";
 
 type CardItem = MessageSearchResult | UserSearchResult;
 
@@ -69,7 +71,6 @@ export const SearchCards = ({ cardData, query = "" }: CardProps) => {
           ? item.user.avatar_url
           : item.profile_url || item.avatar_url;
         const name = isMessage ? item.user.user_name : item.name;
-        const initials = name?.charAt(0).toUpperCase() || "U";
 
         return (
           <div
@@ -85,24 +86,21 @@ export const SearchCards = ({ cardData, query = "" }: CardProps) => {
           >
             <div className="flex items-start gap-3 w-full">
               <div className="flex-shrink-0">
-                {avatar ? (
-                  <img
-                    src={avatar}
-                    alt={name}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
-                    {initials}
-                  </div>
-                )}
+                <UserAvatar
+                  item={isMessage ? item.user : item}
+                  src={avatar}
+                  size="md"
+                  alt={name}
+                  imageClassName="rounded-full"
+                  className="rounded-full"
+                />
               </div>
 
               <div className="flex-1 min-w-0 w-full">
                 {isMessage ? (
                   <>
                     <div className="flex items-baseline gap-2 mb-1">
-                      <h3 className="text-sm font-bold text-gray-900 dark:text-zinc-100">
+                      <h3 className="text-sm font-bold text-gray-900 dark:text-zinc-100 inline-flex items-center gap-1.5">
                         <HighlightedText
                           text={item.user.user_name}
                           query={query}
@@ -134,8 +132,9 @@ export const SearchCards = ({ cardData, query = "" }: CardProps) => {
                 ) : (
                   <>
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-sm font-bold text-gray-900 dark:text-zinc-100">
+                      <h3 className="text-sm font-bold text-gray-900 dark:text-zinc-100 inline-flex items-center gap-1.5">
                         <HighlightedText text={item.name} query={query} />
+                        <DeactivationBadge user={item} size="sm" />
                       </h3>
                       {item.username && (
                         <span className="text-xs text-gray-500 dark:text-zinc-400">

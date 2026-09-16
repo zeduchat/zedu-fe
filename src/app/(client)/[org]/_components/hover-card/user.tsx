@@ -11,6 +11,7 @@ import { ACTIONS } from "~/store/Actions";
 import { DataContext } from "~/store/GlobalState";
 import { ChatBubbleIcon } from "~/svgs";
 import { PostRequest } from "~/utils/new-request";
+import { isUserDeactivated } from "~/utils/user-deactivation";
 
 export default function UserHoverCard({ item, handleOpen, isOnline }: any) {
   const [open, setOpen] = useState(false);
@@ -81,14 +82,14 @@ export default function UserHoverCard({ item, handleOpen, isOnline }: any) {
         <div className="flex items-center gap-4">
           <UserAvatar item={item} size="xl" alt="avatar" />
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <p className="font-semibold text-[15px] text-black">
                 {item?.username || item?.full_name?.trim()}{" "}
                 {item?.user_id === user?.user_id && (
                   <span className="text-gray-500">(you)</span>
                 )}
               </p>
-              {isOnline && (
+              {isOnline && !isUserDeactivated(item) && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
                   <span className="size-1.5 rounded-full bg-green-600" />
                   Online
@@ -116,13 +117,15 @@ export default function UserHoverCard({ item, handleOpen, isOnline }: any) {
             Set a status
           </button>
         ) : (
-          <button
-            onClick={handleMessage}
-            className="flex items-center justify-center gap-1 mt-3 w-full border text-sm font-medium border-gray-300 rounded-md py-1.5 hover:bg-gray-50 transition"
-          >
-            <ChatBubbleIcon />
-            Message
-          </button>
+          !isUserDeactivated(item) && (
+            <button
+              onClick={handleMessage}
+              className="flex items-center justify-center gap-1 mt-3 w-full border text-sm font-medium border-gray-300 rounded-md py-1.5 hover:bg-gray-50 transition"
+            >
+              <ChatBubbleIcon />
+              Message
+            </button>
+          )
         )}
       </PopoverContent>
     </Popover.Root>

@@ -149,6 +149,7 @@ export default function NotificationNav() {
                   <div className="relative size-8 shrink-0">
                     {item.avatar_url ? (
                       <UserAvatar
+                        item={item}
                         src={item.avatar_url}
                         userType="user"
                         size="sidebar"

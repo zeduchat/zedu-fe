@@ -14,6 +14,10 @@ import Tooltips from "../tooltip";
 import { PostRequest } from "~/utils/new-request";
 import { showError } from "~/components/toast/sonner";
 import { useParams } from "next/navigation";
+import {
+  DEACTIVATED_AVATAR_SRC,
+  isUserDeactivated,
+} from "~/utils/user-deactivation";
 
 const ChannelHeader = () => {
   const [isMenuDropdownOpen, setIsMenuDropdownOpen] = useState(false);
@@ -150,9 +154,12 @@ const ChannelHeader = () => {
                         >
                           <AvatarImage
                             src={
-                              member?.profile?.avatar_url ||
-                              member?.profile?.default_avatar_url ||
-                              "/images/user.png"
+                              isUserDeactivated(member) ||
+                              isUserDeactivated(member?.profile)
+                                ? DEACTIVATED_AVATAR_SRC
+                                : member?.profile?.avatar_url ||
+                                  member?.profile?.default_avatar_url ||
+                                  DEACTIVATED_AVATAR_SRC
                             }
                             className="object-cover"
                           />

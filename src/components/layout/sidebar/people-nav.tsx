@@ -16,7 +16,7 @@ import { cn } from "~/lib/utils";
 import { formatCount } from "~/utils/utils";
 import { search } from "~/utils/filter";
 import { useOrganisationUsers } from "~/hooks/useOrganisationUsers";
-import images from "~/assets/images";
+import { isUserDeactivated } from "~/utils/user-deactivation";
 
 export default function PeopleNav({
   resizerRef,
@@ -158,21 +158,13 @@ export default function PeopleNav({
                       className={`flex items-center gap-3 px-3 py-4 hover:bg-[#4B4BB4] ${dm?.id === id2 ? "bg-[#4B4BB4]" : ""}`}
                     >
                       <div className="relative bg-white rounded-[7px]">
-                        <UserAvatar
-                          src={dm?.avatar_url}
-                          defaultAvatarUrl={dm?.default_avatar_url}
-                          userType={
-                            dm?.entity_type == "user" || dm?.entity_type === ""
-                              ? "user"
-                              : "bot"
-                          }
-                          size="2xs"
-                          alt="colleague"
-                        />
+                        <UserAvatar item={dm} size="2xs" alt="colleague" />
 
-                        <span
-                          className={`absolute -right-1 -bottom-1 ${dm?.online ? "bg-[#00AD51]" : "bg-[#F97316]"} w-[8px] h-[8px] rounded-full border border-white`}
-                        />
+                        {!isUserDeactivated(dm) && (
+                          <span
+                            className={`absolute -right-1 -bottom-1 ${dm?.online ? "bg-[#00AD51]" : "bg-[#F97316]"} w-[8px] h-[8px] rounded-full border border-white`}
+                          />
+                        )}
                       </div>
 
                       <div className="-mt-1">
