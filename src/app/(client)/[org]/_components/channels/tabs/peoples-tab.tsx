@@ -11,7 +11,7 @@ import { PostRequest } from "~/utils/new-request";
 import { useRouter } from "next/navigation";
 
 const SkeletonCard = () => (
-  <div className="border border-gray-200 rounded-lg overflow-hidden animate-pulse flex-1 min-w-[200px] max-w-[280px]">
+  <div className="border border-gray-200 rounded-lg overflow-hidden animate-pulse w-full">
     <div className="aspect-square bg-gray-200" />
     <div className="p-3 bg-white space-y-2">
       <div className="h-4 bg-gray-200 rounded w-3/4" />
@@ -36,8 +36,8 @@ export default function PeopleTab() {
 
   if (channelloading || !orgMembers) {
     return (
-      <div className="flex flex-wrap gap-4 p-5">
-        {[...Array(10)].map((_, i) => (
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 p-5">
+        {[...Array(12)].map((_, i) => (
           <SkeletonCard key={i} />
         ))}
       </div>
@@ -96,13 +96,13 @@ export default function PeopleTab() {
         {/* <CreateChannelDialog /> */}
       </div>
 
-      <div className="flex  flex-wrap mx-auto gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
         {paginatedMembers?.length > 0 ? (
           paginatedMembers.map((user: Member, index: number) => {
             return (
               <div
                 key={user.id || index}
-                className="border border-gray-200 rounded-lg overflow-hidden flex flex-col group cursor-pointer hover:shadow-md transition-shadow bg-white flex-grow flex-shrink basis-[150px] sm:max-w-[170px]"
+                className="border border-gray-200 rounded-lg overflow-hidden flex flex-col group cursor-pointer hover:shadow-md transition-shadow bg-white w-full min-w-0"
                 onClick={() => handleRoute(user)}
               >
                 <div className="aspect-square relative overflow-hidden bg-gray-100">
@@ -112,32 +112,32 @@ export default function PeopleTab() {
                     }
                     alt={user.name}
                     fill
-                    sizes="(max-width: 768px) 100vw, 280px"
+                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16vw"
                     className="object-cover transition-transform duration-300 group-hover:scale-105"
                     unoptimized
                   />
                 </div>
                 <div className="p-3">
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 min-w-0">
                     <span className="font-bold text-[15px] truncate">
                       {user.name}
                     </span>
                     <ExternalLink
                       size={12}
-                      className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="shrink-0 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"
                     />
                   </div>
                   <p className="text-[13px] text-gray-500 mt-0.5 line-clamp-1">
                     {user.email}
                   </p>
                   {user.phone_number && (
-                    <p className="text-[13px] text-gray-500 mt-1">
+                    <p className="text-[13px] text-gray-500 mt-1 line-clamp-1">
                       {user.phone_number}
                     </p>
                   )}
                   <div className="mt-2 flex items-center gap-2">
                     <span
-                      className={`w-2 h-2 rounded-full ${
+                      className={`w-2 h-2 rounded-full shrink-0 ${
                         user.online ? "bg-green-500" : "bg-gray-300"
                       }`}
                       title={user.online ? "Online" : "Offline"}
@@ -151,7 +151,7 @@ export default function PeopleTab() {
             );
           })
         ) : (
-          <div className="w-full py-20 text-center text-gray-500 italic">
+          <div className="col-span-full py-20 text-center text-gray-500 italic">
             No members found matching your search.
           </div>
         )}

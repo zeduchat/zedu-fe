@@ -41,6 +41,7 @@ import {
 } from "~/components/ui/tooltip";
 import { TooltipArrow } from "@radix-ui/react-tooltip";
 import { cn } from "~/lib/utils";
+import { formatReactionUsers } from "~/utils/format-reaction-users";
 
 type ParsedField = {
   label: string | null;
@@ -109,11 +110,15 @@ const Thread = ({
   const eventTitle = item?.event_name || "Webhook event";
 
   const handleReply = () => {
+    dispatch({ type: ACTIONS.THREAD, payload: item });
     dispatch({
       type: ACTIONS.REPLIES,
-      payload: { newThreads: item.preview_reply, newPage: 1 },
+      payload: {
+        newThreads: item.preview_reply,
+        newPage: 1,
+        parentReactions: item.reactions,
+      },
     });
-    dispatch({ type: ACTIONS.THREAD, payload: item });
     dispatch({ type: ACTIONS.REPLY, payload: true });
     dispatch({ type: ACTIONS.LOAD_THREAD, payload: !state.loadThread });
   };
@@ -366,16 +371,7 @@ const Thread = ({
         {!compact && (
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {item?.reactions?.map((emoji: any, index: number) => {
-              const displayNames = (usernames || []).filter(Boolean);
-
-              let namesListString = "";
-              if (displayNames.length === 1) {
-                namesListString = displayNames[0];
-              } else if (displayNames.length > 1) {
-                const last = displayNames[displayNames.length - 1];
-                const rest = displayNames.slice(0, -1).join(", ");
-                namesListString = `${rest} and ${last}`;
-              }
+              const namesListString = formatReactionUsers(usernames || []);
 
               return (
                 <TooltipProvider key={index}>
@@ -390,14 +386,14 @@ const Thread = ({
                       </div>
                     </TooltipTrigger>
 
-                    <TooltipContent className="rounded-md bg-black p-2 text-sm text-white">
+                    <TooltipContent className="max-w-[280px] rounded-md bg-black p-2 text-sm text-white">
                       <TooltipArrow className="fill-black" />
 
                       <div className="mx-auto mb-2 flex w-[70px] items-center justify-center rounded-lg bg-white p-2 text-center text-5xl">
                         {emoji.reaction}
                       </div>
                       {namesListString && (
-                        <span>
+                        <span className="block text-center whitespace-normal break-words">
                           {namesListString} reacted with {emoji?.reaction}
                         </span>
                       )}

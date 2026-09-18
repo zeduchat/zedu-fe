@@ -29,7 +29,11 @@ const UseGroupReply = () => {
 
         dispatch({
           type: ACTIONS.REPLIES,
-          payload: { newThreads: [...prevThreads, ...newThreads], newPage },
+          payload: {
+            newThreads: [...prevThreads, ...newThreads],
+            newPage,
+            parentReactions: state?.thread?.reactions,
+          },
         });
 
         prefetchAvatars(newThreads);

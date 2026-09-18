@@ -59,6 +59,8 @@ const navigateToNotificationTarget = (
   const notification = event?.notification;
   const data = getNotificationData(notification);
   applyNotificationNavigationContext(data);
+
+  // Prefer payload IDs over OneSignal's generic launchURL (often "/" or "/{org}")
   const nextRoute = resolveNotificationRoute(
     data,
     notification?.launchURL || notification?.launchUrl

@@ -429,14 +429,17 @@ export default function ChatConnection() {
         ) {
           const ids = ctx?.data?.modification_ids;
           const reactions = ctx?.data?.reactions;
+          const messageId = ids?.message_id;
 
-          dispatch({
-            type: ACTIONS.UPDATE_REPLY_REACTIONS,
-            payload: {
-              messageId: ids.message_id,
-              reactions,
-            },
-          });
+          if (messageId) {
+            dispatch({
+              type: ACTIONS.UPDATE_REPLY_REACTIONS,
+              payload: {
+                messageId,
+                reactions,
+              },
+            });
+          }
         }
       };
 
