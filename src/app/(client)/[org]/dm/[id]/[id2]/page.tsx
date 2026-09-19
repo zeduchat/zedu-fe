@@ -8,10 +8,15 @@ import MessageBox from "../../../_components/message-box";
 import PeopleHeader from "../../../_components/people-nav";
 import PeopleMessage from "../../../_components/people-message";
 import ProfileSidebar from "../../../_components/profile-sidebar";
-import ThreadsSidebar from "../../../_components/threads-sidebar";
+import ThreadsSidebar, {
+  getThreadsSidebarLayoutWidth,
+  threadsSidebarPanelClassName,
+} from "../../../_components/threads-sidebar";
 import UsePeopleReply from "../../../home/channels/hooks/people-reply";
 import { useParams } from "next/navigation";
 import { ACTIONS } from "~/store/Actions";
+import { useIsSmUp } from "~/hooks/use-media-query";
+import { cn } from "~/lib/utils";
 
 //
 
@@ -22,6 +27,7 @@ const DmPage = () => {
   const params = useParams();
   const id = params.id as string;
   const { fetchMoreData, hasMore } = UsePeopleReply();
+  const isSmUp = useIsSmUp();
 
   // get the participant information
   useEffect(() => {
@@ -119,10 +125,10 @@ const DmPage = () => {
   let totalSidePanelWidth = 0;
 
   if (state?.showProfile) {
-    totalSidePanelWidth += 408;
+    totalSidePanelWidth += isSmUp ? 408 : 0;
   }
   if (reply) {
-    totalSidePanelWidth += 440;
+    totalSidePanelWidth += getThreadsSidebarLayoutWidth(true, isSmUp);
   }
 
   return (
@@ -150,11 +156,16 @@ const DmPage = () => {
 
       {/* Master Side Panels Container - Holds all right-aligned panels */}
       <div
-        className="fixed z-30 mt-[60px] right-0 top-0 h-full flex transition-all duration-300 ease-in-out"
-        style={{ width: `${totalSidePanelWidth}px` }}
+        className={cn(
+          "fixed z-30 mt-[60px] right-0 top-0 h-full flex transition-all duration-300 ease-in-out",
+          !isSmUp && reply && "w-full"
+        )}
+        style={
+          !isSmUp && reply ? undefined : { width: `${totalSidePanelWidth}px` }
+        }
       >
         {/* Profile Sidebar */}
-        {state?.showProfile && (
+        {state?.showProfile && isSmUp && (
           <div className="w-[408px] h-full bg-white border-l border-[#E6EAEF] shadow-[-3px_0px_27px_0px_#DFDFDF]">
             <ProfileSidebar user={participant} />
           </div>
@@ -162,7 +173,12 @@ const DmPage = () => {
 
         {/* Threads Sidebar */}
         {reply && (
-          <div className="w-[440px] h-full bg-white border-l border-[#E6EAEF] shadow-[-3px_0px_27px_0px_#DFDFDF]">
+          <div
+            className={cn(
+              threadsSidebarPanelClassName,
+              "shadow-[-3px_0px_27px_0px_#DFDFDF]"
+            )}
+          >
             <ThreadsSidebar
               handleSendMessage={handleReplyMessage}
               fetchMoreData={fetchMoreData}

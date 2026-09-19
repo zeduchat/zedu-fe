@@ -45,7 +45,7 @@ const UseHomeChannel = () => {
 
       dispatch({
         type: ACTIONS.CHANNEL_LOADING,
-        payload: true,
+        payload: !Array.isArray(state?.channels) || state.channels.length === 0,
       });
 
       fetchChannels();

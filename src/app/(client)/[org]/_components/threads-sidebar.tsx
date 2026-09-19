@@ -7,6 +7,28 @@ import { X } from "lucide-react";
 import ReplyMessage from "./reply-message";
 import ReplyConnection from "~/components/layout/centrifugo/reply-connection";
 
+export const THREADS_SIDEBAR_WIDTH_PX = 440;
+
+/**
+ * Panel shell: full-screen overlay on mobile, 440px side panel from `sm` up.
+ * Apply this to the wrapper around `<ThreadsSidebar />`.
+ */
+export const threadsSidebarPanelClassName =
+  "h-full w-full max-w-[100vw] sm:w-[440px] sm:max-w-[440px] bg-white border-l border-[#E6EAEF] " +
+  "max-sm:fixed max-sm:inset-x-0 max-sm:top-[60px] max-sm:bottom-0 max-sm:z-50";
+
+/**
+ * Desktop: contribute 440px to side-panel layout / main margin.
+ * Mobile: 0 — panel overlays instead of shrinking the chat.
+ */
+export function getThreadsSidebarLayoutWidth(
+  replyOpen: boolean,
+  isSmUp: boolean
+): number {
+  if (!replyOpen) return 0;
+  return isSmUp ? THREADS_SIDEBAR_WIDTH_PX : 0;
+}
+
 const ThreadsSidebar = ({ handleSendMessage, fetchMoreData, hasMore }: any) => {
   const { state, dispatch } = useContext(DataContext);
 
@@ -16,28 +38,33 @@ const ThreadsSidebar = ({ handleSendMessage, fetchMoreData, hasMore }: any) => {
     dispatch({ type: ACTIONS.LOAD_THREAD, payload: !state.loadThread });
   };
 
-  //
-
   return (
-    <div className="relative h-[calc(100vh-80px)] w-full overflow-y-auto">
+    <div className="relative flex h-full min-h-0 w-full flex-col overflow-hidden">
       <ReplyConnection />
-      <div className="relative flex items-center justify-between min-h-[70px] px-5 border-b font-bold textbase lg:text-lg">
+
+      <div className="relative flex min-h-[56px] shrink-0 items-center justify-between border-b px-4 font-bold text-base sm:min-h-[70px] sm:px-5 lg:text-lg">
         Thread
         <button
+          type="button"
           onClick={onClose}
-          className="text-[#344054] p-1 border border-input rounded-[0.3125rem]"
+          className="rounded-[0.3125rem] border border-input p-1 text-[#344054]"
+          aria-label="Close thread"
         >
           <X className="size-5 text-[#344054]" />
         </button>
       </div>
 
-      <ReplyMessage fetchMoreData={fetchMoreData} hasMore={hasMore} />
+      <div className="min-h-0 flex-1 overflow-hidden">
+        <ReplyMessage fetchMoreData={fetchMoreData} hasMore={hasMore} />
+      </div>
 
-      <MessageBox
-        subscription={state?.replySubscription}
-        sendMessage={handleSendMessage}
-        show={false}
-      />
+      <div className="shrink-0 bg-white pb-[env(safe-area-inset-bottom)]">
+        <MessageBox
+          subscription={state?.replySubscription}
+          sendMessage={handleSendMessage}
+          show={false}
+        />
+      </div>
     </div>
   );
 };
