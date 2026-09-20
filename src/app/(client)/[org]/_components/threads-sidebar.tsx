@@ -39,7 +39,7 @@ const ThreadsSidebar = ({ handleSendMessage, fetchMoreData, hasMore }: any) => {
   };
 
   return (
-    <div className="relative flex h-full min-h-0 w-full flex-col overflow-hidden">
+    <div className="relative h-[calc(100vh-80px)] w-full overflow-y-auto">
       <ReplyConnection />
 
       <div className="relative flex min-h-[56px] shrink-0 items-center justify-between border-b px-4 font-bold text-base sm:min-h-[70px] sm:px-5 lg:text-lg">

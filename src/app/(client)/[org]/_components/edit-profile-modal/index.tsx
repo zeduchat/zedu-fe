@@ -45,7 +45,7 @@ const EditProfileDialog = ({ isOpen, onClose }: any) => {
     setUsername(user?.username || "");
     setEmail(user?.email || "");
     setPhone(user?.phone || "");
-    setAvatar(user.avatar_url || user.default_avatar_url || images?.user);
+    setAvatar(user?.avatar_url || user?.default_avatar_url || images?.user);
 
     setTitle(user?.title || "");
     setNamePronunciation(user?.name_pronounciation);
