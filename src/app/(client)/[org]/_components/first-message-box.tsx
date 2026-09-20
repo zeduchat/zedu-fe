@@ -34,6 +34,7 @@ import {
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import Picker from "~/components/theme/themed-emoji-picker";
+import GifPicker from "~/components/gifs/gif-picker";
 import data from "@emoji-mart/data";
 import Loading from "~/components/ui/loading";
 import {
@@ -44,6 +45,7 @@ import {
 import UseTextEditor from "./editor";
 import Tooltips from "./tooltip";
 import { CHAT_FILE_ACCEPT } from "~/utils/document-files";
+import { localGifToFile, type LocalGif } from "~/lib/gifs/local-pack";
 
 const FirstMessageBox = ({ sendMessage }: any) => {
   const { editor, isEmpty } = UseTextEditor();
@@ -54,6 +56,7 @@ const FirstMessageBox = ({ sendMessage }: any) => {
   const [text, setText] = useState("");
   const [url, setUrl] = useState("");
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+  const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
   const [showFormatting, setShowformatting] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [media, setMedia] = useState<any>([]);
@@ -165,6 +168,43 @@ const FirstMessageBox = ({ sendMessage }: any) => {
     if (editor) {
       editor.chain().focus().insertContent(emojiData?.native).run();
       setIsEmojiPickerOpen(false);
+    }
+  };
+
+  const handleGifSelect = async (gif: LocalGif) => {
+    setIsGifPickerOpen(false);
+
+    try {
+      const file = await localGifToFile(gif);
+      const mediaId = Date.now() + Math.random();
+      const preview = URL.createObjectURL(file);
+
+      const newMedia = {
+        id: mediaId,
+        file,
+        type: "image",
+        preview,
+      };
+
+      setMedia((prevMedia: any) => [...prevMedia, newMedia]);
+      setUploadingImages((prev) => [...prev, mediaId]);
+
+      const formData = new FormData();
+      const fileToUpload = await compressImage(file);
+      formData.append("files", fileToUpload);
+
+      try {
+        const res = await UploadRequest(`/files/upload-files`, formData);
+        if (res?.data?.data) {
+          setMedias((prevMedias) => [...prevMedias, ...res.data.data]);
+        }
+      } catch (error) {
+        console.error("GIF upload failed", error);
+      } finally {
+        setUploadingImages((prev) => prev.filter((id) => id !== mediaId));
+      }
+    } catch (error) {
+      console.error("GIF select failed", error);
     }
   };
 
@@ -420,7 +460,10 @@ const FirstMessageBox = ({ sendMessage }: any) => {
               <div className="relative">
                 <Popover
                   open={isEmojiPickerOpen}
-                  onOpenChange={setIsEmojiPickerOpen}
+                  onOpenChange={(open) => {
+                    setIsEmojiPickerOpen(open);
+                    if (open) setIsGifPickerOpen(false);
+                  }}
                 >
                   <PopoverTrigger asChild>
                     <button
@@ -432,6 +475,37 @@ const FirstMessageBox = ({ sendMessage }: any) => {
                   </PopoverTrigger>
                   <PopoverContent className="p-0 w-full max-w-xs">
                     <Picker data={data} onEmojiSelect={onEmojiClick} />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </Tooltips>
+
+            <Tooltips text="GIF">
+              <div className="relative">
+                <Popover
+                  open={isGifPickerOpen}
+                  onOpenChange={(open) => {
+                    setIsGifPickerOpen(open);
+                    if (open) setIsEmojiPickerOpen(false);
+                  }}
+                >
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      onClick={(e) => e.stopPropagation()}
+                      className="px-1.5 py-1 hover:bg-gray-100 rounded"
+                      aria-label="GIF"
+                    >
+                      <span className="block text-[10px] font-bold leading-none tracking-wide text-[#606060] border border-[#606060] rounded px-1 py-0.5">
+                        GIF
+                      </span>
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-auto p-0 border-0 shadow-none"
+                    align="start"
+                  >
+                    <GifPicker onSelect={handleGifSelect} />
                   </PopoverContent>
                 </Popover>
               </div>

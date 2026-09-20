@@ -25,7 +25,11 @@ const UseChannelReply = () => {
 
         dispatch({
           type: ACTIONS.REPLIES,
-          payload: { newThreads, newPage },
+          payload: {
+            newThreads,
+            newPage,
+            parentReactions: state?.thread?.reactions,
+          },
         });
 
         prefetchAvatars(newThreads);

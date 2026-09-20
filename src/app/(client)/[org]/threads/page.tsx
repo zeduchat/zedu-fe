@@ -2,17 +2,23 @@
 
 import { useContext } from "react";
 import { ThreadList } from "../_components/threads/thread-lists";
-import ThreadsSidebar from "../_components/threads-sidebar";
+import ThreadsSidebar, {
+  getThreadsSidebarLayoutWidth,
+  threadsSidebarPanelClassName,
+} from "../_components/threads-sidebar";
 import { DataContext } from "~/store/GlobalState";
 import { PostRequest } from "~/utils/new-request";
 import UseThreadReply from "../home/channels/hooks/use-thread-reply";
 import HoverSidebar from "../_components/profile-sidebar/hover-sidebar";
 import { ACTIONS } from "~/store/Actions";
+import { useIsSmUp } from "~/hooks/use-media-query";
+import { cn } from "~/lib/utils";
 
 const Threads = () => {
   const { state, dispatch } = useContext(DataContext);
   const { thread, loadThread } = state;
   const { fetchMoreData, hasMore } = UseThreadReply();
+  const isSmUp = useIsSmUp();
 
   const handleReplyMessage = async (
     id: string,
@@ -41,8 +47,10 @@ const Threads = () => {
   };
 
   let sidePanelWidth = 0;
-  if (state?.hoverProfile) sidePanelWidth += 408;
-  if (state?.reply) sidePanelWidth += 440;
+  if (state?.hoverProfile) sidePanelWidth += isSmUp ? 408 : 0;
+  if (state?.reply) {
+    sidePanelWidth += getThreadsSidebarLayoutWidth(true, isSmUp);
+  }
 
   return (
     <div className="relative flex h-[calc(100dvh-70px)] w-full overflow-hidden">
@@ -54,17 +62,22 @@ const Threads = () => {
       </div>
 
       <div
-        className="fixed right-0 top-0 mt-[60px] flex h-full transition-all duration-300 ease-in-out"
-        style={{ width: `${sidePanelWidth}px` }}
+        className={cn(
+          "fixed right-0 top-0 mt-[60px] flex h-full transition-all duration-300 ease-in-out",
+          !isSmUp && state?.reply && "w-full"
+        )}
+        style={
+          !isSmUp && state?.reply ? undefined : { width: `${sidePanelWidth}px` }
+        }
       >
-        {state?.hoverProfile && (
+        {state?.hoverProfile && isSmUp && (
           <div className="h-full w-[408px] border-l border-[#E6EAEF] bg-white">
             <HoverSidebar />
           </div>
         )}
 
         {state?.reply && (
-          <div className="h-full w-[440px] border-l border-[#E6EAEF] bg-white">
+          <div className={threadsSidebarPanelClassName}>
             <ThreadsSidebar
               handleSendMessage={handleReplyMessage}
               fetchMoreData={fetchMoreData}

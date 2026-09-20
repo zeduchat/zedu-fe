@@ -48,7 +48,11 @@ const UseChannel = () => {
 
   useEffect(() => {
     if (id && token) {
-      setLoading(true);
+      const isInitialLoad =
+        !Array.isArray(state?.messages) || state.messages.length === 0;
+      if (isInitialLoad) {
+        setLoading(true);
+      }
       setHasMore(true);
       setPage(1);
       fetchThreads(1).finally(() =>

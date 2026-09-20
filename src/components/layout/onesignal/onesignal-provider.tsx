@@ -16,9 +16,35 @@ import {
 import { DataContext } from "~/store/GlobalState";
 import { ACTIONS } from "~/store/Actions";
 import { openBuzzInNewTab } from "~/lib/buzz/open-buzz-tab";
+import { ensureCentrifugeConnected } from "~/lib/centrifugo/ensure-connected";
 
 const getString = (value: unknown): string | null =>
   typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+
+const isMessageLikeNotification = (data: Record<string, unknown>) => {
+  const type = (
+    getString(data.notification_type) ||
+    getString(data.event) ||
+    ""
+  ).toLowerCase();
+
+  if (
+    type === "new_message" ||
+    type === "dm" ||
+    type === "mention" ||
+    type === "channel" ||
+    type.includes("message")
+  ) {
+    return true;
+  }
+
+  return Boolean(
+    getString(data.channel_id) ||
+    getString(data.channels_id) ||
+    getString(data.thread_id) ||
+    getString(data.message_id)
+  );
+};
 
 const applyNotificationNavigationContext = (data: Record<string, unknown>) => {
   if (typeof window === "undefined") return;
@@ -59,6 +85,8 @@ const navigateToNotificationTarget = (
   const notification = event?.notification;
   const data = getNotificationData(notification);
   applyNotificationNavigationContext(data);
+
+  // Prefer payload IDs over OneSignal's generic launchURL (often "/" or "/{org}")
   const nextRoute = resolveNotificationRoute(
     data,
     notification?.launchURL || notification?.launchUrl
@@ -100,6 +128,15 @@ export default function OneSignalProvider() {
     dispatch({ type: ACTIONS.INCREMENT_NOTIFICATION_BADGE });
   };
 
+  /** Catch up message lists when push arrives while Centrifugo was asleep. */
+  const resyncMessagesFromPush = (data: Record<string, unknown>) => {
+    if (!dispatch || !isMessageLikeNotification(data)) return;
+
+    ensureCentrifugeConnected();
+    dispatch({ type: ACTIONS.HOME_DMS_CALLBACK });
+    dispatch({ type: ACTIONS.TRIGGER_CALLBACK });
+  };
+
   useEffect(() => {
     if (!dispatch) return;
 
@@ -113,6 +150,7 @@ export default function OneSignalProvider() {
       incrementBadgeFromNotification(event?.notification);
 
       const foregroundData = getNotificationData(event?.notification);
+      resyncMessagesFromPush(foregroundData);
 
       if (foregroundData?.notification_type === "direct_call_initialized") {
         if (audioPlayer.current) {
@@ -135,6 +173,10 @@ export default function OneSignalProvider() {
 
     const handleClick = (event: any) => {
       incrementBadgeFromNotification(event?.notification);
+      const clickData = getNotificationData(event?.notification);
+      resyncMessagesFromPush(clickData);
+      // Remount may not run if already on the target conversation — refetch after nav
+      window.setTimeout(() => resyncMessagesFromPush(clickData), 500);
       navigateToNotificationTarget(event, router);
     };
 

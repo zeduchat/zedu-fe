@@ -102,7 +102,7 @@ const ImageViewer = ({ onClose, item, image, images }: any) => {
       <div className="relative flex justify-between items-start text-white">
         <div className="flex items-center gap-3">
           <Image
-            src={currentImage?.file_link || images?.user}
+            src={item?.avatar_url || item?.default_avatar_url}
             width={80}
             height={80}
             alt="Image thumbnail"

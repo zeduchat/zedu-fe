@@ -19,7 +19,10 @@ type NotificationRecord = {
   payload?: Record<string, unknown>;
 };
 
-import { resolveNotificationRoute } from "~/lib/onesignal/notification-route";
+import {
+  resolveNotificationRoute,
+  storeMessageHighlightId,
+} from "~/lib/onesignal/notification-route";
 
 const getString = (value: unknown) =>
   typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
@@ -141,7 +144,10 @@ export default function NotificationDetail({
               asChild
               className="h-10 shrink-0 bg-[#7141F8] px-4 text-white hover:bg-[#5F35D6]"
             >
-              <Link href={route}>
+              <Link
+                href={route}
+                onClick={() => storeMessageHighlightId(payload)}
+              >
                 Open conversation
                 <ArrowRight className="ml-2 size-4" />
               </Link>

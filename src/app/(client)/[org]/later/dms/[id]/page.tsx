@@ -6,10 +6,13 @@ import { GetRequest, PostRequest } from "~/utils/new-request";
 import { DataContext } from "~/store/GlobalState";
 import MessageBox from "~/app/(client)/[org]/_components/message-box";
 import ChatConnection from "~/components/layout/centrifugo/chat-connection";
-import ThreadsSidebar from "~/app/(client)/[org]/_components/threads-sidebar";
+import ThreadsSidebar, {
+  threadsSidebarPanelClassName,
+} from "~/app/(client)/[org]/_components/threads-sidebar";
 import UseGroupReply from "../../../home/people/hooks/group-reply";
 import { useParams } from "next/navigation";
 import HoverSidebar from "~/app/(client)/[org]/_components/profile-sidebar/hover-sidebar";
+import { cn } from "~/lib/utils";
 
 const ChatPage = () => {
   const { state } = useContext(DataContext);
@@ -73,7 +76,10 @@ const ChatPage = () => {
     <div className="flex h-[calc(100vh-70px)] relative w-full overflow-hidden">
       <ChatConnection />
       <div
-        className={`relative flex flex-col flex-1 ${state?.reply ? "mr-[440px]" : ""}`}
+        className={cn(
+          "relative flex flex-col flex-1",
+          state?.reply && "sm:mr-[440px]"
+        )}
       >
         <ChatHeader participants={participants} />
         <GroupMessage participants={participants} />
@@ -93,7 +99,11 @@ const ChatPage = () => {
       </div>
 
       <div
-        className={`fixed mt-[60px] right-0 top-0 z-20 w-full sm:w-[440px] h-full bg-white border-l border-[#E6EAEF] transition-transform duration-300 ease-in-out ${state?.reply ? "translate-x-0" : "translate-x-full"}`}
+        className={cn(
+          "fixed mt-[60px] right-0 top-0 z-20 h-full transition-transform duration-300 ease-in-out",
+          threadsSidebarPanelClassName,
+          state?.reply ? "translate-x-0" : "translate-x-full"
+        )}
       >
         <ThreadsSidebar
           handleSendMessage={handleReplyMessage}

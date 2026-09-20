@@ -8,12 +8,17 @@ import { GetRequest, PostRequest } from "~/utils/new-request";
 import { DataContext } from "~/store/GlobalState";
 import MessageBox from "~/app/(client)/[org]/_components/message-box";
 import ChatConnection from "~/components/layout/centrifugo/chat-connection";
-import ThreadsSidebar from "~/app/(client)/[org]/_components/threads-sidebar";
+import ThreadsSidebar, {
+  getThreadsSidebarLayoutWidth,
+  threadsSidebarPanelClassName,
+} from "~/app/(client)/[org]/_components/threads-sidebar";
 import UseGroupReply from "../../hooks/group-reply";
 import { useParams } from "next/navigation";
 import HoverSidebar from "~/app/(client)/[org]/_components/profile-sidebar/hover-sidebar";
 import ChatAgoraConnection from "~/components/layout/centrifugo/chat-agora-connection";
 import { ACTIONS } from "~/store/Actions";
+import { useIsSmUp } from "~/hooks/use-media-query";
+import { cn } from "~/lib/utils";
 
 const ChatPage = () => {
   const { state, dispatch } = useContext(DataContext);
@@ -21,6 +26,7 @@ const ChatPage = () => {
   const [participants, setParticipants] = useState<any>(null);
   const [fetchedChannelId, setFetchedChannelId] = useState<string | null>(null);
   const { fetchMoreData, hasMore } = UseGroupReply();
+  const isSmUp = useIsSmUp();
   const params = useParams();
   const id = params.id as string;
 
@@ -111,10 +117,10 @@ const ChatPage = () => {
 
   let totalSidePanelWidth = 0;
   if (state?.hoverProfile) {
-    totalSidePanelWidth += 408;
+    totalSidePanelWidth += isSmUp ? 408 : 0;
   }
   if (state?.reply) {
-    totalSidePanelWidth += 440;
+    totalSidePanelWidth += getThreadsSidebarLayoutWidth(true, isSmUp);
   }
 
   return (
@@ -136,11 +142,18 @@ const ChatPage = () => {
 
       {/* Master Side Panels Container - Holds all right-aligned panels */}
       <div
-        className="fixed z-30 mt-[60px] right-0 top-0 h-full flex transition-all duration-300 ease-in-out"
-        style={{ width: `${totalSidePanelWidth}px` }}
+        className={cn(
+          "fixed z-30 mt-[60px] right-0 top-0 h-full flex transition-all duration-300 ease-in-out",
+          !isSmUp && state?.reply && "w-full"
+        )}
+        style={
+          !isSmUp && state?.reply
+            ? undefined
+            : { width: `${totalSidePanelWidth}px` }
+        }
       >
         {/* Hover Sidebar */}
-        {state?.hoverProfile && (
+        {state?.hoverProfile && isSmUp && (
           <div className="w-[408px] h-full bg-white border-l border-[#E6EAEF] shadow-[-3px_0px_25px_0px_#DFDFDF]">
             <HoverSidebar />
           </div>
@@ -148,7 +161,12 @@ const ChatPage = () => {
 
         {/* Threads Sidebar */}
         {state?.reply && (
-          <div className="w-[440px] h-full bg-white border-l border-[#E6EAEF] shadow-[-3px_0px_27px_0px_#DFDFDF]">
+          <div
+            className={cn(
+              threadsSidebarPanelClassName,
+              "shadow-[-3px_0px_27px_0px_#DFDFDF]"
+            )}
+          >
             <ThreadsSidebar
               handleSendMessage={handleReplyMessage}
               fetchMoreData={fetchMoreData}

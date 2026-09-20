@@ -17,14 +17,15 @@ const Message = ({ item, shouldShowAvatar }: MessageProps) => {
   const { state, dispatch } = useContext(DataContext);
 
   const handleReply = () => {
+    dispatch({ type: ACTIONS.THREAD, payload: item });
     dispatch({
       type: ACTIONS.REPLIES,
       payload: {
         newThreads: item.preview_reply ?? item.messages ?? [],
         newPage: 1,
+        parentReactions: item.reactions,
       },
     });
-    dispatch({ type: ACTIONS.THREAD, payload: item });
     dispatch({ type: ACTIONS.REPLY, payload: true });
     dispatch({ type: ACTIONS.LOAD_THREAD, payload: !state.loadThread });
   };

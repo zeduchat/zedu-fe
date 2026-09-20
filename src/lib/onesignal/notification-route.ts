@@ -18,25 +18,38 @@ const RESERVED_PATH_SEGMENTS = new Set([
   "account",
 ]);
 
-export const normalizeNotificationPayload = (
-  raw: Record<string, unknown> = {}
+const mergeNestedObject = (
+  base: Record<string, unknown>,
+  nested: unknown
 ): Record<string, unknown> => {
-  const nested = raw.payload;
-
   if (nested && typeof nested === "object" && !Array.isArray(nested)) {
-    return { ...raw, ...(nested as Record<string, unknown>) };
+    return { ...base, ...(nested as Record<string, unknown>) };
   }
 
   if (typeof nested === "string") {
     try {
       const parsed = JSON.parse(nested) as Record<string, unknown>;
-      return { ...raw, ...parsed };
+      return { ...base, ...parsed };
     } catch {
-      return raw;
+      return base;
     }
   }
 
-  return raw;
+  return base;
+};
+
+export const normalizeNotificationPayload = (
+  raw: Record<string, unknown> = {}
+): Record<string, unknown> => {
+  let data = { ...raw };
+
+  // OneSignal / Centrifugo payloads often nest IDs under payload or data
+  data = mergeNestedObject(data, raw.payload);
+  data = mergeNestedObject(data, raw.data);
+  data = mergeNestedObject(data, data.payload);
+  data = mergeNestedObject(data, data.data);
+
+  return data;
 };
 
 export const normalizeInternalPath = (value?: string | null): string | null => {
@@ -59,6 +72,51 @@ export const normalizeInternalPath = (value?: string | null): string | null => {
   }
 
   return value.startsWith("/") ? value : `/${value}`;
+};
+
+/** Generic OneSignal launch URLs that are not real message destinations. */
+const isShallowHomeRoute = (path: string | null, orgSlug: string): boolean => {
+  if (!path) return true;
+
+  const pathname = (path.split("?")[0] || "/").replace(/\/$/, "") || "/";
+  if (pathname === "/") return true;
+  if (!orgSlug) return false;
+
+  return (
+    pathname === `/${orgSlug}` ||
+    pathname === `/${orgSlug}/home` ||
+    pathname === `/${orgSlug}/home/channels`
+  );
+};
+
+/** True when the path already targets a conversation / buzz / message. */
+const isMeaningfulDeepLink = (path: string | null): boolean => {
+  if (!path) return false;
+  if (/[?&](thread_id|message_id)=/.test(path)) return true;
+  return /\/(home\/channels|dm|dms|buzz|people)\//.test(path.split("?")[0]);
+};
+
+const appendMessageDeepLink = (
+  basePath: string,
+  data: Record<string, unknown>
+): string => {
+  if (/[?&](thread_id|message_id)=/.test(basePath)) return basePath;
+
+  const threadId = getString(data.thread_id);
+  const messageId = getString(data.message_id) || getString(data.messages_id);
+
+  // Match search navigation: use message id as thread_id when thread is absent
+  const deepThreadId = threadId || messageId;
+  if (!deepThreadId) return basePath;
+
+  const params = new URLSearchParams();
+  params.set("thread_id", deepThreadId);
+  if (messageId && threadId && messageId !== threadId) {
+    params.set("message_id", messageId);
+  }
+
+  const separator = basePath.includes("?") ? "&" : "?";
+  return `${basePath}${separator}${params.toString()}`;
 };
 
 export const getOrgSlugForNotification = (payloadOrgId?: unknown): string => {
@@ -108,7 +166,10 @@ export const resolveNotificationRoute = (
     normalizeInternalPath(getString(data.redirect_url)) ||
     normalizeInternalPath(launchURL);
 
-  if (directRoute) return directRoute;
+  // Prefer an already-complete deep link from the payload/launch URL
+  if (directRoute && isMeaningfulDeepLink(directRoute)) {
+    return directRoute;
+  }
 
   const channelId = getString(data.channel_id) || getString(data.channels_id);
   const participantId =
@@ -123,7 +184,13 @@ export const resolveNotificationRoute = (
     .replace(/[\s_-]/g, "");
   const buzzId = getString(data.buzz_id);
 
-  if (!orgSlug) return null;
+  if (!orgSlug) {
+    // No org context — only use non-homepage direct routes
+    if (directRoute && !isShallowHomeRoute(directRoute, "")) {
+      return directRoute;
+    }
+    return null;
+  }
 
   const isGroupDm =
     notificationType === "groupdm" ||
@@ -149,12 +216,17 @@ export const resolveNotificationRoute = (
     return `/${orgSlug}/home/channels/${channelId}`;
   };
 
+  const finalize = (route: string | null) => {
+    if (!route) return null;
+    return appendMessageDeepLink(route, data);
+  };
+
   if (isDmNotification && channelId) {
-    return dmRoute() || `/${orgSlug}/notifications`;
+    return finalize(dmRoute() || `/${orgSlug}/notifications`);
   }
 
   if (section === "dm_channels_section" && channelId) {
-    return dmRoute() || `/${orgSlug}/notifications`;
+    return finalize(dmRoute() || `/${orgSlug}/notifications`);
   }
 
   if (
@@ -162,15 +234,15 @@ export const resolveNotificationRoute = (
     (event === "new_message" || notificationType === "new_message") &&
     channelId
   ) {
-    return channelRoute() || `/${orgSlug}/notifications`;
+    return finalize(channelRoute() || `/${orgSlug}/notifications`);
   }
 
   if (section === "channels_section" && channelId) {
-    return channelRoute() || `/${orgSlug}/notifications`;
+    return finalize(channelRoute() || `/${orgSlug}/notifications`);
   }
 
   if (notificationType === "channel" && channelId) {
-    return channelRoute() || `/${orgSlug}/notifications`;
+    return finalize(channelRoute() || `/${orgSlug}/notifications`);
   }
 
   if (
@@ -179,7 +251,7 @@ export const resolveNotificationRoute = (
     notificationType === "direct_call_response"
   ) {
     if (buzzId) return `/${orgSlug}/buzz/${buzzId}`;
-    return dmRoute() || `/${orgSlug}/notifications`;
+    return finalize(dmRoute() || `/${orgSlug}/notifications`);
   }
 
   if (notificationType?.includes("buzz") && buzzId) {
@@ -187,16 +259,25 @@ export const resolveNotificationRoute = (
   }
 
   if (
-    (event === "new_message" || notificationType === "new_message") &&
+    (event === "new_message" ||
+      notificationType === "new_message" ||
+      notificationType === "mention") &&
     channelId
   ) {
-    return isDmNotification
-      ? dmRoute() || `/${orgSlug}/notifications`
-      : channelRoute() || `/${orgSlug}/notifications`;
+    return finalize(
+      isDmNotification
+        ? dmRoute() || `/${orgSlug}/notifications`
+        : channelRoute() || `/${orgSlug}/notifications`
+    );
   }
 
   if (channelId) {
-    return channelRoute() || `/${orgSlug}/notifications`;
+    return finalize(channelRoute() || `/${orgSlug}/notifications`);
+  }
+
+  // No channel ids — use launch URL only if it is not a bare homepage
+  if (directRoute && !isShallowHomeRoute(directRoute, orgSlug)) {
+    return directRoute;
   }
 
   return `/${orgSlug}/notifications`;
