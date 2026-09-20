@@ -28,6 +28,7 @@ import {
 } from "~/components/ui/tooltip";
 import { TooltipArrow } from "@radix-ui/react-tooltip";
 import moment from "moment";
+import { formatReactionUsers } from "~/utils/format-reaction-users";
 
 const ReplyMessages = ({
   item,
@@ -222,16 +223,7 @@ const ReplyMessages = ({
 
         <div className="flex flex-wrap items-center gap-2 rounded-md mt-1">
           {item?.reactions?.map((emoji: any, index: number) => {
-            const displayNames = (usernames || []).filter(Boolean);
-
-            let namesListString = "";
-            if (displayNames.length === 1) {
-              namesListString = displayNames[0];
-            } else if (displayNames.length > 1) {
-              const last = displayNames[displayNames.length - 1];
-              const rest = displayNames.slice(0, -1).join(", ");
-              namesListString = `${rest} and ${last}`;
-            }
+            const namesListString = formatReactionUsers(usernames || []);
 
             return (
               <TooltipProvider key={index}>
@@ -246,14 +238,14 @@ const ReplyMessages = ({
                     </div>
                   </TooltipTrigger>
 
-                  <TooltipContent className="bg-black text-white p-2 rounded-md text-sm">
+                  <TooltipContent className="bg-black text-white p-2 rounded-md text-sm max-w-[280px]">
                     <TooltipArrow className="fill-black" />
 
                     <div className="text-5xl mx-auto text-center bg-white rounded-lg flex items-center justify-center p-2 w-[70px] mb-2">
                       {emoji.reaction}
                     </div>
                     {namesListString && (
-                      <span>
+                      <span className="block text-center whitespace-normal break-words">
                         {namesListString} reacted with {emoji?.reaction}
                       </span>
                     )}

@@ -11,12 +11,17 @@ import HoverSidebar from "../../../_components/profile-sidebar/hover-sidebar";
 import JoinChannel from "../../../_components/join-channel";
 import MessageBox from "../../../_components/message-box";
 import { PostRequest } from "~/utils/new-request";
-import ThreadsSidebar from "../../../_components/threads-sidebar";
+import ThreadsSidebar, {
+  getThreadsSidebarLayoutWidth,
+  threadsSidebarPanelClassName,
+} from "../../../_components/threads-sidebar";
 import UseChannelReply from "../hooks/channel-reply";
 import UseGetSingleChannel from "../hooks/get-single-channel";
 import { useParams } from "next/navigation";
 import ChannelAgoraConnection from "~/components/layout/centrifugo/channel-agora-connection";
 import { ACTIONS } from "~/store/Actions";
+import { useIsSmUp } from "~/hooks/use-media-query";
+import { cn } from "~/lib/utils";
 
 const ChannelsPage = () => {
   const params = useParams();
@@ -25,6 +30,7 @@ const ChannelsPage = () => {
   const { state, dispatch } = useContext(DataContext);
   const { buzzSidebar, buzzView, user } = state;
   const { fetchMoreData, hasMore } = UseChannelReply();
+  const isSmUp = useIsSmUp();
   const shouldShowBuzzSidePanel =
     buzzSidebar && (buzzView === "side" || buzzView === "full");
 
@@ -139,10 +145,10 @@ const ChannelsPage = () => {
   totalSidePanelWidth += buzzRegionWidth;
 
   if (state?.hoverProfile) {
-    totalSidePanelWidth += 408;
+    totalSidePanelWidth += isSmUp ? 408 : 0;
   }
   if (state?.reply) {
-    totalSidePanelWidth += 440;
+    totalSidePanelWidth += getThreadsSidebarLayoutWidth(true, isSmUp);
   }
 
   return (
@@ -176,11 +182,18 @@ const ChannelsPage = () => {
 
       {/* Master Side Panels Container - Holds all right-aligned panels */}
       <div
-        className="fixed z-30 mt-[60px] right-0 top-0 h-full flex transition-all duration-300 ease-in-out"
-        style={{ width: `${totalSidePanelWidth}px` }}
+        className={cn(
+          "fixed z-30 mt-[60px] right-0 top-0 h-full flex transition-all duration-300 ease-in-out",
+          !isSmUp && state?.reply && "w-full"
+        )}
+        style={
+          !isSmUp && state?.reply
+            ? undefined
+            : { width: `${totalSidePanelWidth}px` }
+        }
       >
         {/* Hover Sidebar */}
-        {state?.hoverProfile && (
+        {state?.hoverProfile && isSmUp && (
           <div className="w-[408px] h-full bg-white border-l border-[#E6EAEF]">
             <HoverSidebar />
           </div>
@@ -188,7 +201,7 @@ const ChannelsPage = () => {
 
         {/* Threads Sidebar */}
         {state?.reply && (
-          <div className="w-[440px] h-full bg-white border-l border-[#E6EAEF]">
+          <div className={threadsSidebarPanelClassName}>
             <ThreadsSidebar
               handleSendMessage={handleReplyMessage}
               fetchMoreData={fetchMoreData}

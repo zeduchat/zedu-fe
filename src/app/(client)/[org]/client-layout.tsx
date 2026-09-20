@@ -25,6 +25,7 @@ import IncomingCallPopupContainer from "~/app/(client)/[org]/_components/buzz-ma
 import StatusConnection from "~/components/layout/centrifugo/status-connection";
 import ChatBuzzSidePanel from "./_components/buzz-management/chatBuzzSidePanel";
 import GeneralNotificationConnection from "~/components/layout/centrifugo/general-notification-connection";
+import CentrifugoWakeSync from "~/components/layout/centrifugo/centrifugo-wake-sync";
 import ChatAgoraConnection from "~/components/layout/centrifugo/chat-agora-connection";
 import ChannelAgoraConnection from "~/components/layout/centrifugo/channel-agora-connection";
 import useFirstChannel from "./home/channels/hooks/first-channel";
@@ -298,6 +299,7 @@ const ClientLayout = ({
       {!isRecorderSession && (
         <>
           <GeneralNotificationConnection />
+          <CentrifugoWakeSync />
           <ChatAgoraConnection />
           <ChannelAgoraConnection />
         </>

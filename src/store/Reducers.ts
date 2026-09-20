@@ -11,6 +11,41 @@ const prependRealtimeThreadMessage = (list: any[] = [], newMessage: any) => {
   return [newMessage, ...cleanList];
 };
 
+const reactionsShareIds = (a: any[] = [], b: any[] = []) => {
+  const ids = new Set((a || []).map((r) => r?.reaction_id).filter(Boolean));
+  if (ids.size === 0) return false;
+  return (b || []).some((r) => r?.reaction_id && ids.has(r.reaction_id));
+};
+
+const reactionsSignature = (reactions: any[] = []) =>
+  (reactions || [])
+    .map((r) => `${r?.reaction ?? ""}:${r?.reaction_count ?? 0}`)
+    .sort()
+    .join("|");
+
+/** Drop parent-thread reactions that were incorrectly attached to a reply payload. */
+const sanitizeReplyReactions = (message: any, parentReactions?: any[]) => {
+  if (!message) return message;
+
+  const replyReactions = message.reactions;
+  if (!Array.isArray(replyReactions) || replyReactions.length === 0) {
+    return { ...message, reactions: null };
+  }
+
+  if (!Array.isArray(parentReactions) || parentReactions.length === 0) {
+    return message;
+  }
+
+  if (
+    reactionsShareIds(parentReactions, replyReactions) ||
+    reactionsSignature(parentReactions) === reactionsSignature(replyReactions)
+  ) {
+    return { ...message, reactions: null };
+  }
+
+  return message;
+};
+
 const prependRealtimeReplyMessage = (list: any[] = [], newMessage: any) => {
   let removedOptimistic = false;
   const cleanList = list.filter((msg) => {
@@ -25,7 +60,14 @@ const prependRealtimeReplyMessage = (list: any[] = [], newMessage: any) => {
     return true;
   });
 
-  return [newMessage, ...cleanList];
+  // New replies never have reactions yet; realtime payloads sometimes include
+  // the parent thread's reactions, which incorrectly renders a 👍 (etc.) chip.
+  const sanitizedMessage = {
+    ...newMessage,
+    reactions: null,
+  };
+
+  return [sanitizedMessage, ...cleanList];
 };
 
 const reducers = (state: any, action: any) => {
@@ -330,13 +372,22 @@ const reducers = (state: any, action: any) => {
         };
       }
 
-      return {
-        ...state,
-        replies:
-          action.payload.newPage === 1
-            ? action.payload.newThreads || []
-            : [...(state.replies || []), ...(action.payload.newThreads || [])],
-      };
+      {
+        const parentReactions =
+          action.payload.parentReactions ?? state.thread?.reactions;
+        const incoming = action.payload.newThreads || [];
+        const sanitizedThreads = incoming.map((msg: any) =>
+          sanitizeReplyReactions(msg, parentReactions)
+        );
+
+        return {
+          ...state,
+          replies:
+            action.payload.newPage === 1
+              ? sanitizedThreads
+              : [...(state.replies || []), ...sanitizedThreads],
+        };
+      }
 
     case ACTIONS.CLEAR_CHATS:
       return {
@@ -682,20 +733,37 @@ const reducers = (state: any, action: any) => {
         return msg;
       });
 
+      const updatedThread =
+        state.thread?.thread_id === threadId
+          ? { ...state.thread, reactions }
+          : state.thread;
+
       return {
         ...state,
         messages: updatedMessages,
+        thread: updatedThread,
       };
     }
 
     case ACTIONS.UPDATE_REPLY_REACTIONS: {
       const { messageId, reactions } = action.payload;
 
+      // Without a message id, `undefined === undefined` would match empty ids
+      // and attach parent/thread reactions onto the wrong reply rows.
+      if (!messageId) {
+        return state;
+      }
+
+      const parentReactions = state.thread?.reactions;
+      const nextReactions = reactionsShareIds(parentReactions, reactions)
+        ? null
+        : reactions;
+
       const updatedMessages = (state.replies || []).map((msg: any) => {
         if (msg.id === messageId) {
           return {
             ...msg,
-            reactions: reactions,
+            reactions: nextReactions,
           };
         }
         return msg;
@@ -720,9 +788,15 @@ const reducers = (state: any, action: any) => {
         return msg;
       });
 
+      const updatedThread =
+        state.thread?.thread_id === threadId
+          ? { ...state.thread, reactions }
+          : state.thread;
+
       return {
         ...state,
         chats: updatedMessages,
+        thread: updatedThread,
       };
     }
 

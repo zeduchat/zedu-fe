@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import ChannelNav from "~/components/layout/sidebar/Nav";
 
 const People = () => {
-  const [sidebarWidth, setSidebarWidth] = useState(350);
+  const [sidebarWidth, setSidebarWidth] = useState(270);
   const sidebarRef = useRef<HTMLDivElement | null>(null);
   const resizerRef = useRef<HTMLDivElement | null>(null);
 

@@ -91,12 +91,11 @@ const ReplyMessage = ({ fetchMoreData, hasMore }: any) => {
     <div
       id="scrollableDivs"
       style={{
-        // height: "100vh",
         overflowY: "auto",
         display: "flex",
         flexDirection: "column-reverse",
       }}
-      className="w-full pb-[15px] overflow-x-hidden"
+      className="h-full w-full overflow-x-hidden pb-[15px]"
     >
       <InfiniteScroll
         dataLength={replies?.length}
