@@ -40,6 +40,17 @@ export const ChannelCard = (props: ComponentProps) => {
     localStorage.setItem("channelName", props?.name);
     dispatch({ type: ACTIONS.CHANNEL_NAME, payload: props?.name });
 
+    // Clear Nav unread highlight immediately on open
+    dispatch({
+      type: ACTIONS.UPDATE_THREAD_COUNT,
+      payload: {
+        channels_id: props.channels_id,
+        mention_count: 0,
+        thread_count: 0,
+      },
+    });
+    dispatch({ type: ACTIONS.THREAD_COUNT, payload: 0 });
+
     router.push(`/${orgSlug}/home/channels/${props.channels_id}`);
   };
 
