@@ -36,9 +36,28 @@ const GroupMessage = ({ participants }: any) => {
   const scrollableContainerRef = useRef<HTMLDivElement>(null);
   const hasDispatchedRef = useRef(false);
 
-  const getData = async () => {
-    await GetRequest(`/group-dms/channels/${id}/threads?page=1&limit=1`);
+  const clearDmUnread = () => {
+    dispatch({
+      type: ACTIONS.UPDATE_DM_COUNT,
+      payload: {
+        channel_id: id,
+        thread_count: 0,
+      },
+    });
+    dispatch({ type: ACTIONS.DM_COUNT, payload: 0 });
   };
+
+  const getData = async () => {
+    if (!id) return;
+    await GetRequest(`/group-dms/channels/${id}/threads?page=1&limit=1`);
+    clearDmUnread();
+  };
+
+  // Mark as read and clear Nav highlight whenever this group DM is opened
+  useEffect(() => {
+    if (!id) return;
+    getData();
+  }, [id]);
 
   useEffect(() => {
     const container = scrollableContainerRef.current;
@@ -64,7 +83,7 @@ const GroupMessage = ({ participants }: any) => {
     return () => {
       container.removeEventListener("scroll", handleScroll);
     };
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     if (!showBadge && notify?.user_id !== user?.user_id) {

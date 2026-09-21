@@ -38,9 +38,29 @@ const ChannelsMessage = () => {
   const scrollableContainerRef = useRef<HTMLDivElement>(null);
   const hasDispatchedRef = useRef(false);
 
-  const getData = async () => {
-    await GetRequest(`/threads/channels/${id}?page=1&limit=1`);
+  const clearChannelUnread = () => {
+    dispatch({
+      type: ACTIONS.UPDATE_THREAD_COUNT,
+      payload: {
+        channels_id: id,
+        mention_count: 0,
+        thread_count: 0,
+      },
+    });
+    dispatch({ type: ACTIONS.THREAD_COUNT, payload: 0 });
   };
+
+  const getData = async () => {
+    if (!id) return;
+    await GetRequest(`/threads/channels/${id}?page=1&limit=1`);
+    clearChannelUnread();
+  };
+
+  // Mark as read and clear Nav highlight whenever this channel is opened
+  useEffect(() => {
+    if (!id) return;
+    getData();
+  }, [id]);
 
   useEffect(() => {
     const container = scrollableContainerRef.current;
@@ -66,7 +86,7 @@ const ChannelsMessage = () => {
     return () => {
       container.removeEventListener("scroll", handleScroll);
     };
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     if (!showBadge && notify?.user_id !== user?.user_id) {
