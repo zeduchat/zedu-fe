@@ -44,6 +44,18 @@ export const PeopleHomeCard = (props: ComponentProps) => {
       payload: { newThreads: props.preview_thread || [], newPage: 1 },
     });
 
+    // Clear Nav unread highlight immediately on open
+    if (props?.channel_id) {
+      dispatch({
+        type: ACTIONS.UPDATE_DM_COUNT,
+        payload: {
+          channel_id: props.channel_id,
+          thread_count: 0,
+        },
+      });
+      dispatch({ type: ACTIONS.DM_COUNT, payload: 0 });
+    }
+
     if (props?.channel_type === "dm") {
       const participant = props?.participants?.[0];
       dispatch({ type: ACTIONS.PARTICIPANT, payload: participant });

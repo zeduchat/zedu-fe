@@ -160,6 +160,18 @@ export default function DMNav({ resizerRef, sidebarWidth, sidebarRef }: any) {
 
     localStorage.setItem("channelName", data?.username);
 
+    // Clear Nav unread highlight immediately on open
+    if (data?.channel_id) {
+      dispatch({
+        type: ACTIONS.UPDATE_DM_COUNT,
+        payload: {
+          channel_id: data.channel_id,
+          thread_count: 0,
+        },
+      });
+      dispatch({ type: ACTIONS.DM_COUNT, payload: 0 });
+    }
+
     if (data?.channel_type === "dm") {
       const participant = data?.participants?.[0];
       dispatch({ type: ACTIONS.PARTICIPANT, payload: participant });
