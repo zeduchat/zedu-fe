@@ -204,6 +204,11 @@ const reducers = (state: any, action: any) => {
         ...state,
         orgMembers: payload,
       };
+    case ACTIONS.ORG_MEMBERS_TOTAL:
+      return {
+        ...state,
+        orgMembersTotal: payload,
+      };
     case ACTIONS.ORG_INVITES:
       return {
         ...state,
@@ -925,7 +930,7 @@ const reducers = (state: any, action: any) => {
 
       return {
         ...state,
-        channels: state.channels.map((channel: any) => {
+        channels: state?.channels?.map((channel: any) => {
           if (channel.channels_id === updatedChannelId) {
             return {
               ...channel,
@@ -944,7 +949,7 @@ const reducers = (state: any, action: any) => {
         const newUser = buzzEventData?.user_joined;
         return {
           ...state,
-          channels: state.channels.map((channel: any) => {
+          channels: state?.channels?.map((channel: any) => {
             if (
               String(channel.channels_id) === String(buzzEventData.channel_id)
             ) {
@@ -967,7 +972,7 @@ const reducers = (state: any, action: any) => {
       if (notification_type === "buzz_ended") {
         return {
           ...state,
-          channels: state.channels.map((channel: any) => {
+          channels: state?.channels?.map((channel: any) => {
             if (
               String(channel.channels_id) === String(buzzEventData.channel_id)
             ) {

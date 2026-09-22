@@ -33,6 +33,7 @@ import {
   redirectAfterOrgSwitch,
   resolveChannelIdForOrgSwitch,
 } from "~/utils/org-switch";
+import { useOrganisationUsers } from "~/hooks/useOrganisationUsers";
 
 const ClientLayout = ({
   children,
@@ -46,6 +47,12 @@ const ClientLayout = ({
   const segments = pathname.split("/");
   const slug = segments[1];
   const { firstChannel } = useFirstChannel();
+
+  const orgId =
+    state.orgId ||
+    (typeof window !== "undefined" ? localStorage.getItem("orgId") || "" : "");
+
+  useOrganisationUsers(orgId, { enabled: isInitialized && !!orgId });
 
   useEffect(() => {
     if (
@@ -212,22 +219,14 @@ const ClientLayout = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, router, slug, pathname]);
 
-  // get all users in an organisation
+  // Bootstrap organisation invites and access after init
   useEffect(() => {
-    const orgId = localStorage.getItem("orgId");
-
-    const getOrganisationUsers = async () => {
-      const response = await GetRequest(
-        `/organisations/${orgId}/users?page=1&limit=500`
-      );
-
-      if (response?.status === 200 || response?.status === 201) {
-        dispatch({ type: ACTIONS.ORG_MEMBERS, payload: response?.data?.data });
-      }
-    };
+    const resolvedOrgId = localStorage.getItem("orgId");
 
     const getOrganisationInvites = async () => {
-      const response = await GetRequest(`/organisations/${orgId}/invites`);
+      const response = await GetRequest(
+        `/organisations/${resolvedOrgId}/invites`
+      );
       if (response?.status === 200 || response?.status === 201) {
         const result = response.data.data.filter(
           (item: any) => item.status === "invited"
@@ -237,10 +236,11 @@ const ClientLayout = ({
     };
 
     const loadOrganisationAccess = async () => {
-      if (!orgId) return;
+      if (!resolvedOrgId) return;
       dispatch({ type: ACTIONS.ORG_ACCESS_LOADING, payload: true });
       try {
-        const { permissions, roles } = await bootstrapOrganisationAccess(orgId);
+        const { permissions, roles } =
+          await bootstrapOrganisationAccess(resolvedOrgId);
         dispatch({ type: ACTIONS.PERMISSIONS_CATALOG, payload: permissions });
         dispatch({ type: ACTIONS.ORG_ROLES, payload: roles });
       } catch (error) {
@@ -251,7 +251,6 @@ const ClientLayout = ({
     };
 
     if (isInitialized) {
-      getOrganisationUsers();
       getOrganisationInvites();
       loadOrganisationAccess();
     }

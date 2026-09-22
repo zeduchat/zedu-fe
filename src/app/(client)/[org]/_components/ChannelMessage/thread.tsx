@@ -49,8 +49,12 @@ type ParsedField = {
 };
 
 const parseWebhookFields = (message: string): ParsedField[] => {
+  // Support real newlines (\n / \r\n) and literal "\n" / "\r\n" escape sequences
   return String(message || "")
-    .split("\\n")
+    .replace(/\\r\\n/g, "\n")
+    .replace(/\r\n/g, "\n")
+    .replace(/\\n/g, "\n")
+    .split("\n")
     .map((line) => line.trim())
     .filter(Boolean)
     .map((line) => {

@@ -9,6 +9,7 @@ import { InviteRequest } from "~/utils/new-request";
 import { showSuccess } from "~/components/toast/sonner";
 import Loading from "~/components/ui/loading";
 import { ACTIONS } from "~/store/Actions";
+import { useOrganisationUsers } from "~/hooks/useOrganisationUsers";
 
 interface InviteModalProps {
   isOpen: boolean;
@@ -44,16 +45,26 @@ export const InviteModal: React.FC<InviteModalProps> = ({
   const { buzzParticipants } = state;
   const [selected, setSelected] = useState<User[]>([]);
   const [highlightIndex, setHighlightIndex] = useState(0);
-  const orgMembers = useMemo<User[]>(
-    () => state.orgMembers ?? [],
-    [state.orgMembers]
-  );
-  const { buzzData } = state;
-
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<"suggested" | "invited">(
     "suggested"
   );
+
+  const orgId =
+    state.orgId ||
+    (typeof window !== "undefined" ? localStorage.getItem("orgId") || "" : "");
+
+  const { users, loading, hasMore, loadMore } = useOrganisationUsers(orgId, {
+    enabled: isOpen,
+    search,
+  });
+
+  const orgMembers = useMemo<User[]>(() => (users as User[]) ?? [], [users]);
+  const browseMembers = useMemo<User[]>(
+    () => (state.orgMembers as User[]) ?? [],
+    [state.orgMembers]
+  );
+  const { buzzData } = state;
 
   const getSearchKey = (u: User) =>
     (u.name || u.username || u.email || "").toLowerCase();
@@ -67,7 +78,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({
       return;
     }
 
-    const pendingInvitedUsers = orgMembers.filter((user) =>
+    const pendingInvitedUsers = browseMembers.filter((user) =>
       buzzParticipants.some(
         (participant: any) =>
           matchesBuzzParticipant(participant, user.id) &&
@@ -77,42 +88,24 @@ export const InviteModal: React.FC<InviteModalProps> = ({
     );
 
     setInvited((prev) => mergeUsers([...prev, ...pendingInvitedUsers]));
-  }, [isOpen, orgMembers, buzzParticipants]);
+  }, [isOpen, browseMembers, buzzParticipants]);
 
   const filteredSuggested = useMemo(() => {
     return orgMembers.filter((user) => {
-      const key = getSearchKey(user);
-
-      const matchesSearch = key.includes(search.toLowerCase());
-
       const isSelf = String(user.id) === String(state?.user?.user_id);
-
       const isAlreadySelected = selected.some((s) => s.id === user?.id);
-
       const isAlreadyInvited = invited.some((s) => s.id === user?.id);
-
       const isAlreadyInCall = buzzParticipants.some((participant: any) =>
         matchesBuzzParticipant(participant, user.id)
       );
       return (
-        matchesSearch &&
-        !isSelf &&
-        !isAlreadyInCall &&
-        !isAlreadySelected &&
-        !isAlreadyInvited
+        !isSelf && !isAlreadyInCall && !isAlreadySelected && !isAlreadyInvited
       );
     });
-  }, [
-    orgMembers,
-    search,
-    selected,
-    invited,
-    buzzParticipants,
-    state?.user?.user_id,
-  ]);
+  }, [orgMembers, selected, invited, buzzParticipants, state?.user?.user_id]);
 
   const filteredInvited = useMemo(() => {
-    const invitedFromParticipants = orgMembers.filter((user) =>
+    const invitedFromParticipants = browseMembers.filter((user) =>
       buzzParticipants.some((participant: any) =>
         matchesBuzzParticipant(participant, user.id)
       )
@@ -123,11 +116,13 @@ export const InviteModal: React.FC<InviteModalProps> = ({
       ...invitedFromParticipants,
     ]);
 
+    if (!search.trim()) return merged;
+
     return merged.filter((user) => {
       const key = getSearchKey(user);
       return key.includes(search.toLowerCase());
     });
-  }, [selected, invited, search, orgMembers, buzzParticipants]);
+  }, [selected, invited, search, browseMembers, buzzParticipants]);
 
   const handleSelectUser = (user: User) => {
     if (!selected.some((u) => u.id === user.id)) {
@@ -273,20 +268,39 @@ export const InviteModal: React.FC<InviteModalProps> = ({
             </button>
           </div>
 
-          <div className="max-h-[260px] overflow-y-auto pr-2">
+          <div
+            className="max-h-[260px] overflow-y-auto pr-2"
+            onScroll={(e) => {
+              if (activeTab !== "suggested") return;
+              const target = e.currentTarget;
+              const nearBottom =
+                target.scrollHeight - target.scrollTop - target.clientHeight <
+                48;
+              if (nearBottom && hasMore && !loading) {
+                loadMore();
+              }
+            }}
+          >
             {activeTab === "suggested" &&
-              (filteredSuggested.length === 0 ? (
+              (filteredSuggested.length === 0 && !loading ? (
                 <EmptySuggestionForInvitation />
               ) : (
-                filteredSuggested.map((user: any, index) => (
-                  <UserItem
-                    key={user.id}
-                    user={user}
-                    onClick={() => handleSelectUser(user)}
-                    active={index === highlightIndex}
-                    // pending={isPendingInvite(String(user.id))}
-                  />
-                ))
+                <>
+                  {filteredSuggested.map((user: any, index) => (
+                    <UserItem
+                      key={user.id}
+                      user={user}
+                      onClick={() => handleSelectUser(user)}
+                      active={index === highlightIndex}
+                      // pending={isPendingInvite(String(user.id))}
+                    />
+                  ))}
+                  {loading && (
+                    <div className="flex justify-center py-3">
+                      <Loading />
+                    </div>
+                  )}
+                </>
               ))}
 
             {activeTab === "invited" &&

@@ -45,20 +45,21 @@ export const AddMembersModal: React.FC<AddMembersModalProps> = ({
     state.orgId ||
     (typeof window !== "undefined" ? localStorage.getItem("orgId") || "" : "");
 
-  const {
-    loading: usersLoading,
-    hasMore,
-    loadMore,
-  } = useOrganisationUsers(orgId, { enabled: isOpen });
-
   const [selected, setSelected] = useState<User[]>([]);
   const [search, setSearch] = useState("");
   const [highlightIndex, setHighlightIndex] = useState(0);
   const [submitLoading, setSubmitLoading] = useState(false);
 
+  const {
+    loading: usersLoading,
+    hasMore,
+    loadMore,
+    users,
+  } = useOrganisationUsers(orgId, { enabled: isOpen, search });
+
   const orgMembers = useMemo<User[]>(
-    () => (state.orgMembers ?? []).map(mapOrgMemberToUser),
-    [state.orgMembers]
+    () => (users ?? []).map(mapOrgMemberToUser),
+    [users]
   );
 
   const participantList = useMemo(
@@ -74,9 +75,6 @@ export const AddMembersModal: React.FC<AddMembersModalProps> = ({
     }
     return ids;
   }, [participantList]);
-
-  const getSearchKey = (u: User) =>
-    (u.name || u.username || u.email || "").toLowerCase();
 
   useEffect(() => {
     if (!isOpen) {
@@ -111,22 +109,12 @@ export const AddMembersModal: React.FC<AddMembersModalProps> = ({
 
   const filteredSuggested = useMemo(() => {
     return orgMembers.filter((user) => {
-      const key = getSearchKey(user);
-      const matchesSearch = key.includes(search.toLowerCase());
       const isSelf = String(user.id) === String(state?.user?.user_id);
       const isAlreadySelected = selected.some((s) => s.id === user.id);
       const isAlreadyInGroup = existingParticipantIds.has(String(user.id));
-      return (
-        matchesSearch && !isSelf && !isAlreadyInGroup && !isAlreadySelected
-      );
+      return !isSelf && !isAlreadyInGroup && !isAlreadySelected;
     });
-  }, [
-    orgMembers,
-    search,
-    selected,
-    existingParticipantIds,
-    state?.user?.user_id,
-  ]);
+  }, [orgMembers, selected, existingParticipantIds, state?.user?.user_id]);
 
   const handleSelectUser = (user: User) => {
     if (!selected.some((u) => u.id === user.id)) {
@@ -248,12 +236,21 @@ export const AddMembersModal: React.FC<AddMembersModalProps> = ({
             className="max-h-[260px] overflow-y-auto pr-2"
             onScroll={handleListScroll}
           >
-            {filteredSuggested.length === 0 && !usersLoading ? (
+            {usersLoading && filteredSuggested.length === 0 ? (
+              <div className="flex flex-col items-center justify-center text-center py-10 text-gray-500 gap-3">
+                <Loading color="#5F5FE1" />
+                <p className="text-sm">
+                  {search.trim() ? "Searching members…" : "Loading members…"}
+                </p>
+              </div>
+            ) : filteredSuggested.length === 0 ? (
               <div className="flex flex-col items-center justify-center text-center py-10 text-gray-500">
                 <p className="text-sm">
-                  {hasMore
-                    ? "Loading more members…"
-                    : "No new suggestion available"}
+                  {search.trim()
+                    ? "No members found"
+                    : hasMore
+                      ? "Loading more members…"
+                      : "No new suggestion available"}
                 </p>
               </div>
             ) : (
@@ -266,9 +263,9 @@ export const AddMembersModal: React.FC<AddMembersModalProps> = ({
                 />
               ))
             )}
-            {usersLoading && (
+            {usersLoading && filteredSuggested.length > 0 && (
               <div className="flex justify-center py-3">
-                <Loading />
+                <Loading color="#5F5FE1" />
               </div>
             )}
             {!usersLoading && hasMore && filteredSuggested.length > 0 && (

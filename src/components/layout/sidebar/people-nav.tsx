@@ -14,7 +14,6 @@ import OrganisationMenu from "~/app/(client)/[org]/_components/org-dropdown";
 import { PostRequest } from "~/utils/new-request";
 import { cn } from "~/lib/utils";
 import { formatCount } from "~/utils/utils";
-import { search } from "~/utils/filter";
 import { useOrganisationUsers } from "~/hooks/useOrganisationUsers";
 import { isUserDeactivated } from "~/utils/user-deactivation";
 
@@ -33,7 +32,9 @@ export default function PeopleNav({
 
   const orgId =
     typeof window !== "undefined" ? localStorage.getItem("orgId") || "" : "";
-  const { hasMore, loadMore } = useOrganisationUsers(orgId);
+  const { hasMore, loadMore, users, loading } = useOrganisationUsers(orgId, {
+    search: searchInput,
+  });
 
   useEffect(() => {
     const savedScroll = sessionStorage.getItem("sidebar-scroll");
@@ -72,9 +73,7 @@ export default function PeopleNav({
     router.push(`/${orgSlug}/home/people/new-chat`);
   };
 
-  const members = state?.orgMembers;
-
-  const searchData = search(members, searchInput);
+  const searchData = (users as any[]) || [];
 
   useEffect(() => {
     if (id2 && memberRefs.current[id2]) {
@@ -138,7 +137,7 @@ export default function PeopleNav({
           <InfiniteScroll
             dataLength={searchData?.length || 0}
             next={loadMore}
-            hasMore={hasMore && !searchInput}
+            hasMore={hasMore}
             loader={
               <div className="flex justify-center p-4">
                 <Loader2 className="animate-spin text-white/70" size={20} />
@@ -191,7 +190,7 @@ export default function PeopleNav({
                 );
               })}
 
-              {searchData?.length === 0 && (
+              {searchData?.length === 0 && !loading && (
                 <p className="self-center mt-10">No available member</p>
               )}
             </div>

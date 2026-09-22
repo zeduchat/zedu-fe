@@ -34,6 +34,7 @@ export const DataProvider = ({ children }: DataProviderProps) => {
     openSidebar: false,
 
     orgMembers: null,
+    orgMembersTotal: 0,
     orgInvites: null,
 
     orgRoles: null,

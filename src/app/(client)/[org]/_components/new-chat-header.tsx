@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect, useContext } from "react";
+import React, { useState, useRef, useEffect, useContext, useMemo } from "react";
 import {
   Popover,
   PopoverContent,
@@ -9,6 +9,8 @@ import Image from "next/image";
 import { X } from "lucide-react";
 import { DataContext } from "~/store/GlobalState";
 import images from "~/assets/images";
+import { useOrganisationUsers } from "~/hooks/useOrganisationUsers";
+import Loading from "~/components/ui/loading";
 
 export interface User {
   id: string;
@@ -24,24 +26,24 @@ const NewChatHeader = ({ onUsersSelected }: any) => {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>(
-    state?.orgMembers || []
-  );
   const [isInputFocused, setIsInputFocused] = useState(false);
   const triggerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const popoverContentRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const searchLower = inputValue.toLowerCase();
-    const filtered =
-      state?.orgMembers?.filter(
-        (user: User) =>
-          !selectedUsers?.find((selected) => selected.id === user?.id) &&
-          user?.name.toLowerCase().includes(searchLower)
-      ) || [];
-    setFilteredUsers(filtered);
-  }, [selectedUsers, inputValue, state?.orgMembers]);
+  const orgId =
+    state.orgId ||
+    (typeof window !== "undefined" ? localStorage.getItem("orgId") || "" : "");
+
+  const { users, loading, hasMore, loadMore } = useOrganisationUsers(orgId, {
+    search: inputValue,
+  });
+
+  const filteredUsers = useMemo(() => {
+    return ((users as User[]) || []).filter(
+      (user) => !selectedUsers?.find((selected) => selected.id === user?.id)
+    );
+  }, [users, selectedUsers]);
 
   useEffect(() => {
     onUsersSelected(selectedUsers);
@@ -68,13 +70,19 @@ const NewChatHeader = ({ onUsersSelected }: any) => {
     setOpen(true);
   };
 
-  //
+  const handleListScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    const nearBottom =
+      target.scrollHeight - target.scrollTop - target.clientHeight < 48;
+    if (nearBottom && hasMore && !loading) {
+      loadMore();
+    }
+  };
 
   return (
     <div className="p-5 border-b border-[#E6EAEF] shadow-[0px_3px_6px_0px_#DFDFDF]">
       <div className="flex items-center gap-3 mb-5">
         <h2 className="text-lg text-[#1D2939] font-black">New Group Chat</h2>
-        {/* <span className="text-[#98A2B3] text-[13px]">Saved 1 minute ago</span> */}
       </div>
 
       <div className="flex items-center gap-1">
@@ -112,7 +120,6 @@ const NewChatHeader = ({ onUsersSelected }: any) => {
                     </span>
                     <button
                       type="button"
-                      // onMouseDown={(e) => e.preventDefault()}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleRemoveUser(user?.id);
@@ -135,7 +142,6 @@ const NewChatHeader = ({ onUsersSelected }: any) => {
                 onClick={handleInputClick}
                 onFocus={() => {
                   setIsInputFocused(true);
-                  // setOpen(true);
                 }}
                 onBlur={(e) => {
                   if (
@@ -167,7 +173,10 @@ const NewChatHeader = ({ onUsersSelected }: any) => {
               }
             }}
           >
-            <div className="py-2 w-full max-h-[400px] overflow-auto">
+            <div
+              className="py-2 w-full max-h-[400px] overflow-auto"
+              onScroll={handleListScroll}
+            >
               {filteredUsers.length > 0 ? (
                 filteredUsers.map((user) => (
                   <div
@@ -203,7 +212,14 @@ const NewChatHeader = ({ onUsersSelected }: any) => {
                   </div>
                 ))
               ) : (
-                <div className="px-3 py-2 text-[#667085]">No users found</div>
+                <div className="px-3 py-2 text-[#667085]">
+                  {loading ? "Searching…" : "No users found"}
+                </div>
+              )}
+              {loading && filteredUsers.length > 0 && (
+                <div className="flex justify-center py-2">
+                  <Loading />
+                </div>
               )}
             </div>
           </PopoverContent>
