@@ -209,6 +209,11 @@ const reducers = (state: any, action: any) => {
         ...state,
         orgMembersTotal: payload,
       };
+    case ACTIONS.MENTION_ORG_MEMBERS:
+      return {
+        ...state,
+        mentionOrgMembers: payload,
+      };
     case ACTIONS.ORG_INVITES:
       return {
         ...state,

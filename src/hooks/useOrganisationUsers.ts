@@ -15,6 +15,7 @@ type OrgUsersPagination = {
 
 const paginationByOrgId = new Map<string, OrgUsersPagination>();
 const inflightPagesByOrgId = new Map<string, Set<number>>();
+const mentionLoadedByOrgId = new Set<string>();
 
 const getOrgPagination = (orgId: string): OrgUsersPagination => {
   if (!paginationByOrgId.has(orgId)) {
@@ -34,6 +35,7 @@ const resetOrgPagination = (orgId: string) => {
     totalItems: 0,
   });
   inflightPagesByOrgId.delete(orgId);
+  mentionLoadedByOrgId.delete(orgId);
 };
 
 const getInflightPages = (orgId: string) => {
@@ -175,6 +177,24 @@ export const useOrganisationUsers = (
             type: ACTIONS.ORG_MEMBERS_TOTAL,
             payload: orgPagination.totalItems,
           });
+
+          // Load full member list once for fast client-side @mentions
+          if (
+            orgPagination.totalItems > 0 &&
+            !mentionLoadedByOrgId.has(orgId)
+          ) {
+            mentionLoadedByOrgId.add(orgId);
+            GetRequest(
+              `/organisations/${orgId}/users?page=1&limit=${orgPagination.totalItems}`
+            ).then((allRes) => {
+              if (allRes?.status === 200 || allRes?.status === 201) {
+                dispatch({
+                  type: ACTIONS.MENTION_ORG_MEMBERS,
+                  payload: allRes?.data?.data || [],
+                });
+              }
+            });
+          }
         }
       } finally {
         inflight.delete(pageNumber);
@@ -241,6 +261,7 @@ export const useOrganisationUsers = (
       resetOrgPagination(orgId);
       setHasMore(true);
       setTotalItems(0);
+      dispatch({ type: ACTIONS.MENTION_ORG_MEMBERS, payload: null });
       fetchBrowseUsers(1, true);
       return;
     }
