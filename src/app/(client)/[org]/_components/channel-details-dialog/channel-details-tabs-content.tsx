@@ -118,7 +118,7 @@ export function AboutTabContainer({ setIsOpen }: any) {
 const getChannelUserId = (item: any) =>
   item?.id ?? item?.user_id ?? item?.profile?.user_id ?? item?.profile?.id;
 
-export function PeopleTabContainer() {
+export function PeopleTabContainer({ setIsOpen }: any) {
   const { state, dispatch } = useContext(DataContext);
   const { channelDetails } = state;
   const params = useParams();
@@ -129,6 +129,32 @@ export function PeopleTabContainer() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [removing, setRemoving] = useState(false);
+
+  const handleOpenUserProfile = (item: any) => {
+    const profile = item?.profile ?? item;
+    const userId = getChannelUserId(item);
+    if (!userId) return;
+
+    dispatch({
+      type: ACTIONS.USER_DATA,
+      payload: {
+        ...profile,
+        user_id: userId,
+        username: profile?.username ?? item?.username,
+        avatar_url: profile?.avatar_url ?? item?.avatar_url,
+        default_avatar_url:
+          profile?.default_avatar_url ?? item?.default_avatar_url,
+        email: profile?.email ?? item?.email,
+        title: profile?.title ?? item?.title,
+        phone: profile?.phone ?? item?.phone,
+        timezone: profile?.timezone ?? item?.timezone,
+        full_name: profile?.full_name ?? item?.full_name,
+        is_deactivated: profile?.is_deactivated ?? item?.is_deactivated,
+      },
+    });
+    dispatch({ type: ACTIONS.HOVER_PROFILE, payload: true });
+    setIsOpen?.(false);
+  };
 
   const selectedUsers = (channelDetails?.users || []).filter((user: any) =>
     selectedIds.includes(String(getChannelUserId(user)))
@@ -220,7 +246,16 @@ export function PeopleTabContainer() {
           return (
             <div
               key={userId || item?.profile?.username}
-              className="flex justify-start items-center gap-2.5 py-3"
+              role="button"
+              tabIndex={0}
+              onClick={() => handleOpenUserProfile(item)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleOpenUserProfile(item);
+                }
+              }}
+              className="flex justify-start items-center gap-2.5 py-3 cursor-pointer rounded-md hover:bg-gray-50 dark:hover:bg-white/5"
             >
               {canRemovePeople && userId && (
                 <Checkbox
@@ -228,6 +263,7 @@ export function PeopleTabContainer() {
                   onCheckedChange={(checked) =>
                     toggleSelected(userId, checked === true)
                   }
+                  onClick={(e) => e.stopPropagation()}
                   className="border-[#ADADEA] dark:border-zinc-500"
                   aria-label={`Select @${item?.profile?.username}`}
                 />
