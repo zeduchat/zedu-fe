@@ -83,7 +83,7 @@ export default function PeopleTab() {
   }
 
   return (
-    <div className="flex flex-col h-[80vh] p-5 pt-5 pb-0">
+    <div className="flex flex-col h-[78vh] p-5 pt-5 pb-0">
       <div className="flex items-center gap-3 mb-6 shrink-0">
         <div className="relative flex-1 group">
           <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">

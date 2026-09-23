@@ -190,7 +190,7 @@ const ChannelHeader = () => {
                   }`}
                   onClick={() => setIsMenuDropdownOpen((prev) => !prev)}
                 >
-                  <EllipsisVertical className="w-5 h-5" color="#344054" />
+                  <EllipsisVertical className="w-5 h-5 text-[#344054] dark:text-zinc-300" />
                 </Button>
               </Tooltips>
 
