@@ -1,14 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { ExternalLink, Search, ChevronLeft, ChevronRight } from "lucide-react";
-import { useContext, useState, useEffect } from "react";
-import { search } from "~/utils/filter";
+import { ExternalLink, Search, Loader2 } from "lucide-react";
+import { useContext, useState } from "react";
 import { DataContext } from "~/store/GlobalState";
 import { Member } from "~/types/people";
 import images from "~/assets/images";
 import { PostRequest } from "~/utils/new-request";
 import { useRouter } from "next/navigation";
+import { useOrganisationUsers } from "~/hooks/useOrganisationUsers";
 
 const SkeletonCard = () => (
   <div className="border border-gray-200 rounded-lg overflow-hidden animate-pulse w-full">
@@ -23,18 +23,56 @@ const SkeletonCard = () => (
 
 export default function PeopleTab() {
   const { state } = useContext(DataContext);
-  const { channelloading, orgMembers, orgSlug } = state;
+  const { channelloading, orgMembers, orgMembersTotal, orgSlug } = state;
   const router = useRouter();
 
   const [searchInput, setSearchInput] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchInput]);
+  const orgId =
+    state.orgId ||
+    (typeof window !== "undefined" ? localStorage.getItem("orgId") || "" : "");
 
-  if (channelloading || !orgMembers) {
+  const { loading, hasMore, loadMore, totalItems, users, isSearching } =
+    useOrganisationUsers(orgId, { search: searchInput });
+
+  const members = (users as Member[]) || [];
+  const memberTotal =
+    totalItems ||
+    (isSearching ? members.length : orgMembersTotal || orgMembers?.length) ||
+    0;
+
+  const handleRoute = async (data: any) => {
+    localStorage.setItem("channelName", data?.name);
+
+    const resolvedOrgId = localStorage.getItem("orgId") || "";
+
+    const payload = {
+      chat_type: data?.entity_type,
+      participant_id: data?.id,
+    };
+
+    const res = await PostRequest(
+      `/organisations/${resolvedOrgId}/dms`,
+      payload
+    );
+
+    if (res?.status === 200 || res?.status === 201) {
+      router.push(
+        `/${orgSlug}/people/${res?.data?.data?.channel_id}/${res?.data?.data?.participant_id}`
+      );
+    }
+  };
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    const nearBottom =
+      target.scrollHeight - target.scrollTop - target.clientHeight < 80;
+    if (nearBottom && hasMore && !loading) {
+      loadMore();
+    }
+  };
+
+  if (channelloading || (!orgMembers && !isSearching)) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 p-5">
         {[...Array(12)].map((_, i) => (
@@ -44,40 +82,9 @@ export default function PeopleTab() {
     );
   }
 
-  const handleRoute = async (data: any) => {
-    localStorage.setItem("channelName", data?.name);
-
-    const orgId = localStorage.getItem("orgId") || "";
-
-    const payload = {
-      chat_type: data?.entity_type,
-      participant_id: data?.id,
-    };
-
-    const res = await PostRequest(`/organisations/${orgId}/dms`, payload);
-
-    if (res?.status === 200 || res?.status === 201) {
-      router.push(
-        `/${orgSlug}/people/${res?.data?.data?.channel_id}/${res?.data?.data?.participant_id}`
-      );
-    }
-  };
-
-  const filteredMembers = search(orgMembers || [], searchInput);
-
-  const totalItems = filteredMembers?.length || 0;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedMembers = filteredMembers?.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  );
-
-  //
-
   return (
-    <div className="p-5 h-[80vh] overflow-y-auto">
-      <div className="flex items-center gap-3 mb-6">
+    <div className="flex flex-col h-[78vh] p-5 pt-5 pb-0">
+      <div className="flex items-center gap-3 mb-6 shrink-0">
         <div className="relative flex-1 group">
           <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
             <Search
@@ -93,102 +100,94 @@ export default function PeopleTab() {
             onChange={(e) => setSearchInput(e.target.value)}
           />
         </div>
-        {/* <CreateChannelDialog /> */}
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-        {paginatedMembers?.length > 0 ? (
-          paginatedMembers.map((user: Member, index: number) => {
-            return (
-              <div
-                key={user.id || index}
-                className="border border-gray-200 rounded-lg overflow-hidden flex flex-col group cursor-pointer hover:shadow-md transition-shadow bg-white w-full min-w-0"
-                onClick={() => handleRoute(user)}
-              >
-                <div className="aspect-square relative overflow-hidden bg-gray-100">
-                  <Image
-                    src={
-                      user.avatar_url || user.default_avatar_url || images?.user
-                    }
-                    alt={user.name}
-                    fill
-                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16vw"
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    unoptimized
-                  />
-                </div>
-                <div className="p-3">
-                  <div className="flex items-center gap-1 min-w-0">
-                    <span className="font-bold text-[15px] truncate">
-                      {user.name}
-                    </span>
-                    <ExternalLink
-                      size={12}
-                      className="shrink-0 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"
+      <div className="flex-1 overflow-y-auto pb-5" onScroll={handleScroll}>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          {members.length > 0 ? (
+            members.map((user: Member, index: number) => {
+              return (
+                <div
+                  key={user.id || index}
+                  className="border border-gray-200 rounded-lg overflow-hidden flex flex-col group cursor-pointer hover:shadow-md transition-shadow bg-white w-full min-w-0"
+                  onClick={() => handleRoute(user)}
+                >
+                  <div className="aspect-square relative overflow-hidden bg-gray-100">
+                    <Image
+                      src={
+                        user.avatar_url ||
+                        user.default_avatar_url ||
+                        images?.user
+                      }
+                      alt={user.name}
+                      fill
+                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16vw"
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      unoptimized
                     />
                   </div>
-                  <p className="text-[13px] text-gray-500 mt-0.5 line-clamp-1">
-                    {user.email}
-                  </p>
-                  {user.phone_number && (
-                    <p className="text-[13px] text-gray-500 mt-1 line-clamp-1">
-                      {user.phone_number}
+                  <div className="p-3">
+                    <div className="flex items-center gap-1 min-w-0">
+                      <span className="font-bold text-[15px] truncate">
+                        {user.name}
+                      </span>
+                      <ExternalLink
+                        size={12}
+                        className="shrink-0 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                      />
+                    </div>
+                    <p className="text-[13px] text-gray-500 mt-0.5 line-clamp-1">
+                      {user.email}
                     </p>
-                  )}
-                  <div className="mt-2 flex items-center gap-2">
-                    <span
-                      className={`w-2 h-2 rounded-full shrink-0 ${
-                        user.online ? "bg-green-500" : "bg-gray-300"
-                      }`}
-                      title={user.online ? "Online" : "Offline"}
-                    />
-                    <span className="text-[12px] text-gray-600">
-                      {user.online ? "Online" : "Offline"}
-                    </span>
+                    {user.phone_number && (
+                      <p className="text-[13px] text-gray-500 mt-1 line-clamp-1">
+                        {user.phone_number}
+                      </p>
+                    )}
+                    <div className="mt-2 flex items-center gap-2">
+                      <span
+                        className={`w-2 h-2 rounded-full shrink-0 ${
+                          user.online ? "bg-green-500" : "bg-gray-300"
+                        }`}
+                        title={user.online ? "Online" : "Offline"}
+                      />
+                      <span className="text-[12px] text-gray-600">
+                        {user.online ? "Online" : "Offline"}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })
-        ) : (
-          <div className="col-span-full py-20 text-center text-gray-500 italic">
-            No members found matching your search.
-          </div>
-        )}
-      </div>
+              );
+            })
+          ) : (
+            <div className="col-span-full py-20 text-center text-gray-500 italic">
+              {loading
+                ? "Loading members…"
+                : "No members found matching your search."}
+            </div>
+          )}
+        </div>
 
-      {totalPages > 1 && (
         <div className="flex items-center justify-center md:justify-between px-2 py-6 border-t border-gray-100 mt-6 flex-wrap gap-4">
           <span className="text-[13px] text-gray-500">
             Showing{" "}
-            <span className="font-medium text-black">{startIndex + 1}</span> to{" "}
-            <span className="font-medium text-black">
-              {Math.min(startIndex + itemsPerPage, totalItems)}
-            </span>{" "}
-            of <span className="font-medium text-black">{totalItems}</span>{" "}
+            <span className="font-medium text-black">{members.length}</span> of{" "}
+            <span className="font-medium text-black">{memberTotal}</span>{" "}
             members
           </span>
-          <div className="flex gap-2">
+          {hasMore && (
             <button
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((prev) => prev - 1)}
-              className="p-2 border border-gray-300 rounded-md disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+              type="button"
+              disabled={loading}
+              onClick={() => loadMore()}
+              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-[13px] font-medium hover:bg-gray-50 transition-colors disabled:opacity-40"
             >
-              <ChevronLeft size={18} />
+              {loading && <Loader2 size={16} className="animate-spin" />}
+              Load more
             </button>
-            <div className="flex items-center px-3 text-[13px] font-medium">
-              Page {currentPage} of {totalPages}
-            </div>
-            <button
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage((prev) => prev + 1)}
-              className="p-2 border border-gray-300 rounded-md disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-            >
-              <ChevronRight size={18} />
-            </button>
-          </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

@@ -15,12 +15,12 @@ export default function DirectoriesPage() {
   }, []);
 
   return (
-    /* h-screen + overflow-hidden + max-h-screen is the ultimate "No Scroll" combo */
-    <div className="flex flex-col w-full bg-white text-[#1d1c1d] overflow-hidden border-none">
-      {/* flex-none ensures this section NEVER expands or pushes the content down */}
-      <div className="flex-none px-5 pt-5 border-b border-gray-200">
-        <h1 className="text-[22px] font-black mb-5">Directories</h1>
-        <div className="flex gap-8 text-[13px] font-medium text-gray-600">
+    <div className="flex flex-col w-full bg-white dark:bg-[#1A1D21] text-[#1d1c1d] dark:text-zinc-100 overflow-hidden border-none">
+      <div className="flex-none px-5 pt-5 border-b border-gray-200 dark:border-white/10 overflow-hidden">
+        <h1 className="text-[22px] font-black mb-5 text-[#1d1c1d] dark:text-zinc-100">
+          Directories
+        </h1>
+        <div className="flex gap-8 text-[13px] font-medium text-gray-600 dark:text-zinc-400">
           <TabButton
             active={activeTab === "people"}
             onClick={() => setActiveTab("people")}
@@ -55,7 +55,9 @@ function TabButton({ active, onClick, icon, label }: any) {
     <button
       onClick={onClick}
       className={`flex items-center gap-1.5 pb-2.5 transition-all outline-none ${
-        active ? "border-b-2 border-[#1264a3] text-black" : "hover:text-black"
+        active
+          ? "border-b-2 border-[#1264a3] text-black dark:text-zinc-100"
+          : "hover:text-black dark:hover:text-zinc-100"
       }`}
     >
       {icon} {label}

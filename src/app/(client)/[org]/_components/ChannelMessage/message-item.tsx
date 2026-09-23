@@ -16,12 +16,14 @@ import "prismjs/components/prism-python";
 import "prismjs/components/prism-markup";
 import "prismjs/components/prism-css";
 import ImageViewer from "./image-viewer";
+import VideoViewer from "./video-viewer";
 import {
   ArrowBigRight,
   Download,
   DownloadIcon,
   File as FileIcon,
   Link2,
+  Maximize2,
   MoreVertical,
   Share2,
   Trash2,
@@ -470,7 +472,9 @@ const MessageItem: React.FC<MessageItemProps> = ({ item }) => {
       {messageHasLinks && <PreviewLinks item={item} />}
 
       {imageItems.length > 0 && (
-        <div className={`mt-2 grid w-full gap-2 ${imageGridClass}`}>
+        <div
+          className={`mt-2 grid w-full gap-2 justify-items-start ${imageGridClass}`}
+        >
           {imageItems.map((mediaItem) => (
             <ImageWithDownload
               key={mediaItem.id}
@@ -484,7 +488,7 @@ const MessageItem: React.FC<MessageItemProps> = ({ item }) => {
       )}
 
       {otherItems.length > 0 && (
-        <div className="mt-2 flex items-start flex-wrap gap-4">
+        <div className="mt-2 flex items-start flex-wrap gap-4 min-w-0 max-w-full">
           {otherItems.map(({ mediaItem, category }) =>
             renderNonImageMedia(mediaItem, category)
           )}
@@ -639,14 +643,14 @@ const ImageWithDownload: React.FC<{
 
   return (
     <div
-      className="relative min-w-0"
+      className="relative min-w-0 w-fit max-w-full"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <img
         src={mediaItem.file_link}
         alt={mediaItem.file_name}
-        className="w-full max-h-60 cursor-pointer object-contain"
+        className="max-h-60 max-w-full w-auto h-auto cursor-pointer object-contain object-left"
         onClick={() => {
           setIsOpen(true);
           setImage(mediaItem);
@@ -774,6 +778,7 @@ const VideoWithDownload: React.FC<{
   item: any;
 }> = ({ mediaItem, item }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [viewerOpen, setViewerOpen] = useState(false);
   const {
     deleteMessage,
     setDeleteMessage,
@@ -786,7 +791,7 @@ const VideoWithDownload: React.FC<{
 
   return (
     <div
-      className="relative rounded-md overflow-hidden w-full md:w-[400px] bg-black/5"
+      className="relative min-w-0 w-fit max-w-full rounded-md overflow-hidden bg-black/5"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -794,11 +799,22 @@ const VideoWithDownload: React.FC<{
         src={mediaItem.file_link}
         controls
         playsInline
-        className="w-full h-[400px] rounded-md border object-contain bg-black"
+        preload="metadata"
+        className="max-h-60 max-w-full w-auto h-auto rounded-md border object-contain object-left bg-black"
         poster={`${mediaItem.file_link}#t=0.1`}
       />
+
       {isHovered && (
-        <div className="flex items-center gap-1 absolute top-2 right-2 bg-white py-1 px-2 rounded-lg cursor-pointer z-10 shadow-md">
+        <div className="flex items-center gap-1 absolute top-2 right-2 bg-white py-1 px-2 rounded-lg z-10 shadow-md">
+          <button
+            type="button"
+            title="Open fullscreen"
+            aria-label="Open video fullscreen"
+            className="p-0.5 rounded hover:bg-gray-100 text-[#344054]"
+            onClick={() => setViewerOpen(true)}
+          >
+            <Maximize2 size={16} />
+          </button>
           <MediaActionMenu
             onDownload={handleDownload}
             onCopyLink={handleCopyLink}
@@ -806,6 +822,14 @@ const VideoWithDownload: React.FC<{
             onDelete={handleDelete}
           />
         </div>
+      )}
+
+      {viewerOpen && (
+        <VideoViewer
+          item={item}
+          video={mediaItem}
+          onClose={() => setViewerOpen(false)}
+        />
       )}
 
       <ShareFileModal

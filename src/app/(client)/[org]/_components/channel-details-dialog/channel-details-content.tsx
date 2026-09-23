@@ -14,6 +14,13 @@ import { WebhooksTabContainer } from "../webhooks/webhooks-tab-container";
 import { cn } from "~/lib/utils";
 import { DataContext } from "~/store/GlobalState";
 
+function formatTabCount(count: number) {
+  if (count > 1000) {
+    return `${Math.floor(count / 1000)}k+`;
+  }
+  return String(count);
+}
+
 export const ChannelDetailsContent = ({ setIsOpen }: any) => {
   const { state } = useContext(DataContext);
   const { hasPermission } = useRBAC();
@@ -109,8 +116,8 @@ export const ChannelDetailsContent = ({ setIsOpen }: any) => {
               >
                 {name}
                 {notifs != 0 && (
-                  <div className="ml-1.5 w-[1.375rem] aspect-square flex justify-center items-center rounded-full text-[#5757CD] bg-[#F2F4F7]">
-                    {notifs}
+                  <div className="ml-1.5 min-w-[1.375rem] h-[1.375rem] px-1.5 inline-flex shrink-0 justify-center items-center rounded-full text-[0.6875rem] leading-none text-[#5757CD] bg-[#F2F4F7] tabular-nums">
+                    {name === "people" ? formatTabCount(notifs) : notifs}
                   </div>
                 )}
               </TabsTrigger>

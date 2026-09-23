@@ -1,7 +1,7 @@
 "use client";
 
 import { Avatar, AvatarImage } from "~/components/ui/avatar";
-import { EllipsisVertical, PlusIcon } from "lucide-react";
+import { EllipsisVertical, Hash, Lock, PlusIcon } from "lucide-react";
 import React, { useContext, useRef, useState } from "react";
 
 import { ACTIONS } from "~/store/Actions";
@@ -105,8 +105,13 @@ const ChannelHeader = () => {
     <nav className="flex items-center flex-wrap justify-between px-3 py-3 md:p-5 border-b border-[#E6EAEF]">
       <ChannelDetailsDialog>
         <Tooltips side="bottom" text="Get channel details">
-          <h2 className="text-base lg:text-lg font-bold hover:bg-gray-100 px-2 py-1 rounded-md">
-            {channelDetails?.name ? "#" : ""}{" "}
+          <h2 className="text-base lg:text-lg font-bold hover:bg-gray-100 px-2 py-1 rounded-md flex items-center gap-1.5">
+            {(state?.channelName || channelDetails?.name) &&
+              (channelDetails?.is_private ? (
+                <Lock className="size-4 lg:size-5 shrink-0" />
+              ) : (
+                <Hash className="size-4 lg:size-5 shrink-0" />
+              ))}
             {state?.channelName || channelDetails?.name}
           </h2>
         </Tooltips>
@@ -185,7 +190,7 @@ const ChannelHeader = () => {
                   }`}
                   onClick={() => setIsMenuDropdownOpen((prev) => !prev)}
                 >
-                  <EllipsisVertical className="w-5 h-5" color="#344054" />
+                  <EllipsisVertical className="w-5 h-5 text-[#344054] dark:text-zinc-300" />
                 </Button>
               </Tooltips>
 

@@ -49,8 +49,9 @@ const Topbar = () => {
   const name: string = localStorage.getItem("channelName") || "";
   const { state, dispatch } = useContext(DataContext);
   const pathname = usePathname();
-  const { orgSlug, orgMembers, orgData } = state;
+  const { orgSlug, orgMembers, orgMembersTotal, orgData } = state;
   const { userRole } = useRBAC();
+  const memberCount = orgMembersTotal || orgMembers?.length || 0;
   const settingsHref = isOwnerOrAdministrator(userRole)
     ? `/${orgSlug}/settings/organisation/general`
     : `/${orgSlug}/settings/personal/account`;
@@ -182,8 +183,7 @@ const Topbar = () => {
                           {orgData?.name ?? ""}
                         </p>
                         <span className="text-xs text-gray-500">
-                          {orgMembers?.length}{" "}
-                          {orgMembers?.length === 1 ? "user" : "users"}
+                          {memberCount} {memberCount === 1 ? "user" : "users"}
                         </span>
                       </div>
                       <span className="text-xs text-gray-500">current</span>
@@ -345,8 +345,7 @@ const Topbar = () => {
                           {orgData?.name ?? ""}
                         </p>
                         <span className=" text-xs text-gray-500">
-                          {orgMembers?.length}{" "}
-                          {orgMembers?.length === 1 ? "user" : "users"}
+                          {memberCount} {memberCount === 1 ? "user" : "users"}
                         </span>
                       </div>
                       <div className="flex flex-col gap-0.5 items-center h-full">
