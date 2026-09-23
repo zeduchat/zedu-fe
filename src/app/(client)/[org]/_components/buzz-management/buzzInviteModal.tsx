@@ -6,6 +6,8 @@ import CombinedInviteInput from "./combineInput";
 import { DataContext } from "~/store/GlobalState";
 import axios from "axios";
 import { createPortal } from "react-dom";
+import { useOrganisationUsers } from "~/hooks/useOrganisationUsers";
+import Loading from "~/components/ui/loading";
 
 interface InviteModalProps {
   isOpen: boolean;
@@ -28,10 +30,22 @@ export const InviteModal: React.FC<InviteModalProps> = ({
   const { buzzParticipants } = state;
   const [selected, setSelected] = useState<User[]>([]);
   const [highlightIndex, setHighlightIndex] = useState(0);
-  const orgMembers = useMemo<User[]>(
-    () => state.orgMembers ?? [],
+
+  const orgId =
+    state.orgId ||
+    (typeof window !== "undefined" ? localStorage.getItem("orgId") || "" : "");
+
+  const { users, loading, hasMore, loadMore } = useOrganisationUsers(orgId, {
+    enabled: isOpen,
+    search,
+  });
+
+  const orgMembers = useMemo<User[]>(() => (users as User[]) ?? [], [users]);
+  const browseMembers = useMemo<User[]>(
+    () => (state.orgMembers as User[]) ?? [],
     [state.orgMembers]
   );
+
   const getSearchKey = (u: User) =>
     (u.name || u.username || u.email || "").toLowerCase();
 
@@ -45,23 +59,17 @@ export const InviteModal: React.FC<InviteModalProps> = ({
 
   const filteredSuggested = useMemo(() => {
     return orgMembers.filter((user) => {
-      const key = getSearchKey(user);
-
-      const matchesSearch = key.includes(search.toLowerCase());
-
       const isSelf = String(user.id) === String(state?.user?.user_id);
-
       const isAlreadySelected = selected.some((s) => s.id === user?.id);
-
       const isAlreadyInCall = buzzParticipants.some(
         (p: any) => String(p.uid) === String(user?.id)
       );
-      return matchesSearch && !isSelf && !isAlreadyInCall && !isAlreadySelected;
+      return !isSelf && !isAlreadyInCall && !isAlreadySelected;
     });
-  }, [orgMembers, search, selected, buzzParticipants, state?.user?.user_id]);
+  }, [orgMembers, selected, buzzParticipants, state?.user?.user_id]);
 
   const filteredInvited = useMemo(() => {
-    const inCallUsers = orgMembers.filter((user) =>
+    const inCallUsers = browseMembers.filter((user) =>
       buzzParticipants.some((p: any) => String(p.uid) === String(user.id))
     );
     const merged = [...selected, ...inCallUsers];
@@ -76,11 +84,13 @@ export const InviteModal: React.FC<InviteModalProps> = ({
       }
     }
 
+    if (!search.trim()) return deduped;
+
     return deduped.filter((user) => {
       const key = getSearchKey(user);
       return key.includes(search.toLowerCase());
     });
-  }, [selected, search, orgMembers, buzzParticipants]);
+  }, [selected, search, browseMembers, buzzParticipants]);
 
   const handleSelectUser = (user: User) => {
     if (!selected.some((u) => u.id === user.id)) {
@@ -204,20 +214,39 @@ export const InviteModal: React.FC<InviteModalProps> = ({
             </button>
           </div>
 
-          <div className="max-h-[260px] overflow-y-auto pr-2">
+          <div
+            className="max-h-[260px] overflow-y-auto pr-2"
+            onScroll={(e) => {
+              if (activeTab !== "suggested") return;
+              const target = e.currentTarget;
+              const nearBottom =
+                target.scrollHeight - target.scrollTop - target.clientHeight <
+                48;
+              if (nearBottom && hasMore && !loading) {
+                loadMore();
+              }
+            }}
+          >
             {activeTab === "suggested" &&
-              (filteredSuggested.length === 0 ? (
+              (filteredSuggested.length === 0 && !loading ? (
                 <EmptySuggestionForInvitation />
               ) : (
-                filteredSuggested.map((user: any, index) => (
-                  <UserItem
-                    key={user.id}
-                    user={user}
-                    onClick={() => handleSelectUser(user)}
-                    active={index === highlightIndex}
-                    // pending={isPendingInvite(String(user.id))}
-                  />
-                ))
+                <>
+                  {filteredSuggested.map((user: any, index) => (
+                    <UserItem
+                      key={user.id}
+                      user={user}
+                      onClick={() => handleSelectUser(user)}
+                      active={index === highlightIndex}
+                      // pending={isPendingInvite(String(user.id))}
+                    />
+                  ))}
+                  {loading && (
+                    <div className="flex justify-center py-3">
+                      <Loading />
+                    </div>
+                  )}
+                </>
               ))}
 
             {activeTab === "invited" &&

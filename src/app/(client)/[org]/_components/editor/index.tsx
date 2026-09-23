@@ -214,6 +214,8 @@ function createSuggestionRender(getPopulateFn: () => PopulateFn) {
         component = document.createElement("div");
         component.className =
           "absolute border border-gray-300 rounded-lg shadow-lg bg-[#F9FAFB] overflow-y-auto z-50";
+        component.style.minWidth = "500px";
+        component.style.width = "500px";
         document.body.appendChild(component);
         document.addEventListener("keydown", handleKeyDown, true);
         document.addEventListener("mousedown", handleClickOutside);
@@ -284,10 +286,10 @@ const UseTextEditor = (
     clientRect
   ) => {
     const queryString = String(query || "").toLowerCase();
-    const members =
-      state?.orgMembers?.filter((item: any) =>
-        (item.name || item.email).toLowerCase().includes(queryString)
-      ) ?? [];
+    const mentionMembers = state?.mentionOrgMembers || state?.orgMembers || [];
+    const members = mentionMembers.filter((item: any) =>
+      (item.name || item.email).toLowerCase().includes(queryString)
+    );
     const includeChannel =
       queryString === "" || "@channel".includes(queryString);
     const channelMentionItem = createChannelMentionItem();
@@ -316,6 +318,8 @@ const UseTextEditor = (
         top: `${dropdownTop}px`,
         left: `${coords.left + window.scrollX}px`,
         maxHeight: `${maxHeight}px`,
+        minWidth: "500px",
+        width: "500px",
       });
     }
 
@@ -457,6 +461,8 @@ const UseTextEditor = (
         top: `${dropdownTop}px`,
         left: `${coords.left + window.scrollX}px`,
         maxHeight: `${maxHeight}px`,
+        minWidth: "500px",
+        width: "500px",
       });
     }
 
@@ -569,6 +575,8 @@ const UseTextEditor = (
         top: `${dropdownTop}px`,
         left: `${coords.left + window.scrollX}px`,
         maxHeight: `${maxHeight}px`,
+        minWidth: "500px",
+        width: "500px",
       });
     }
 
@@ -704,12 +712,13 @@ const UseTextEditor = (
             items: (props: { query?: string }) => {
               const query = props?.query ?? "";
               const queryString = String(query).toLowerCase();
-              const members =
-                state?.orgMembers?.filter((item: any) => {
-                  let name =
-                    item?.name && item?.name !== " " ? item?.name : item?.email;
-                  return name.toLowerCase().includes(queryString);
-                }) ?? [];
+              const mentionMembers =
+                state?.mentionOrgMembers || state?.orgMembers || [];
+              const members = mentionMembers.filter((item: any) => {
+                let name =
+                  item?.name && item?.name !== " " ? item?.name : item?.email;
+                return name.toLowerCase().includes(queryString);
+              });
 
               const channelMatch = "@channel".includes(queryString);
               const channel = createChannelMentionItem();

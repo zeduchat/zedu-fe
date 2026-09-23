@@ -28,8 +28,9 @@ const AgentMessage = ({ participant }: any) => {
         overflowY: "scroll",
         display: "flex",
         flexDirection: "column-reverse",
+        paddingBottom: "var(--chat-composer-height, 140px)",
       }}
-      className="w-full pb-[140px]"
+      className="w-full"
     >
       <InfiniteScroll
         dataLength={chats?.length}

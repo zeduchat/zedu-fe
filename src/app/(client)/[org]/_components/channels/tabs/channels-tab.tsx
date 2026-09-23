@@ -65,7 +65,7 @@ export default function ChannelsTab() {
 
   if (channelloading) {
     return (
-      <div className="border border-gray-200 rounded-lg divide-y divide-gray-100">
+      <div className="border border-gray-200 rounded-lg divide-y divide-gray-100 m-6">
         {[...Array(5)].map((_, i) => (
           <div key={i} className="p-4 flex flex-col gap-2 animate-pulse">
             <div className="h-5 bg-gray-200 rounded w-1/4" />
@@ -133,19 +133,19 @@ export default function ChannelsTab() {
   };
 
   return (
-    <div className="p-5 h-[80vh] overflow-y-auto">
+    <div className="p-5 h-[78vh] overflow-y-auto">
       <div className="flex items-center gap-3 mb-6">
         <div className="relative flex-1 group">
           <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
             <Search
               size={18}
-              className="text-gray-400 group-focus-within:text-black"
+              className="text-gray-400 group-focus-within:text-black dark:group-focus-within:text-zinc-100"
             />
           </div>
           <input
             type="text"
             placeholder="Search for channels"
-            className="w-full pl-10 pr-4 py-1.5 border border-gray-300 rounded focus:border-[#1264a3] focus:ring-1 focus:ring-blue-100 focus:outline-none text-[15px]"
+            className="w-full pl-10 pr-4 py-1.5 border border-gray-300 dark:border-white/15 rounded bg-white dark:bg-[#222529] text-[#1d1c1d] dark:text-zinc-100 placeholder:text-gray-400 dark:placeholder:text-zinc-500 focus:border-[#1264a3] focus:ring-1 focus:ring-blue-100 dark:focus:ring-blue-900/40 focus:outline-none text-[15px]"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
           />
@@ -154,18 +154,18 @@ export default function ChannelsTab() {
       </div>
 
       {showBanner && (
-        <div className="relative bg-[#e8f5fa] rounded-lg p-4 md:p-8 mb-6 border border-[#c5e5f3]">
+        <div className="relative bg-[#e8f5fa] dark:bg-[#1A3F66]/40 rounded-lg p-4 md:p-8 mb-6 border border-[#c5e5f3] dark:border-[#1A3F66]">
           <button
             onClick={() => setShowBanner(false)}
-            className="absolute top-4 right-4 text-gray-500 hover:text-black transition-colors"
+            className="absolute top-4 right-4 text-gray-500 dark:text-zinc-400 hover:text-black dark:hover:text-zinc-100 transition-colors"
           >
             <X size={20} />
           </button>
           <div className="max-w-2xl">
-            <h2 className="text-lg md:text-[28px] font-black leading-tight mb-3">
+            <h2 className="text-lg md:text-[28px] font-black leading-tight mb-3 text-[#1d1c1d] dark:text-zinc-100">
               Organize your team’s conversations
             </h2>
-            <p className="text-[15px] text-[#454245] leading-relaxed mb-6">
+            <p className="text-[15px] text-[#454245] dark:text-zinc-300 leading-relaxed mb-6">
               Channels are spaces for gathering all the right people, messages,
               files and tools. Organize them by any project, group, initiative
               or topic of your choosing.
@@ -180,12 +180,12 @@ export default function ChannelsTab() {
           <div className="relative" ref={filterRef}>
             <button
               onClick={() => setShowFilterMenu(!showFilterMenu)}
-              className="flex items-center gap-1 px-3 py-1.5 bg-white border border-gray-300 rounded text-[13px] font-medium hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-1 px-3 py-1.5 bg-white dark:bg-[#222529] border border-gray-300 dark:border-white/15 rounded text-[13px] font-medium text-[#1d1c1d] dark:text-zinc-100 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
             >
               {filter} <ChevronDown size={14} />
             </button>
             {showFilterMenu && (
-              <div className="absolute left-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-xl z-50 py-1">
+              <div className="absolute left-0 mt-1 w-48 bg-white dark:bg-[#222529] border border-gray-200 dark:border-white/15 rounded-md shadow-xl z-50 py-1 text-[#1d1c1d] dark:text-zinc-100">
                 {[
                   "All channels",
                   "My channels",
@@ -211,12 +211,12 @@ export default function ChannelsTab() {
           <div className="relative" ref={typeRef}>
             <button
               onClick={() => setShowTypeMenu(!showTypeMenu)}
-              className="flex items-center gap-1 px-3 py-1.5 bg-white border border-gray-300 rounded text-[13px] font-medium hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-1 px-3 py-1.5 bg-white dark:bg-[#222529] border border-gray-300 dark:border-white/15 rounded text-[13px] font-medium text-[#1d1c1d] dark:text-zinc-100 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
             >
               {channelType} <ChevronDown size={14} />
             </button>
             {showTypeMenu && (
-              <div className="absolute left-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-xl z-50 py-1">
+              <div className="absolute left-0 mt-1 w-48 bg-white dark:bg-[#222529] border border-gray-200 dark:border-white/15 rounded-md shadow-xl z-50 py-1 text-[#1d1c1d] dark:text-zinc-100">
                 {[
                   "All channel type",
                   "Public channels",
@@ -242,12 +242,12 @@ export default function ChannelsTab() {
         <div className="relative" ref={sortRef}>
           <button
             onClick={() => setShowSortMenu(!showSortMenu)}
-            className="flex items-center gap-1 px-3 py-1.5 bg-white border border-gray-300 rounded text-[13px] font-medium hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-1 px-3 py-1.5 bg-white dark:bg-[#222529] border border-gray-300 dark:border-white/15 rounded text-[13px] font-medium text-[#1d1c1d] dark:text-zinc-100 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
           >
             {sortOrder} <ChevronDown size={14} />
           </button>
           {showSortMenu && (
-            <div className="absolute right-0 mt-1 w-32 bg-white border border-gray-200 rounded-md shadow-xl z-50 py-1">
+            <div className="absolute right-0 mt-1 w-32 bg-white dark:bg-[#222529] border border-gray-200 dark:border-white/15 rounded-md shadow-xl z-50 py-1 text-[#1d1c1d] dark:text-zinc-100">
               {["A to Z", "Z to A"].map((item) => (
                 <button
                   key={item}
@@ -266,17 +266,17 @@ export default function ChannelsTab() {
         </div>
       </div>
 
-      <div className="border border-gray-200 rounded-lg overflow-hidden divide-y divide-gray-200">
+      <div className="border border-gray-200 dark:border-white/10 rounded-lg overflow-hidden divide-y divide-gray-200 dark:divide-white/10">
         {paginatedData && paginatedData.length > 0 ? (
           paginatedData.map((channel: Channel, index: number) => (
             <div
               key={index}
-              className="group flex flex-col p-4 hover:bg-[#f8f8f8] cursor-pointer"
+              className="group flex flex-col p-4 hover:bg-[#f8f8f8] dark:hover:bg-white/5 cursor-pointer"
             >
               <div className="flex items-center justify-between flex-wrap gap-5">
                 <div className="flex flex-col">
                   <div
-                    className="flex items-center gap-1.5 text-[15px]"
+                    className="flex items-center gap-1.5 text-[15px] text-[#1d1c1d] dark:text-zinc-100"
                     onClick={() => selectChannel(channel)}
                   >
                     {channel.is_private ? (
@@ -292,17 +292,19 @@ export default function ChannelsTab() {
                   </div>
                   <div className="flex items-center gap-2 mt-1">
                     {channel.access && (
-                      <span className="text-[13px] text-[#007a5a] font-bold">
+                      <span className="text-[13px] text-[#007a5a] dark:text-emerald-400 font-bold">
                         ✓ Joined
                       </span>
                     )}
-                    <span className="text-[13px] text-gray-500">
+                    <span className="text-[13px] text-gray-500 dark:text-zinc-400">
                       {channel.members_count} members
                     </span>
                     {channel.description && (
                       <>
-                        <span className="text-gray-300 text-[10px]">•</span>
-                        <span className="text-[13px] text-gray-500 truncate max-w-[400px]">
+                        <span className="text-gray-300 dark:text-zinc-600 text-[10px]">
+                          •
+                        </span>
+                        <span className="text-[13px] text-gray-500 dark:text-zinc-400 truncate max-w-[400px]">
                           {channel.description}
                         </span>
                       </>
@@ -312,14 +314,14 @@ export default function ChannelsTab() {
                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => selectChannel(channel)}
-                    className="px-4 py-1.5 bg-white border border-gray-300 rounded font-bold text-[14px] hover:shadow-sm"
+                    className="px-4 py-1.5 bg-white dark:bg-[#222529] border border-gray-300 dark:border-white/15 rounded font-bold text-[14px] text-[#1d1c1d] dark:text-zinc-100 hover:shadow-sm dark:hover:bg-white/5"
                   >
                     Open in Home
                   </button>
                   {!channel.access && !channel.isArchived && (
                     <button
                       onClick={() => handleJoin(channel.channels_id)}
-                      className="flex items-center gap-1 px-4 py-1.5 bg-white border border-gray-300 rounded font-bold text-[14px] hover:shadow-sm"
+                      className="flex items-center gap-1 px-4 py-1.5 bg-white dark:bg-[#222529] border border-gray-300 dark:border-white/15 rounded font-bold text-[14px] text-[#1d1c1d] dark:text-zinc-100 hover:shadow-sm dark:hover:bg-white/5"
                     >
                       {buttonLoading && (
                         <Loading color="black" height="15px" width="15px" />
@@ -332,35 +334,41 @@ export default function ChannelsTab() {
             </div>
           ))
         ) : (
-          <div className="p-20 text-center text-gray-500 italic">
+          <div className="p-20 text-center text-gray-500 dark:text-zinc-400 italic">
             No channels found matching these criteria.
           </div>
         )}
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between px-2 py-4 border-t border-gray-100 mt-2">
-          <span className="text-[13px] text-gray-500">
+        <div className="flex items-center justify-between px-2 py-4 border-t border-gray-100 dark:border-white/10 mt-2">
+          <span className="text-[13px] text-gray-500 dark:text-zinc-400">
             Showing{" "}
-            <span className="font-medium text-black">{startIndex + 1}</span> to{" "}
-            <span className="font-medium text-black">
+            <span className="font-medium text-black dark:text-zinc-100">
+              {startIndex + 1}
+            </span>{" "}
+            to{" "}
+            <span className="font-medium text-black dark:text-zinc-100">
               {Math.min(startIndex + itemsPerPage, totalItems)}
             </span>{" "}
-            of <span className="font-medium text-black">{totalItems}</span>{" "}
+            of{" "}
+            <span className="font-medium text-black dark:text-zinc-100">
+              {totalItems}
+            </span>{" "}
             channels
           </span>
           <div className="flex gap-2">
             <button
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((prev) => prev - 1)}
-              className="p-1.5 border border-gray-300 rounded disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+              className="p-1.5 border border-gray-300 dark:border-white/15 rounded text-[#1d1c1d] dark:text-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
             >
               <ChevronLeft size={18} />
             </button>
             <button
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage((prev) => prev + 1)}
-              className="p-1.5 border border-gray-300 rounded disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+              className="p-1.5 border border-gray-300 dark:border-white/15 rounded text-[#1d1c1d] dark:text-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
             >
               <ChevronRight size={18} />
             </button>

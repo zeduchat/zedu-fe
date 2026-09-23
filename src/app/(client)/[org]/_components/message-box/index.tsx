@@ -416,8 +416,32 @@ const MessageBox = ({ subscription, sendMessage, show = true }: any) => {
     setMedias((prevMedias) => prevMedias.filter((_, i) => i !== index));
   };
 
+  const composerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = composerRef.current;
+    if (!el) return;
+
+    const updateComposerHeight = () => {
+      const height = Math.ceil(el.getBoundingClientRect().height);
+      document.documentElement.style.setProperty(
+        "--chat-composer-height",
+        `${Math.max(height, 140)}px`
+      );
+    };
+
+    updateComposerHeight();
+    const observer = new ResizeObserver(updateComposerHeight);
+    observer.observe(el);
+
+    return () => {
+      observer.disconnect();
+      document.documentElement.style.removeProperty("--chat-composer-height");
+    };
+  }, []);
+
   return (
-    <>
+    <div ref={composerRef}>
       {isRecording && (
         <VoiceRecorder
           onSend={handleSendVoice}
@@ -846,7 +870,7 @@ const MessageBox = ({ subscription, sendMessage, show = true }: any) => {
         </div>
       </div>
       <TypingUsers />
-    </>
+    </div>
   );
 };
 
