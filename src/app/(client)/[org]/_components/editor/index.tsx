@@ -286,8 +286,7 @@ const UseTextEditor = (
     clientRect
   ) => {
     const queryString = String(query || "").toLowerCase();
-    const mentionMembers =
-      state?.mentionOrgMembers || state?.orgMembers || [];
+    const mentionMembers = state?.mentionOrgMembers || state?.orgMembers || [];
     const members = mentionMembers.filter((item: any) =>
       (item.name || item.email).toLowerCase().includes(queryString)
     );

@@ -134,8 +134,9 @@ const PeopleMessage = ({ participant }: any) => {
         overflowY: "scroll",
         display: "flex",
         flexDirection: "column-reverse",
+        paddingBottom: "var(--chat-composer-height, 140px)",
       }}
-      className="w-full pb-[140px]"
+      className="w-full"
     >
       {showBadge && state?.dmCount > 0 && (
         <Badge

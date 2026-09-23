@@ -104,7 +104,7 @@ const StatusModal = () => {
     "1 hour",
     "Today",
     "This week",
-    "Don’t clear",
+    "dont-clear",
   ];
 
   const handleEmojiSelect = (emoji: any) => {
