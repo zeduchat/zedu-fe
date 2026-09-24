@@ -65,7 +65,7 @@ export default function ReplyConnection() {
     };
   }, [dispatch, state?.thread?.thread_id]);
 
-  // Threads page has no channel/DM connection — subscribe to the channel for reply reactions.
+  // Threads page has no channel/DM connection — subscribe to the channel for reply realtime events.
   useEffect(() => {
     const channelId = state?.thread?.channels_id;
     if (!isThreadsPage || !channelId) return;
@@ -77,6 +77,41 @@ export default function ReplyConnection() {
 
     const onPublication = (ctx: any) => {
       const result = ctx?.data;
+
+      if (
+        result?.section === "reply_message" &&
+        result?.notification_type === "updated"
+      ) {
+        const message = ctx?.data?.data;
+        const messageId = ctx?.data?.modification_ids?.message_id;
+
+        dispatch({
+          type: ACTIONS.EDIT_REPLY_MESSAGE,
+          payload: {
+            threadId: messageId,
+            newMessageData: message,
+          },
+        });
+        return;
+      }
+
+      if (
+        result?.section === "reply_message" &&
+        result?.notification_type === "deleted"
+      ) {
+        const message = ctx?.data?.modification_ids;
+        const updates = ctx?.data?.update_change;
+
+        dispatch({
+          type: ACTIONS.DELETE_MESSAGE_THREAD_REPLY,
+          payload: {
+            threadId: message.thread_id,
+            messageId: message?.message_id,
+            updates,
+          },
+        });
+        return;
+      }
 
       if (
         result?.section === "reply_message" &&

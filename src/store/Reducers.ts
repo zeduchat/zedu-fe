@@ -537,6 +537,11 @@ const reducers = (state: any, action: any) => {
         ...state,
         groupCallback: payload,
       };
+    case ACTIONS.CHANNEL_READY:
+      return {
+        ...state,
+        channelReady: payload,
+      };
     case ACTIONS.UPDATE_MESSAGE_THREAD: {
       const { threadId, reply, updates } = action.payload;
 

@@ -75,7 +75,12 @@ interface VoiceMessage {
   timestamp: string;
 }
 
-const MessageBox = ({ subscription, sendMessage, show = true }: any) => {
+const MessageBox = ({
+  subscription,
+  sendMessage,
+  show = true,
+  channelLoading = false,
+}: any) => {
   const { state, dispatch } = useContext(DataContext);
   const params = useParams();
   const id = params.id as string;
@@ -236,7 +241,7 @@ const MessageBox = ({ subscription, sendMessage, show = true }: any) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!editor) return;
+    if (channelLoading || !editor) return;
 
     // Get full HTML content from editor (keeps links, mentions, etc.)
     let content = editor.getHTML();
@@ -349,10 +354,12 @@ const MessageBox = ({ subscription, sendMessage, show = true }: any) => {
   };
 
   useEffect(() => {
-    if (editor) {
+    if (!editor) return;
+    editor.setEditable(!channelLoading);
+    if (!channelLoading) {
       editor.commands.focus();
     }
-  }, [editor]);
+  }, [editor, channelLoading]);
 
   const handleSendVoice = (audioBlob: Blob, duration: number) => {
     const audioUrl = URL.createObjectURL(audioBlob);
@@ -441,7 +448,7 @@ const MessageBox = ({ subscription, sendMessage, show = true }: any) => {
   }, []);
 
   return (
-    <div ref={composerRef}>
+    <div ref={composerRef} className="relative z-20 w-full bg-white pb-3">
       {isRecording && (
         <VoiceRecorder
           onSend={handleSendVoice}
@@ -449,427 +456,441 @@ const MessageBox = ({ subscription, sendMessage, show = true }: any) => {
         />
       )}
 
-      <div
-        onClick={() => editor && editor.commands.focus()}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-        className={`bg-white border rounded-xl mx-3 md:mx-5 border-[#E6EAEF] overflow-hidden ${state?.reply ? "sm:right-[520px] right-0" : "right-0"} ${editor?.isFocused ? "border-primary-400" : "border-gray-200"}`}
-      >
-        {showFormatting && (
-          <div className="border-b border-[#E6EAEF] flex items-center gap-2 bg-[#F9FAFB] pl-3 pr-4 py-[5px]">
-            <button
-              onClick={() => editor?.chain().focus().toggleBold().run()}
-              className={`p-1.5 hover:bg-gray-100 rounded ${
-                editor?.isActive("bold")
-                  ? "bg-gray-200 font-semibold text-black"
-                  : ""
-              }`}
-            >
-              <Bold
-                size={18}
-                color={editor?.isActive("bold") ? "#444444" : "#CACACA"}
-              />
-            </button>
-
-            <button
-              onClick={() => editor?.chain().focus().toggleItalic().run()}
-              className={`p-1.5 hover:bg-gray-100 rounded ${
-                editor?.isActive("italic")
-                  ? "bg-gray-200 font-semibold text-black"
-                  : ""
-              }`}
-            >
-              <Italic
-                size={18}
-                color={editor?.isActive("italic") ? "#444444" : "#CACACA"}
-              />
-            </button>
-
-            <button
-              onClick={() => editor?.chain().focus().toggleStrike().run()}
-              className={`p-1.5 hover:bg-gray-100 rounded ${
-                editor?.isActive("strike")
-                  ? "bg-gray-200 font-semibold text-black"
-                  : ""
-              }`}
-            >
-              <Strikethrough
-                size={18}
-                color={editor?.isActive("strike") ? "#444444" : "#CACACA"}
-              />
-            </button>
-
-            <div className="w-px h-5 bg-[#E6EAEF]" />
-
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <button
-                  onClick={() => setOpen(true)}
-                  className={`p-1.5 hover:bg-gray-100 rounded ${editor?.isActive("link") ? "bg-gray-200 font-semibold text-black" : ""}`}
-                >
-                  <Link2
-                    size={18}
-                    color={editor?.isActive("link") ? "#444444" : "#CACACA"}
-                  />
-                </button>
-              </DialogTrigger>
-
-              <DialogContent className="w-full max-w-md">
-                <DialogHeader>
-                  <DialogTitle className="font-semibold">Add link</DialogTitle>
-                </DialogHeader>
-
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium">Text</label>
-                  <Input
-                    value={text}
-                    onChange={(e) => setText(e.target.value)}
-                    placeholder="Enter link text"
-                  />
-
-                  <label className="text-sm font-medium mt-2">Link</label>
-                  <Input
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    placeholder="Enter URL"
-                    type="url"
-                  />
-                </div>
-
-                <DialogFooter className="mt-4 flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleSave}
-                    disabled={!text || !url}
-                    className="bg-blue-500 text-white px-10"
-                  >
-                    Save
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-
-            <button
-              type="button"
-              onMouseDown={(event) => event.preventDefault()}
-              onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-              className={`p-1.5 hover:bg-gray-100 rounded ${
-                editor?.isActive("orderedList")
-                  ? "bg-gray-200 font-semibold text-black"
-                  : ""
-              }`}
-            >
-              <ListOrdered
-                size={18}
-                color={editor?.isActive("orderedList") ? "#444444" : "#CACACA"}
-              />
-            </button>
-
-            <button
-              type="button"
-              onMouseDown={(event) => event.preventDefault()}
-              onClick={() => editor?.chain().focus().toggleBulletList().run()}
-              className={`p-1.5 hover:bg-gray-100 rounded ${
-                editor?.isActive("bulletList")
-                  ? "bg-gray-200 font-semibold text-black"
-                  : ""
-              }`}
-            >
-              <List
-                size={18}
-                color={editor?.isActive("bulletList") ? "#444444" : "#CACACA"}
-              />
-            </button>
-
-            <div className="w-px h-5 bg-[#E6EAEF]" />
-
-            <button
-              type="button"
-              onMouseDown={(event) => event.preventDefault()}
-              onClick={() => editor?.chain().focus().toggleCode().run()}
-              className={`p-1.5 hover:bg-gray-100 rounded ${
-                editor?.isActive("code")
-                  ? "bg-gray-200 font-semibold text-black"
-                  : ""
-              }`}
-              title="Inline code"
-            >
-              <Code
-                size={18}
-                color={editor?.isActive("code") ? "#444444" : "#CACACA"}
-              />
-            </button>
-
-            <button
-              type="button"
-              onMouseDown={(event) => event.preventDefault()}
-              onClick={() => editor?.chain().focus().toggleCodeBlock().run()}
-              className={`p-1.5 hover:bg-gray-100 rounded ${
-                editor?.isActive("codeBlock")
-                  ? "bg-gray-200 font-semibold text-black"
-                  : ""
-              }`}
-              title="Code block"
-            >
-              <SquareCode
-                size={18}
-                color={editor?.isActive("codeBlock") ? "#444444" : "#CACACA"}
-              />
-            </button>
-          </div>
-        )}
-
-        <div className="md:flex-1 relative px-3">
-          <EditorContent
-            editor={editor}
-            className="py-2 rounded-md flex flex-row overflow-auto"
-            onKeyDown={handleKeyDown}
-          />
-
-          <div className={`flex gap-3 ${media?.length > 0 ? "mt-3" : ""}`}>
-            {media?.map((file: any, index: number) => (
-              <div key={index} className="relative w-[70px] h-[70px]">
-                {/* IMAGE PREVIEW */}
-                {file.type === "image" && (
-                  <Image
-                    src={file.preview}
-                    alt={`Uploaded ${index}`}
-                    width={70}
-                    height={70}
-                    className="w-[70px] h-[70px] rounded-md object-cover border border-primary-400 cursor-pointer"
-                  />
-                )}
-
-                {/* VIDEO PREVIEW */}
-                {file.type === "video" && (
-                  <video
-                    src={file.preview}
-                    className="w-[70px] h-[70px] rounded-md border border-primary-400 object-cover"
-                    controls
-                  />
-                )}
-
-                {/* DOCUMENT / OTHER FILES */}
-
-                {(file.type.startsWith("application") ||
-                  file.type.startsWith("text")) && (
-                  <div className="w-[70px] h-[70px] flex flex-col items-center justify-center border border-primary-500 rounded-md bg-gray-100 p-1 text-center">
-                    <a
-                      href={URL.createObjectURL(file.file)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex flex-col items-center"
-                    >
-                      <FileIcon size={24} color="#606060" />
-                      <span className="text-xs text-blue-500 mt-1">
-                        {file.file.name.split(".").pop()?.toUpperCase()}
-                      </span>
-                    </a>
-                  </div>
-                )}
-
-                {/* REMOVE BUTTON */}
-                <button
-                  onClick={() => handleRemoveImage(index)}
-                  className="absolute -top-1 -right-2 p-1 bg-gray-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center"
-                >
-                  <XIcon size={14} />
-                </button>
-
-                {/* UPLOADING INDICATOR */}
-                {uploadingImages.includes(file?.id) && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-50">
-                    <Loading />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          <div
-            className={`flex gap-3 ${voiceThumbnails?.length > 0 ? "mt-3" : ""}`}
-          >
-            {voiceThumbnails?.map((file: any, index: number) => (
-              <VoiceThumbnails
-                key={file.id}
-                {...file}
-                removeVoice={() => handleRemoveVoice(index)}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 py-2 pl-3 pr-4">
-            <Tooltips text="Upload from your computer">
+      <div className="relative mx-3 md:mx-5">
+        <div
+          onClick={() => !channelLoading && editor && editor.commands.focus()}
+          onDragOver={handleDragOver}
+          onDrop={channelLoading ? undefined : handleDrop}
+          aria-disabled={channelLoading}
+          className={`bg-white border rounded-xl border-[#E6EAEF] overflow-hidden ${state?.reply ? "sm:right-[520px] right-0" : "right-0"} ${editor?.isFocused ? "border-primary-400" : "border-gray-200"} ${channelLoading ? "pointer-events-none opacity-60" : ""}`}
+        >
+          {showFormatting && (
+            <div className="border-b border-[#E6EAEF] flex items-center gap-2 bg-[#F9FAFB] pl-3 pr-4 py-[5px]">
               <button
-                onClick={() => fileInputRef.current?.click()}
-                className="p-1.5 hover:bg-gray-100 rounded-full bg-[#F2F4F7]"
+                onClick={() => editor?.chain().focus().toggleBold().run()}
+                className={`p-1.5 hover:bg-gray-100 rounded ${
+                  editor?.isActive("bold")
+                    ? "bg-gray-200 font-semibold text-black"
+                    : ""
+                }`}
               >
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  style={{ display: "none" }}
-                  onChange={handleFileChange}
-                  accept={CHAT_FILE_ACCEPT}
-                  multiple
+                <Bold
+                  size={18}
+                  color={editor?.isActive("bold") ? "#444444" : "#CACACA"}
                 />
-
-                <Upload size={18} color="#606060" />
               </button>
-            </Tooltips>
 
-            <Tooltips
-              text={!showFormatting ? "Show formatting" : "Hide formatting"}
+              <button
+                onClick={() => editor?.chain().focus().toggleItalic().run()}
+                className={`p-1.5 hover:bg-gray-100 rounded ${
+                  editor?.isActive("italic")
+                    ? "bg-gray-200 font-semibold text-black"
+                    : ""
+                }`}
+              >
+                <Italic
+                  size={18}
+                  color={editor?.isActive("italic") ? "#444444" : "#CACACA"}
+                />
+              </button>
+
+              <button
+                onClick={() => editor?.chain().focus().toggleStrike().run()}
+                className={`p-1.5 hover:bg-gray-100 rounded ${
+                  editor?.isActive("strike")
+                    ? "bg-gray-200 font-semibold text-black"
+                    : ""
+                }`}
+              >
+                <Strikethrough
+                  size={18}
+                  color={editor?.isActive("strike") ? "#444444" : "#CACACA"}
+                />
+              </button>
+
+              <div className="w-px h-5 bg-[#E6EAEF]" />
+
+              <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                  <button
+                    onClick={() => setOpen(true)}
+                    className={`p-1.5 hover:bg-gray-100 rounded ${editor?.isActive("link") ? "bg-gray-200 font-semibold text-black" : ""}`}
+                  >
+                    <Link2
+                      size={18}
+                      color={editor?.isActive("link") ? "#444444" : "#CACACA"}
+                    />
+                  </button>
+                </DialogTrigger>
+
+                <DialogContent className="w-full max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="font-semibold">
+                      Add link
+                    </DialogTitle>
+                  </DialogHeader>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium">Text</label>
+                    <Input
+                      value={text}
+                      onChange={(e) => setText(e.target.value)}
+                      placeholder="Enter link text"
+                    />
+
+                    <label className="text-sm font-medium mt-2">Link</label>
+                    <Input
+                      value={url}
+                      onChange={(e) => setUrl(e.target.value)}
+                      placeholder="Enter URL"
+                      type="url"
+                    />
+                  </div>
+
+                  <DialogFooter className="mt-4 flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleSave}
+                      disabled={!text || !url}
+                      className="bg-blue-500 text-white px-10"
+                    >
+                      Save
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              <button
+                type="button"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() =>
+                  editor?.chain().focus().toggleOrderedList().run()
+                }
+                className={`p-1.5 hover:bg-gray-100 rounded ${
+                  editor?.isActive("orderedList")
+                    ? "bg-gray-200 font-semibold text-black"
+                    : ""
+                }`}
+              >
+                <ListOrdered
+                  size={18}
+                  color={
+                    editor?.isActive("orderedList") ? "#444444" : "#CACACA"
+                  }
+                />
+              </button>
+
+              <button
+                type="button"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                className={`p-1.5 hover:bg-gray-100 rounded ${
+                  editor?.isActive("bulletList")
+                    ? "bg-gray-200 font-semibold text-black"
+                    : ""
+                }`}
+              >
+                <List
+                  size={18}
+                  color={editor?.isActive("bulletList") ? "#444444" : "#CACACA"}
+                />
+              </button>
+
+              <div className="w-px h-5 bg-[#E6EAEF]" />
+
+              <button
+                type="button"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => editor?.chain().focus().toggleCode().run()}
+                className={`p-1.5 hover:bg-gray-100 rounded ${
+                  editor?.isActive("code")
+                    ? "bg-gray-200 font-semibold text-black"
+                    : ""
+                }`}
+                title="Inline code"
+              >
+                <Code
+                  size={18}
+                  color={editor?.isActive("code") ? "#444444" : "#CACACA"}
+                />
+              </button>
+
+              <button
+                type="button"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => editor?.chain().focus().toggleCodeBlock().run()}
+                className={`p-1.5 hover:bg-gray-100 rounded ${
+                  editor?.isActive("codeBlock")
+                    ? "bg-gray-200 font-semibold text-black"
+                    : ""
+                }`}
+                title="Code block"
+              >
+                <SquareCode
+                  size={18}
+                  color={editor?.isActive("codeBlock") ? "#444444" : "#CACACA"}
+                />
+              </button>
+            </div>
+          )}
+
+          <div className="md:flex-1 relative px-3">
+            <EditorContent
+              editor={editor}
+              className="py-2 rounded-md flex flex-row overflow-auto"
+              onKeyDown={handleKeyDown}
+            />
+
+            <div className={`flex gap-3 ${media?.length > 0 ? "mt-3" : ""}`}>
+              {media?.map((file: any, index: number) => (
+                <div key={index} className="relative w-[70px] h-[70px]">
+                  {/* IMAGE PREVIEW */}
+                  {file.type === "image" && (
+                    <Image
+                      src={file.preview}
+                      alt={`Uploaded ${index}`}
+                      width={70}
+                      height={70}
+                      className="w-[70px] h-[70px] rounded-md object-cover border border-primary-400 cursor-pointer"
+                    />
+                  )}
+
+                  {/* VIDEO PREVIEW */}
+                  {file.type === "video" && (
+                    <video
+                      src={file.preview}
+                      className="w-[70px] h-[70px] rounded-md border border-primary-400 object-cover"
+                      controls
+                    />
+                  )}
+
+                  {/* DOCUMENT / OTHER FILES */}
+
+                  {(file.type.startsWith("application") ||
+                    file.type.startsWith("text")) && (
+                    <div className="w-[70px] h-[70px] flex flex-col items-center justify-center border border-primary-500 rounded-md bg-gray-100 p-1 text-center">
+                      <a
+                        href={URL.createObjectURL(file.file)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex flex-col items-center"
+                      >
+                        <FileIcon size={24} color="#606060" />
+                        <span className="text-xs text-blue-500 mt-1">
+                          {file.file.name.split(".").pop()?.toUpperCase()}
+                        </span>
+                      </a>
+                    </div>
+                  )}
+
+                  {/* REMOVE BUTTON */}
+                  <button
+                    onClick={() => handleRemoveImage(index)}
+                    className="absolute -top-1 -right-2 p-1 bg-gray-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center"
+                  >
+                    <XIcon size={14} />
+                  </button>
+
+                  {/* UPLOADING INDICATOR */}
+                  {uploadingImages.includes(file?.id) && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-50">
+                      <Loading />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div
+              className={`flex gap-3 ${voiceThumbnails?.length > 0 ? "mt-3" : ""}`}
             >
-              <button
-                onClick={() => setShowformatting((prev) => !prev)}
-                className="p-1.5 hover:bg-gray-100 rounded text-[#606060] underline"
-              >
-                Aa
-              </button>
-            </Tooltips>
+              {voiceThumbnails?.map((file: any, index: number) => (
+                <VoiceThumbnails
+                  key={file.id}
+                  {...file}
+                  removeVoice={() => handleRemoveVoice(index)}
+                />
+              ))}
+            </div>
+          </div>
 
-            <Tooltips text="Emoji">
-              <div className="relative">
-                <Popover
-                  open={isEmojiPickerOpen}
-                  onOpenChange={(open) => {
-                    setIsEmojiPickerOpen(open);
-                    if (open) setIsGifPickerOpen(false);
-                  }}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 py-2 pl-3 pr-4">
+              <Tooltips text="Upload from your computer">
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-1.5 hover:bg-gray-100 rounded-full bg-[#F2F4F7]"
                 >
-                  <PopoverTrigger asChild>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsEmojiPickerOpen((prev) => !prev);
-                      }}
-                      className="p-1.5 hover:bg-gray-100 rounded"
-                    >
-                      <Smile size={18} color="#606060" />
-                    </button>
-                  </PopoverTrigger>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    style={{ display: "none" }}
+                    onChange={handleFileChange}
+                    accept={CHAT_FILE_ACCEPT}
+                    multiple
+                  />
 
-                  <PopoverContent
-                    className="p-0 w-full max-w-xs"
-                    onClick={(e) => e.stopPropagation()} // Prevent clicks inside from closing
-                  >
-                    <Picker data={data} onEmojiSelect={onEmojiClick} />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </Tooltips>
+                  <Upload size={18} color="#606060" />
+                </button>
+              </Tooltips>
 
-            <Tooltips text="GIF">
-              <div className="relative">
-                <Popover
-                  open={isGifPickerOpen}
-                  onOpenChange={(open) => {
-                    setIsGifPickerOpen(open);
-                    if (open) setIsEmojiPickerOpen(false);
-                  }}
+              <Tooltips
+                text={!showFormatting ? "Show formatting" : "Hide formatting"}
+              >
+                <button
+                  onClick={() => setShowformatting((prev) => !prev)}
+                  className="p-1.5 hover:bg-gray-100 rounded text-[#606060] underline"
                 >
-                  <PopoverTrigger asChild>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsGifPickerOpen((prev) => !prev);
-                      }}
-                      className="px-1.5 py-1 hover:bg-gray-100 rounded"
-                      aria-label="GIF"
-                    >
-                      <span className="block text-[10px] font-bold leading-none tracking-wide text-[#606060] border border-[#606060] rounded px-1 py-0.5">
-                        GIF
-                      </span>
-                    </button>
-                  </PopoverTrigger>
+                  Aa
+                </button>
+              </Tooltips>
 
-                  <PopoverContent
-                    className="w-auto p-0 border-0 shadow-none"
-                    align="start"
-                    onClick={(e) => e.stopPropagation()}
+              <Tooltips text="Emoji">
+                <div className="relative">
+                  <Popover
+                    open={isEmojiPickerOpen}
+                    onOpenChange={(open) => {
+                      setIsEmojiPickerOpen(open);
+                      if (open) setIsGifPickerOpen(false);
+                    }}
                   >
-                    <GifPicker onSelect={handleGifSelect} />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </Tooltips>
+                    <PopoverTrigger asChild>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsEmojiPickerOpen((prev) => !prev);
+                        }}
+                        className="p-1.5 hover:bg-gray-100 rounded"
+                      >
+                        <Smile size={18} color="#606060" />
+                      </button>
+                    </PopoverTrigger>
 
-            <Tooltips text="Mention someone">
-              <button
-                onClick={handleMentionClick}
-                className="p-1.5 hover:bg-gray-100 rounded"
-              >
-                <AtSign size={18} color="#606060" />
-              </button>
-            </Tooltips>
+                    <PopoverContent
+                      className="p-0 w-full max-w-xs"
+                      onClick={(e) => e.stopPropagation()} // Prevent clicks inside from closing
+                    >
+                      <Picker data={data} onEmojiSelect={onEmojiClick} />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </Tooltips>
 
-            <Tooltips text="Mention a channel">
-              <button
-                onClick={handleChannelMentionClick}
-                className="p-1.5 hover:bg-gray-100 rounded"
-              >
-                <Hash size={18} color="#606060" />
-              </button>
-            </Tooltips>
+              <Tooltips text="GIF">
+                <div className="relative">
+                  <Popover
+                    open={isGifPickerOpen}
+                    onOpenChange={(open) => {
+                      setIsGifPickerOpen(open);
+                      if (open) setIsEmojiPickerOpen(false);
+                    }}
+                  >
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsGifPickerOpen((prev) => !prev);
+                        }}
+                        className="px-1.5 py-1 hover:bg-gray-100 rounded"
+                        aria-label="GIF"
+                      >
+                        <span className="block text-[10px] font-bold leading-none tracking-wide text-[#606060] border border-[#606060] rounded px-1 py-0.5">
+                          GIF
+                        </span>
+                      </button>
+                    </PopoverTrigger>
 
-            <Tooltips text="Slash commands">
-              <button
-                onClick={handleSlashCommandClick}
-                className="p-1.5 hover:bg-gray-100 rounded"
-              >
-                <Slash size={18} color="#606060" />
-              </button>
-            </Tooltips>
+                    <PopoverContent
+                      className="w-auto p-0 border-0 shadow-none"
+                      align="start"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <GifPicker onSelect={handleGifSelect} />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </Tooltips>
 
-            {show && (
-              <Fragment>
-                <div className="w-px h-5 bg-[#E6EAEF] hidden sm:flex" />
+              <Tooltips text="Mention someone">
+                <button
+                  onClick={handleMentionClick}
+                  className="p-1.5 hover:bg-gray-100 rounded"
+                >
+                  <AtSign size={18} color="#606060" />
+                </button>
+              </Tooltips>
 
-                {/* <Tooltips text="Record video clip">
+              <Tooltips text="Mention a channel">
+                <button
+                  onClick={handleChannelMentionClick}
+                  className="p-1.5 hover:bg-gray-100 rounded"
+                >
+                  <Hash size={18} color="#606060" />
+                </button>
+              </Tooltips>
+
+              <Tooltips text="Slash commands">
+                <button
+                  onClick={handleSlashCommandClick}
+                  className="p-1.5 hover:bg-gray-100 rounded"
+                >
+                  <Slash size={18} color="#606060" />
+                </button>
+              </Tooltips>
+
+              {show && (
+                <Fragment>
+                  <div className="w-px h-5 bg-[#E6EAEF] hidden sm:flex" />
+
+                  {/* <Tooltips text="Record video clip">
                   <button className="p-1.5 hover:bg-gray-100 rounded hidden sm:flex">
                     <Video size={18} color="#606060" />
                   </button>
                 </Tooltips> */}
 
-                <Tooltips text="Record audio">
-                  <button
-                    className="p-1.5 hover:bg-gray-100 rounded hidden sm:flex"
-                    onClick={() => setIsRecording(true)}
-                    disabled={isRecording}
-                  >
-                    <Mic size={18} color="#606060" />
-                  </button>
-                </Tooltips>
-              </Fragment>
-            )}
-          </div>
+                  <Tooltips text="Record audio">
+                    <button
+                      className="p-1.5 hover:bg-gray-100 rounded hidden sm:flex"
+                      onClick={() => setIsRecording(true)}
+                      disabled={isRecording}
+                    >
+                      <Mic size={18} color="#606060" />
+                    </button>
+                  </Tooltips>
+                </Fragment>
+              )}
+            </div>
 
-          <div className="flex items-center gap-1 py-2 pl-3 pr-4">
-            <button
-              type="submit"
-              className="p-1.5 hover:bg-gray-100 rounded size-8 flex items-center justify-center"
-              onClick={handleSubmit}
-              disabled={
-                isEmpty && media?.length === 0 && voiceThumbnails.length === 0
-              }
-            >
-              <SendHorizonal
-                className={
-                  isEmpty && media?.length === 0 && voiceThumbnails.length === 0
-                    ? "text-[#999] dark:text-zinc-500"
-                    : "text-zinc-900 dark:text-zinc-100"
+            <div className="flex items-center gap-1 py-2 pl-3 pr-4">
+              <button
+                type="submit"
+                className="p-1.5 hover:bg-gray-100 rounded size-8 flex items-center justify-center"
+                onClick={handleSubmit}
+                disabled={
+                  channelLoading ||
+                  (isEmpty &&
+                    media?.length === 0 &&
+                    voiceThumbnails.length === 0)
                 }
-              />
-            </button>
+              >
+                <SendHorizonal
+                  className={
+                    isEmpty &&
+                    media?.length === 0 &&
+                    voiceThumbnails.length === 0
+                      ? "text-[#999] dark:text-zinc-500"
+                      : "text-zinc-900 dark:text-zinc-100"
+                  }
+                />
+              </button>
+            </div>
           </div>
         </div>
+        <TypingUsers />
       </div>
-      <TypingUsers />
     </div>
   );
 };

@@ -11,6 +11,11 @@ const UseGetSingleChannel = () => {
 
   // get persisted data
   useEffect(() => {
+    dispatch({
+      type: ACTIONS.CHANNEL_READY,
+      payload: true,
+    });
+
     if (id) {
       const fetchChannelById = async () => {
         const res = await GetRequest(`/channels/${id}`);
@@ -21,7 +26,7 @@ const UseGetSingleChannel = () => {
           });
         }
         dispatch({
-          type: ACTIONS.CHANNEL_LOADING,
+          type: ACTIONS.CHANNEL_READY,
           payload: false,
         });
       };

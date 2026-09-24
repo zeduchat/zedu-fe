@@ -43,6 +43,12 @@ export const ORG_SETTINGS_NAV_ITEMS: Array<{
     access: "create:webhooks",
   },
   {
+    id: "channel-management",
+    title: "Channel Management",
+    pathSegment: "channel-management",
+    access: "manage:channels",
+  },
+  {
     id: "billing",
     title: "Billing",
     pathSegment: "billing",

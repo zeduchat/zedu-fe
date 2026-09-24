@@ -5,13 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
-import { X, AlertCircle, MoreHorizontal } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "~/components/ui/dropdown-menu";
+import { X, AlertCircle } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { DataContext } from "~/store/GlobalState";
 import { ACTIONS } from "~/store/Actions";
@@ -21,7 +15,6 @@ import Image from "next/image";
 import images from "~/assets/images";
 import { useParams } from "next/navigation";
 import { showSuccess } from "~/components/toast/sonner";
-import { useOrganisationUsers } from "~/hooks/useOrganisationUsers";
 
 interface Invitee {
   id: string;
@@ -38,6 +31,9 @@ interface OrgMember {
   profile_url?: string;
 }
 
+const getMemberId = (member: any): string =>
+  String(member?.id ?? member?.user_id ?? member?.profile?.user_id ?? "");
+
 const ChannelInviteModal = () => {
   const [invitees, setInvitees] = useState<Invitee[]>([]);
   const [inputValue, setInputValue] = useState("");
@@ -50,33 +46,36 @@ const ChannelInviteModal = () => {
   const params = useParams();
   const id = params.id as string;
 
-  const orgId =
-    state.orgId ||
-    (typeof window !== "undefined" ? localStorage.getItem("orgId") || "" : "");
+  const mentionMembers = useMemo<OrgMember[]>(() => {
+    const list =
+      (state.mentionOrgMembers as OrgMember[]) ||
+      (state.orgMembers as OrgMember[]) ||
+      [];
+    return Array.isArray(list) ? list : [];
+  }, [state.mentionOrgMembers, state.orgMembers]);
 
-  const {
-    loading: usersLoading,
-    hasMore,
-    loadMore,
-    users,
-  } = useOrganisationUsers(orgId, {
-    enabled: channelInvite,
-    search: inputValue,
-  });
-
-  const orgMembers = useMemo<OrgMember[]>(
-    () => (users as OrgMember[]) ?? [],
-    [users]
-  );
+  const channelMemberIds = useMemo(() => {
+    const users = channelDetails?.users || [];
+    return new Set(users.map((u: any) => getMemberId(u)).filter(Boolean));
+  }, [channelDetails?.users]);
 
   const suggestedUsers = useMemo(() => {
-    if (!inputValue.trim()) return [];
+    const q = inputValue.trim().toLowerCase();
+    if (!q) return [];
 
-    return orgMembers.filter((user) => {
-      const isAlreadyInvited = invitees.some((inv) => inv.email === user.email);
-      return !isAlreadyInvited;
+    return mentionMembers.filter((user) => {
+      if (!user?.id) return false;
+      if (channelMemberIds.has(String(user.id))) return false;
+      if (
+        invitees.some((inv) => inv.id === user.id || inv.email === user.email)
+      )
+        return false;
+
+      const name = (user.name || "").toLowerCase();
+      const email = (user.email || "").toLowerCase();
+      return name.includes(q) || email.includes(q);
     });
-  }, [inputValue, invitees, orgMembers]);
+  }, [inputValue, invitees, mentionMembers, channelMemberIds]);
 
   const onClose = () => {
     dispatch({ type: ACTIONS.CHANNEL_INVITE, payload: false });
@@ -96,15 +95,6 @@ const ChannelInviteModal = () => {
     setError(null);
   };
 
-  const handleSuggestionsScroll = (e: React.UIEvent<HTMLUListElement>) => {
-    const target = e.currentTarget;
-    const nearBottom =
-      target.scrollHeight - target.scrollTop - target.clientHeight < 48;
-    if (nearBottom && hasMore && !usersLoading) {
-      loadMore();
-    }
-  };
-
   const addInvitee = (user: OrgMember) => {
     const newInvitee: Invitee = {
       id: user.id,
@@ -118,8 +108,8 @@ const ChannelInviteModal = () => {
     textareaRef.current?.focus();
   };
 
-  const removeInvitee = (id: string) => {
-    setInvitees(invitees.filter((invitee) => invitee.id !== id));
+  const removeInvitee = (inviteeId: string) => {
+    setInvitees(invitees.filter((invitee) => invitee.id !== inviteeId));
     textareaRef.current?.focus();
   };
 
@@ -141,7 +131,6 @@ const ChannelInviteModal = () => {
     setButtonLoading(true);
 
     const payload = {
-      // org_id: orgId,
       channel_id: id,
       user_ids: invitees.map((item) => item.id),
     };
@@ -160,20 +149,24 @@ const ChannelInviteModal = () => {
   };
 
   const handleAddEveryone = async () => {
-    const browseMembers = (state.orgMembers as OrgMember[]) || [];
-    if (!browseMembers.length) {
+    if (!mentionMembers.length) {
       setError("No members to add");
       return;
     }
     setButtonLoading(true);
 
-    const existingInviteeIds = invitees.map((i) => i.id);
-    const user_ids = browseMembers
-      .map((m: OrgMember) => m.id)
-      .filter((uid: string) => !existingInviteeIds.includes(uid));
+    const existingInviteeIds = new Set(invitees.map((i) => i.id));
+    const user_ids = mentionMembers
+      .map((m) => m.id)
+      .filter(
+        (uid) =>
+          !!uid &&
+          !existingInviteeIds.has(uid) &&
+          !channelMemberIds.has(String(uid))
+      );
 
     if (user_ids.length === 0) {
-      setError("All members are already invited");
+      setError("All members are already in this channel");
       setButtonLoading(false);
       return;
     }
@@ -195,6 +188,8 @@ const ChannelInviteModal = () => {
 
     setButtonLoading(false);
   };
+
+  const membersReady = mentionMembers.length > 0;
 
   return (
     <Dialog open={channelInvite} onOpenChange={onClose}>
@@ -278,56 +273,47 @@ const ChannelInviteModal = () => {
 
           <div className="relative">
             {inputValue.trim() && (
-              <ul
-                className="absolute left-0 right-0 mt-2 border border-gray-300 rounded-md bg-white max-h-[200px] overflow-y-auto shadow-lg z-50"
-                onScroll={handleSuggestionsScroll}
-              >
-                {usersLoading ? (
+              <ul className="absolute left-0 right-0 mt-2 border border-gray-300 rounded-md bg-white max-h-[200px] overflow-y-auto shadow-lg z-50">
+                {!membersReady ? (
                   <li className="flex flex-col items-center justify-center gap-2 py-6 text-[#667085]">
                     <Loading color="#7141F8" />
-                    <span className="text-sm">Searching members…</span>
+                    <span className="text-sm">Loading members…</span>
                   </li>
                 ) : suggestedUsers.length === 0 ? (
                   <li className="px-3 py-4 text-sm text-[#667085] text-center">
                     No members found
                   </li>
                 ) : (
-                  <>
-                    {suggestedUsers.map((user) => (
-                      <li
-                        key={user.id}
-                        className="flex items-center gap-2 px-3 py-2 text-sm text-gray-800 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => addInvitee(user)}
-                      >
-                        <div className="size-6 border rounded overflow-hidden">
-                          <Image
-                            src={
-                              user.avatar_url ||
-                              user.profile_url ||
-                              images?.user
-                            }
-                            alt={user.name}
-                            width={24}
-                            height={24}
-                            className="rounded size-6"
-                          />
-                        </div>
+                  suggestedUsers.map((user) => (
+                    <li
+                      key={user.id}
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-gray-800 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => addInvitee(user)}
+                    >
+                      <div className="size-6 border rounded overflow-hidden">
+                        <Image
+                          src={
+                            user.avatar_url || user.profile_url || images?.user
+                          }
+                          alt={user.name}
+                          width={24}
+                          height={24}
+                          className="rounded size-6"
+                        />
+                      </div>
 
-                        <div className="font-medium">{user.name}</div>
-                      </li>
-                    ))}
-                    {hasMore && (
-                      <li className="flex justify-center py-2">
-                        <button
-                          type="button"
-                          className="text-sm text-[#7141F8] font-medium hover:underline"
-                          onClick={() => loadMore()}
-                        >
-                          Load more
-                        </button>
-                      </li>
-                    )}
-                  </>
+                      <div className="min-w-0">
+                        <div className="font-medium truncate">
+                          {user.name || user.email}
+                        </div>
+                        {user.name && user.email ? (
+                          <div className="text-xs text-[#667085] truncate">
+                            {user.email}
+                          </div>
+                        ) : null}
+                      </div>
+                    </li>
+                  ))
                 )}
               </ul>
             )}
@@ -347,9 +333,8 @@ const ChannelInviteModal = () => {
         <div className="flex justify-between gap-3 mt-4">
           <Button
             className="h-9 px-7 border bg-gray-100"
-            // disabled={invitees.length === 0 || buttonLoading}
             onClick={handleAddEveryone}
-            disabled={buttonLoading || usersLoading}
+            disabled={buttonLoading || !membersReady}
           >
             Add everyone
           </Button>

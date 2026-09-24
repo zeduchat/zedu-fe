@@ -271,6 +271,7 @@ const MessageContextMenu = ({ item }: any) => {
       <DeleteReplyMessageDialog
         open={deleteMessage}
         setOpen={setDeleteMessage}
+        id={item?.channels_id}
       />
       <PinReplyMessageDialog open={unpinModal} setOpen={setUnpinModal} />
     </>

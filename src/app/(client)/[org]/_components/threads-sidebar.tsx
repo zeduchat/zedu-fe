@@ -9,18 +9,10 @@ import ReplyConnection from "~/components/layout/centrifugo/reply-connection";
 
 export const THREADS_SIDEBAR_WIDTH_PX = 440;
 
-/**
- * Panel shell: full-screen overlay on mobile, 440px side panel from `sm` up.
- * Apply this to the wrapper around `<ThreadsSidebar />`.
- */
 export const threadsSidebarPanelClassName =
   "h-full w-full max-w-[100vw] sm:w-[440px] sm:max-w-[440px] bg-white border-l border-[#E6EAEF] " +
   "max-sm:fixed max-sm:inset-x-0 max-sm:top-[60px] max-sm:bottom-0 max-sm:z-50";
 
-/**
- * Desktop: contribute 440px to side-panel layout / main margin.
- * Mobile: 0 — panel overlays instead of shrinking the chat.
- */
 export function getThreadsSidebarLayoutWidth(
   replyOpen: boolean,
   isSmUp: boolean

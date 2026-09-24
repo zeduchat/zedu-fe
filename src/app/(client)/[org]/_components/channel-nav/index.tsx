@@ -99,8 +99,6 @@ const ChannelHeader = () => {
     }
   };
 
-  //
-
   return (
     <nav className="flex items-center flex-wrap justify-between px-3 py-3 md:p-5 border-b border-[#E6EAEF]">
       <ChannelDetailsDialog>
@@ -152,7 +150,7 @@ const ChannelHeader = () => {
                       ?.slice(0, 3)
                       .map((member: any, index: number) => (
                         <Avatar
-                          key={member.id}
+                          key={member.id || member?.profile?.user_id || index}
                           className={`rounded-[5px] w-5 h-5 border border-[#E6EAEF] object-cover ${
                             index > 0 ? "-ml-2.5" : ""
                           }`}

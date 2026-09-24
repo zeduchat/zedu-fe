@@ -22,6 +22,7 @@ import ChannelAgoraConnection from "~/components/layout/centrifugo/channel-agora
 import { ACTIONS } from "~/store/Actions";
 import { useIsSmUp } from "~/hooks/use-media-query";
 import { cn } from "~/lib/utils";
+import RestrictedChannel from "../../../_components/restricted-channel";
 
 const ChannelsPage = () => {
   const params = useParams();
@@ -36,6 +37,13 @@ const ChannelsPage = () => {
 
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [render, setRender] = useState(true);
+
+  useEffect(() => {
+    if (!state?.channelReady) {
+      setRender(false);
+    }
+  }, [state?.channelReady]);
 
   useEffect(() => {
     if (!buzzSidebar && isChatOpen) {
@@ -151,6 +159,10 @@ const ChannelsPage = () => {
     totalSidePanelWidth += getThreadsSidebarLayoutWidth(true, isSmUp);
   }
 
+  const channelReady =
+    String(state?.channelDetails?.channels_id || "") ===
+    String(channelId || "");
+
   return (
     <div className="flex h-[calc(100dvh-70px)] relative w-full overflow-hidden">
       <UseGetSingleChannel />
@@ -166,15 +178,18 @@ const ChannelsPage = () => {
 
         <ChannelsMessage />
 
-        <div className="absolute bottom-0 w-full">
-          {!state?.channelloading && state?.channelDetails?.access === false ? (
+        <div className="absolute bottom-0 left-0 right-[17px]">
+          {!render && state?.channelDetails?.access === false ? (
             <JoinChannel />
           ) : state?.channelDetails?.archived ? (
             <ArchivedChannel />
+          ) : channelReady && state?.channelDetails?.is_restricted ? (
+            <RestrictedChannel />
           ) : (
             <MessageBox
               subscription={state?.channelSubscription}
               sendMessage={handleSendMessage}
+              channelLoading={render}
             />
           )}
         </div>
