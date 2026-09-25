@@ -27,6 +27,7 @@ interface OrgMember {
   id: string;
   email: string;
   name: string;
+  username?: string;
   avatar_url?: string;
   profile_url?: string;
 }
@@ -47,11 +48,35 @@ const ChannelInviteModal = () => {
   const id = params.id as string;
 
   const mentionMembers = useMemo<OrgMember[]>(() => {
-    const list =
-      (state.mentionOrgMembers as OrgMember[]) ||
-      (state.orgMembers as OrgMember[]) ||
-      [];
-    return Array.isArray(list) ? list : [];
+    const list = state.mentionOrgMembers || state.orgMembers || [];
+    if (!Array.isArray(list)) return [];
+
+    return list.flatMap((member: any) => {
+      const id = getMemberId(member);
+      if (!id || id === "channel") return [];
+
+      const profile = member?.profile;
+      return [
+        {
+          id,
+          email: member.email || profile?.email || "",
+          name:
+            member.name ||
+            profile?.full_name ||
+            profile?.display_name ||
+            member.username ||
+            profile?.username ||
+            "",
+          username: member.username || profile?.username || "",
+          avatar_url:
+            member.avatar_url ||
+            member.profile_url ||
+            profile?.avatar_url ||
+            member.default_avatar_url ||
+            "",
+        },
+      ];
+    });
   }, [state.mentionOrgMembers, state.orgMembers]);
 
   const channelMemberIds = useMemo(() => {
@@ -64,16 +89,16 @@ const ChannelInviteModal = () => {
     if (!q) return [];
 
     return mentionMembers.filter((user) => {
-      if (!user?.id) return false;
-      if (channelMemberIds.has(String(user.id))) return false;
+      if (channelMemberIds.has(user.id)) return false;
       if (
         invitees.some((inv) => inv.id === user.id || inv.email === user.email)
       )
         return false;
 
-      const name = (user.name || "").toLowerCase();
-      const email = (user.email || "").toLowerCase();
-      return name.includes(q) || email.includes(q);
+      const haystack = [user.name, user.username, user.email]
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(q);
     });
   }, [inputValue, invitees, mentionMembers, channelMemberIds]);
 
@@ -274,12 +299,7 @@ const ChannelInviteModal = () => {
           <div className="relative">
             {inputValue.trim() && (
               <ul className="absolute left-0 right-0 mt-2 border border-gray-300 rounded-md bg-white max-h-[200px] overflow-y-auto shadow-lg z-50">
-                {!membersReady ? (
-                  <li className="flex flex-col items-center justify-center gap-2 py-6 text-[#667085]">
-                    <Loading color="#7141F8" />
-                    <span className="text-sm">Loading members…</span>
-                  </li>
-                ) : suggestedUsers.length === 0 ? (
+                {suggestedUsers.length === 0 ? (
                   <li className="px-3 py-4 text-sm text-[#667085] text-center">
                     No members found
                   </li>
