@@ -99,7 +99,7 @@ const PreviewLinks = ({
           href={preview.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="block border w-full md:w-[500px] rounded-md p-3 mb-2 hover:bg-gray-100 transition"
+          className="block border w-full rounded-md p-3 mb-2 hover:bg-gray-100 transition"
         >
           <div className="mb-2">
             <div className="text-sm font-semibold text-gray-800">

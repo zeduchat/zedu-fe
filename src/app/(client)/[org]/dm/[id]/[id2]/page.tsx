@@ -145,7 +145,7 @@ const DmPage = () => {
         <div className="flex-1 flex flex-col relative overflow-hidden">
           <PeopleMessage participant={previewParticipant || participant} />
 
-          <div className="absolute bottom-0 w-full">
+          <div className="absolute bottom-0 left-0 right-[17px]">
             <MessageBox
               subscription={state?.chatSubscription}
               sendMessage={handleSendMessage}

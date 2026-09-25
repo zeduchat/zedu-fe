@@ -11,12 +11,6 @@ const prependRealtimeThreadMessage = (list: any[] = [], newMessage: any) => {
   return [newMessage, ...cleanList];
 };
 
-const reactionsShareIds = (a: any[] = [], b: any[] = []) => {
-  const ids = new Set((a || []).map((r) => r?.reaction_id).filter(Boolean));
-  if (ids.size === 0) return false;
-  return (b || []).some((r) => r?.reaction_id && ids.has(r.reaction_id));
-};
-
 const reactionsSignature = (reactions: any[] = []) =>
   (reactions || [])
     .map((r) => `${r?.reaction ?? ""}:${r?.reaction_count ?? 0}`)
@@ -36,8 +30,9 @@ const sanitizeReplyReactions = (message: any, parentReactions?: any[]) => {
     return message;
   }
 
+  // reaction_id is stable per emoji, so a shared emoji is not a copied parent list.
+  // Only drop the payload when it is the same set and counts as the parent thread.
   if (
-    reactionsShareIds(parentReactions, replyReactions) ||
     reactionsSignature(parentReactions) === reactionsSignature(replyReactions)
   ) {
     return { ...message, reactions: null };
@@ -537,6 +532,11 @@ const reducers = (state: any, action: any) => {
         ...state,
         groupCallback: payload,
       };
+    case ACTIONS.CHANNEL_READY:
+      return {
+        ...state,
+        channelReady: payload,
+      };
     case ACTIONS.UPDATE_MESSAGE_THREAD: {
       const { threadId, reply, updates } = action.payload;
 
@@ -764,16 +764,11 @@ const reducers = (state: any, action: any) => {
         return state;
       }
 
-      const parentReactions = state.thread?.reactions;
-      const nextReactions = reactionsShareIds(parentReactions, reactions)
-        ? null
-        : reactions;
-
       const updatedMessages = (state.replies || []).map((msg: any) => {
-        if (msg.id === messageId) {
+        if (msg.id === messageId || msg.message_id === messageId) {
           return {
             ...msg,
-            reactions: nextReactions,
+            reactions: reactions ?? null,
           };
         }
         return msg;

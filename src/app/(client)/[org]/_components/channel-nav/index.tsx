@@ -99,8 +99,6 @@ const ChannelHeader = () => {
     }
   };
 
-  //
-
   return (
     <nav className="flex items-center flex-wrap justify-between px-3 py-3 md:p-5 border-b border-[#E6EAEF]">
       <ChannelDetailsDialog>
@@ -152,7 +150,7 @@ const ChannelHeader = () => {
                       ?.slice(0, 3)
                       .map((member: any, index: number) => (
                         <Avatar
-                          key={member.id}
+                          key={member.id || member?.profile?.user_id || index}
                           className={`rounded-[5px] w-5 h-5 border border-[#E6EAEF] object-cover ${
                             index > 0 ? "-ml-2.5" : ""
                           }`}
@@ -162,8 +160,8 @@ const ChannelHeader = () => {
                               isUserDeactivated(member) ||
                               isUserDeactivated(member?.profile)
                                 ? DEACTIVATED_AVATAR_SRC
-                                : member?.profile?.avatar_url ||
-                                  member?.profile?.default_avatar_url ||
+                                : member?.avatar_url ||
+                                  member?.default_avatar_url ||
                                   DEACTIVATED_AVATAR_SRC
                             }
                             className="object-cover"
@@ -173,7 +171,7 @@ const ChannelHeader = () => {
 
                     {channelDetails?.users?.length > 3 && (
                       <span className="text-[13px] font-semibold text-[#344054]">
-                        +{channelDetails.users.length - 3}
+                        +{channelDetails.user_count - 3}
                       </span>
                     )}
                   </div>

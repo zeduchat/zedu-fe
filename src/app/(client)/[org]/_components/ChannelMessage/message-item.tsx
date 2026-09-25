@@ -1,10 +1,10 @@
 import React, {
   useContext,
   useEffect,
-  useRef,
   useState,
   useCallback,
   useMemo,
+  useRef,
 } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -16,15 +16,14 @@ import "prismjs/components/prism-python";
 import "prismjs/components/prism-markup";
 import "prismjs/components/prism-css";
 import ImageViewer from "./image-viewer";
-import VideoViewer from "./video-viewer";
 import {
   ArrowBigRight,
   Download,
   DownloadIcon,
   File as FileIcon,
   Link2,
-  Maximize2,
   MoreVertical,
+  Play,
   Share2,
   Trash2,
 } from "lucide-react";
@@ -137,11 +136,6 @@ const MessageItem: React.FC<MessageItemProps> = ({ item }) => {
   const [previewDocument, setPreviewDocument] = useState<MediaItem | null>(
     null
   );
-  const contentRef = useRef<HTMLDivElement | null>(null);
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isOverflowing, setIsOverflowing] = useState(false);
-  const COLLAPSED_HEIGHT = 150;
-
   const trimmedMessage = item.message
     .replace(/\n{2,}/g, "\n\n")
     .replace(/^\n+|\n+$/g, "");
@@ -228,13 +222,7 @@ const MessageItem: React.FC<MessageItemProps> = ({ item }) => {
     if (typeof Prism !== "undefined") {
       Prism.highlightAll();
     }
-
-    const el = contentRef.current;
-    if (el) {
-      const overflow = el.scrollHeight > COLLAPSED_HEIGHT + 2;
-      setIsOverflowing(overflow);
-    }
-  }, [trimmedMessage, isExpanded]);
+  }, [trimmedMessage]);
 
   const renderTextWithMentions = (node: any) => {
     if (!node || !node.props) return node;
@@ -307,15 +295,10 @@ const MessageItem: React.FC<MessageItemProps> = ({ item }) => {
     <div>
       <div className="w-full text-[#344054] text-[13px] lg:text-[15px] font-[400] break-words custom-message">
         <div
-          ref={contentRef}
           style={{
             whiteSpace: "pre-wrap",
             wordBreak: "break-word",
             overflowWrap: "anywhere",
-            maxHeight:
-              !isExpanded && isOverflowing ? `${COLLAPSED_HEIGHT}px` : "none",
-            overflow: !isExpanded && isOverflowing ? "hidden" : "visible",
-            position: "relative",
           }}
         >
           <ReactMarkdown
@@ -428,45 +411,7 @@ const MessageItem: React.FC<MessageItemProps> = ({ item }) => {
           >
             {trimmedMessage}
           </ReactMarkdown>
-
-          {/* Gradient overlay when collapsed */}
-          {!isExpanded && isOverflowing && (
-            <div
-              aria-hidden
-              style={{
-                position: "absolute",
-                left: 0,
-                right: 0,
-                bottom: 0,
-                height: 48,
-                background:
-                  "linear-gradient(transparent, rgba(255,255,255,0.9))",
-                pointerEvents: "none",
-              }}
-            />
-          )}
         </div>
-
-        {/* See more / See less toggle */}
-        {isOverflowing && (
-          <div className="mt-2">
-            {!isExpanded ? (
-              <button
-                onClick={() => setIsExpanded(true)}
-                className="text-sm text-blue-600 hover:underline"
-              >
-                See more
-              </button>
-            ) : (
-              <button
-                onClick={() => setIsExpanded(false)}
-                className="text-sm text-blue-600 hover:underline"
-              >
-                See less
-              </button>
-            )}
-          </div>
-        )}
       </div>
 
       {messageHasLinks && <PreviewLinks item={item} />}
@@ -773,12 +718,31 @@ const FileWithDownload: React.FC<{
 };
 
 // video download
+const MAX_VIDEO_PREVIEW_HEIGHT = 240;
+
+const previewBox = (width: number, height: number) => {
+  const ratio = width / Math.max(height, 1);
+  const nextHeight = Math.min(MAX_VIDEO_PREVIEW_HEIGHT, height);
+  return {
+    width: Math.max(1, Math.round(nextHeight * ratio)),
+    height: Math.max(1, Math.round(nextHeight)),
+  };
+};
+
 const VideoWithDownload: React.FC<{
   mediaItem: MediaItem;
   item: any;
 }> = ({ mediaItem, item }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [viewerOpen, setViewerOpen] = useState(false);
+  const [nativeFullscreen, setNativeFullscreen] = useState(false);
+  const [frame, setFrame] = useState<{ width: number; height: number } | null>(
+    null
+  );
+  const [frameReady, setFrameReady] = useState(false);
+  const [started, setStarted] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const startedRef = useRef(false);
   const {
     deleteMessage,
     setDeleteMessage,
@@ -789,32 +753,98 @@ const VideoWithDownload: React.FC<{
     handleDelete,
   } = useMediaActions(mediaItem, item);
 
+  const box = frame ? previewBox(frame.width, frame.height) : null;
+
+  useEffect(() => {
+    const syncFullscreen = () => {
+      setNativeFullscreen(document.fullscreenElement === videoRef.current);
+    };
+    document.addEventListener("fullscreenchange", syncFullscreen);
+    return () =>
+      document.removeEventListener("fullscreenchange", syncFullscreen);
+  }, []);
+
+  const captureFrame = (el: HTMLVideoElement) => {
+    if (!el.videoWidth || !el.videoHeight) return;
+    setFrame({ width: el.videoWidth, height: el.videoHeight });
+    if (startedRef.current || el.currentTime >= 0.05) {
+      setFrameReady(true);
+      return;
+    }
+    const previewTime = Math.min(0.1, (el.duration || 0) > 0.2 ? 0.1 : 0);
+    if (previewTime > 0) {
+      el.currentTime = previewTime;
+      return;
+    }
+    setFrameReady(true);
+  };
+
+  const startPlayback = () => {
+    const el = videoRef.current;
+    if (!el) return;
+    startedRef.current = true;
+    setStarted(true);
+    void el.play().catch(() => setFailed(true));
+  };
+
   return (
     <div
-      className="relative min-w-0 w-fit max-w-full rounded-md overflow-hidden bg-black/5"
+      className="relative min-w-0 w-fit max-w-full"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <video
-        src={mediaItem.file_link}
-        controls
-        playsInline
-        preload="metadata"
-        className="max-h-60 max-w-full w-auto h-auto rounded-md border object-contain object-left bg-black"
-        poster={`${mediaItem.file_link}#t=0.1`}
-      />
+      <div
+        className={
+          nativeFullscreen
+            ? "relative overflow-visible bg-transparent"
+            : "relative overflow-hidden rounded-md bg-black"
+        }
+        style={
+          box
+            ? {
+                width: box.width,
+                maxWidth: "100%",
+                aspectRatio: `${frame?.width} / ${frame?.height}`,
+              }
+            : { width: 280, height: 158, maxWidth: "100%" }
+        }
+      >
+        {failed ? (
+          <div className="flex h-full w-full items-center justify-center px-3 text-center text-sm text-white">
+            Couldn’t load this video
+          </div>
+        ) : (
+          <video
+            ref={videoRef}
+            src={mediaItem.file_link}
+            controls={started}
+            playsInline
+            preload="auto"
+            onLoadedMetadata={(event) => captureFrame(event.currentTarget)}
+            onSeeked={() => setFrameReady(true)}
+            onError={() => setFailed(true)}
+            className={`block h-full w-full object-contain [&:fullscreen]:!h-screen [&:fullscreen]:!w-screen [&:fullscreen]:!max-h-none [&:fullscreen]:!max-w-none [&:fullscreen]:!rounded-none [&:fullscreen]:!bg-transparent [&:fullscreen]:!opacity-100 [&:fullscreen]:object-contain [&:-webkit-full-screen]:!h-screen [&:-webkit-full-screen]:!w-screen [&:-webkit-full-screen]:!max-h-none [&:-webkit-full-screen]:!bg-transparent [&:-webkit-full-screen]:!opacity-100 ${
+              frameReady || started ? "opacity-100" : "opacity-0"
+            }`}
+          />
+        )}
+
+        {!failed && !started && (
+          <button
+            type="button"
+            aria-label="Play video"
+            className="absolute inset-0 flex items-center justify-center"
+            onClick={startPlayback}
+          >
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-black/60 text-white">
+              <Play size={22} fill="currentColor" className="ml-0.5" />
+            </span>
+          </button>
+        )}
+      </div>
 
       {isHovered && (
         <div className="flex items-center gap-1 absolute top-2 right-2 bg-white py-1 px-2 rounded-lg z-10 shadow-md">
-          <button
-            type="button"
-            title="Open fullscreen"
-            aria-label="Open video fullscreen"
-            className="p-0.5 rounded hover:bg-gray-100 text-[#344054]"
-            onClick={() => setViewerOpen(true)}
-          >
-            <Maximize2 size={16} />
-          </button>
           <MediaActionMenu
             onDownload={handleDownload}
             onCopyLink={handleCopyLink}
@@ -822,14 +852,6 @@ const VideoWithDownload: React.FC<{
             onDelete={handleDelete}
           />
         </div>
-      )}
-
-      {viewerOpen && (
-        <VideoViewer
-          item={item}
-          video={mediaItem}
-          onClose={() => setViewerOpen(false)}
-        />
       )}
 
       <ShareFileModal

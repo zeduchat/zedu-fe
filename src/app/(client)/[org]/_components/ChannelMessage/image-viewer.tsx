@@ -96,6 +96,7 @@ const ImageViewer = ({ onClose, item, image, images }: any) => {
 
   return createPortal(
     <div
+      data-message-preview
       className="fixed inset-0 bg-black/90 flex flex-col justify-between p-4"
       style={{ zIndex: IMAGE_VIEWER_Z_INDEX }}
     >

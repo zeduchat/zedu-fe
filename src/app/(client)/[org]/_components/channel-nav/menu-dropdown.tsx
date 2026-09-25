@@ -2,6 +2,7 @@
 
 import ChannelDetailsDialog from "../channel-details-dialog";
 import ChannelExportModal from "../channel-export/channel-export-modal";
+import PinnedMessagesModal from "../pinned-messages/pinned-messages-modal";
 import { useParams } from "next/navigation";
 import {
   useState,
@@ -27,6 +28,7 @@ const MenuDropdown = ({ isOpen, onClose }: MenuDropdownProps) => {
   const { state, dispatch } = useContext(DataContext);
   const [buttonLoading, setButtonLoading] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const [pinsOpen, setPinsOpen] = useState(false);
   const params = useParams();
   const id = params?.id as string;
 
@@ -75,6 +77,12 @@ const MenuDropdown = ({ isOpen, onClose }: MenuDropdownProps) => {
     onClose();
   };
 
+  const handleOpenPins = (event: ReactMouseEvent) => {
+    event.stopPropagation();
+    setPinsOpen(true);
+    onClose();
+  };
+
   return (
     <>
       {isOpen ? (
@@ -96,6 +104,10 @@ const MenuDropdown = ({ isOpen, onClose }: MenuDropdownProps) => {
               Export
             </div>
 
+            <div className={menuItemClass} onClick={handleOpenPins}>
+              Pinned Message
+            </div>
+
             <div className={dividerClass} />
 
             <div
@@ -115,6 +127,13 @@ const MenuDropdown = ({ isOpen, onClose }: MenuDropdownProps) => {
         open={exportOpen}
         onOpenChange={setExportOpen}
         channelId={id}
+      />
+
+      <PinnedMessagesModal
+        open={pinsOpen}
+        onOpenChange={setPinsOpen}
+        channelId={id}
+        scope="channel"
       />
     </>
   );

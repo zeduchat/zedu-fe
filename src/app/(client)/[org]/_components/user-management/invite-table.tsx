@@ -308,6 +308,7 @@ import {
 import EditMemberRoleModal from "./edit-member-role-modal";
 import { DataContext } from "~/store/GlobalState";
 import DeleteMemberInviteModal from "./delete-user-invite";
+import TablePagination from "./table-pagination";
 
 interface InviteTableProps {
   invitesData: any[];
@@ -613,39 +614,13 @@ export default function InviteTable({
             </TableBody>
           </Table>
 
-          <div className="flex items-center justify-between px-6 py-4 border-t">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-              className="gap-2"
-            >
-              <Icons name="move-left" svgProps={{}} /> Previous
-            </Button>
-            <div className="flex items-center gap-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <Button
-                  key={p}
-                  variant={currentPage === p ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => table.setPageIndex(p - 1)}
-                  className="w-8 h-8 p-0"
-                >
-                  {p}
-                </Button>
-              ))}
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-              className="gap-2"
-            >
-              Next <Icons name="move-right" svgProps={{}} />
-            </Button>
-          </div>
+          <TablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            canPrevious={table.getCanPreviousPage()}
+            canNext={table.getCanNextPage()}
+            onPageChange={(page) => table.setPageIndex(page - 1)}
+          />
         </>
       ) : (
         <TableEmptyState

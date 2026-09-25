@@ -94,7 +94,7 @@ const ChannelsPage = () => {
 
         <ChannelsMessage />
 
-        <div className="absolute bottom-0 w-full">
+        <div className="absolute bottom-0 left-0 right-[17px]">
           {!state?.channelloading && state?.channelDetails?.access === false ? (
             <JoinChannel />
           ) : state?.channelDetails?.archived ? (

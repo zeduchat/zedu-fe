@@ -167,11 +167,11 @@ const DmPage = () => {
         />
 
         {isUserDeactivated(previewParticipant || participant) ? (
-          <div className="absolute bottom-0 w-full border-t border-[#E6EAEF] bg-[#F8F8F8] px-5 py-4 text-sm text-[#616061]">
+          <div className="absolute bottom-0 left-0 right-[17px] border-t border-[#E6EAEF] bg-[#F8F8F8] px-5 py-4 text-sm text-[#616061]">
             This person is deactivated and can no longer receive messages.
           </div>
         ) : (
-          <div className="absolute bottom-0 w-full">
+          <div className="absolute bottom-0 left-0 right-[17px]">
             <MessageBox
               subscription={state?.chatSubscription}
               sendMessage={handleSendMessage}

@@ -2,10 +2,10 @@ import { Button } from "~/components/ui/button";
 import { UserPlusIcon, RobotIcon } from "~/svgs";
 import { EditTopicDialog } from "./edit-topic-dialog";
 import { DataContext } from "~/store/GlobalState";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Image from "next/image";
 import images from "~/assets/images";
-import { PostRequest } from "~/utils/new-request";
+import { GetRequest, PostRequest } from "~/utils/new-request";
 import { useParams } from "next/navigation";
 import { ACTIONS } from "~/store/Actions";
 import Loading from "~/components/ui/loading";
@@ -118,6 +118,20 @@ export function AboutTabContainer({ setIsOpen }: any) {
 const getChannelUserId = (item: any) =>
   item?.id ?? item?.user_id ?? item?.profile?.user_id ?? item?.profile?.id;
 
+const CHANNEL_USERS_PAGE_SIZE = 20;
+
+const mergeChannelUsers = (existing: any[], incoming: any[]) => {
+  const seen = new Set(existing.map((user) => String(getChannelUserId(user))));
+  const merged = [...existing];
+  for (const user of incoming) {
+    const id = String(getChannelUserId(user) ?? "");
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    merged.push(user);
+  }
+  return merged;
+};
+
 export function PeopleTabContainer({ setIsOpen }: any) {
   const { state, dispatch } = useContext(DataContext);
   const { channelDetails } = state;
@@ -125,10 +139,74 @@ export function PeopleTabContainer({ setIsOpen }: any) {
   const channelId = (channelDetails?.id || params.id) as string;
   const { hasPermission } = useRBAC();
   const canRemovePeople = hasPermission("remove:people");
-  const [filteredData, setFilteredData] = useState(channelDetails?.users);
+  const [users, setUsers] = useState<any[]>([]);
+  const [filteredData, setFilteredData] = useState<any[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [removing, setRemoving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+
+  const applyUsersPage = (
+    incoming: any[],
+    pagination: any,
+    replace: boolean
+  ) => {
+    const currentPage = Number(pagination?.current_page) || 1;
+    const totalPages = Number(pagination?.total_pages) || 1;
+
+    setUsers((prev) =>
+      replace ? incoming : mergeChannelUsers(prev, incoming)
+    );
+    if (replace) setFilteredData(incoming);
+    setPage(currentPage);
+    setHasMore(currentPage < totalPages && incoming.length > 0);
+  };
+
+  useEffect(() => {
+    if (!channelId) return;
+
+    let cancelled = false;
+
+    const loadUsers = async () => {
+      setLoading(true);
+      const res = await GetRequest(
+        `/channels/${channelId}/users?page=1&limit=${CHANNEL_USERS_PAGE_SIZE}`
+      );
+      if (cancelled) return;
+
+      if (res?.status === 200 || res?.status === 201) {
+        applyUsersPage(res?.data?.data || [], res?.data?.pagination, true);
+      } else {
+        setUsers([]);
+        setHasMore(false);
+      }
+      setLoading(false);
+    };
+
+    loadUsers();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [channelId]);
+
+  const loadMore = async () => {
+    if (!channelId || loading || loadingMore || !hasMore) return;
+
+    setLoadingMore(true);
+    const nextPage = page + 1;
+    const res = await GetRequest(
+      `/channels/${channelId}/users?page=${nextPage}&limit=${CHANNEL_USERS_PAGE_SIZE}`
+    );
+
+    if (res?.status === 200 || res?.status === 201) {
+      applyUsersPage(res?.data?.data || [], res?.data?.pagination, false);
+    }
+    setLoadingMore(false);
+  };
 
   const handleOpenUserProfile = (item: any) => {
     const profile = item?.profile ?? item;
@@ -156,7 +234,7 @@ export function PeopleTabContainer({ setIsOpen }: any) {
     setIsOpen?.(false);
   };
 
-  const selectedUsers = (channelDetails?.users || []).filter((user: any) =>
+  const selectedUsers = users.filter((user: any) =>
     selectedIds.includes(String(getChannelUserId(user)))
   );
   const selectedCount = selectedIds.length;
@@ -183,9 +261,10 @@ export function PeopleTabContainer({ setIsOpen }: any) {
     });
 
     if (res?.status === 200 || res?.status === 201) {
-      const remainingUsers = (channelDetails?.users || []).filter(
+      const remainingUsers = users.filter(
         (user: any) => !selectedIds.includes(String(getChannelUserId(user)))
       );
+      setUsers(remainingUsers);
       dispatch({
         type: ACTIONS.CHANNEL_DETAILS,
         payload: { ...channelDetails, users: remainingUsers },
@@ -206,7 +285,7 @@ export function PeopleTabContainer({ setIsOpen }: any) {
     <div>
       {/* SEARCH INPUT */}
       <GlobalSearch
-        data={channelDetails?.users}
+        data={users}
         placeholder="Find a user"
         onSearchResults={setFilteredData}
       />
@@ -239,62 +318,86 @@ export function PeopleTabContainer({ setIsOpen }: any) {
 
       {/* USERS DISPLAYED */}
       <div className="max-h-[300px] overflow-auto">
-        {filteredData?.map((item: any) => {
-          const userId = String(getChannelUserId(item) ?? "");
-          const isSelected = userId ? selectedIds.includes(userId) : false;
+        {loading ? (
+          <div className="flex justify-center py-10">
+            <Loading color="#5757CD" />
+          </div>
+        ) : (
+          filteredData?.map((item: any) => {
+            const userId = String(getChannelUserId(item) ?? "");
+            const isSelected = userId ? selectedIds.includes(userId) : false;
 
-          return (
-            <div
-              key={userId || item?.profile?.username}
-              role="button"
-              tabIndex={0}
-              onClick={() => handleOpenUserProfile(item)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  handleOpenUserProfile(item);
-                }
-              }}
-              className="flex justify-start items-center gap-2.5 py-3 cursor-pointer rounded-md hover:bg-gray-50 dark:hover:bg-white/5"
-            >
-              {canRemovePeople && userId && (
-                <Checkbox
-                  checked={isSelected}
-                  onCheckedChange={(checked) =>
-                    toggleSelected(userId, checked === true)
+            return (
+              <div
+                key={userId || item?.profile?.username}
+                role="button"
+                tabIndex={0}
+                onClick={() => handleOpenUserProfile(item)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleOpenUserProfile(item);
                   }
-                  onClick={(e) => e.stopPropagation()}
-                  className="border-[#ADADEA] dark:border-zinc-500"
-                  aria-label={`Select @${item?.profile?.username}`}
-                />
-              )}
+                }}
+                className="flex justify-start items-center gap-2.5 py-3 cursor-pointer rounded-md hover:bg-gray-50 dark:hover:bg-white/5"
+              >
+                {canRemovePeople && userId && (
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={(checked) =>
+                      toggleSelected(userId, checked === true)
+                    }
+                    onClick={(e) => e.stopPropagation()}
+                    className="border-[#ADADEA] dark:border-zinc-500"
+                    aria-label={`Select @${item?.profile?.username}`}
+                  />
+                )}
 
-              <figure className="relative aspect-square w-[2.25rem] rounded-[0.4375rem]">
-                <Image
-                  src={item?.profile?.avatar_url || images?.user}
-                  alt=""
-                  fill
-                  className="border border-[#E6EAEF] dark:border-white/15 rounded"
-                />
-                <span
-                  className={`absolute z-50 -bottom-1 -right-1 inline-block w-[0.625rem] aspect-square border-[1.5px] border-white dark:border-[#222529] rounded-full ${
-                    item?.profile?.online ? "bg-[#00AD51]" : "bg-[#F97316]"
-                  }`}
-                ></span>
-              </figure>
+                <figure className="relative aspect-square w-[2.25rem] rounded-[0.4375rem]">
+                  <Image
+                    src={item?.profile?.avatar_url || images?.user}
+                    alt=""
+                    fill
+                    className="border border-[#E6EAEF] dark:border-white/15 rounded"
+                  />
+                  <span
+                    className={`absolute z-50 -bottom-1 -right-1 inline-block w-[0.625rem] aspect-square border-[1.5px] border-white dark:border-[#222529] rounded-full ${
+                      item?.profile?.online ? "bg-[#00AD51]" : "bg-[#F97316]"
+                    }`}
+                  ></span>
+                </figure>
 
-              <div className="flex items-center gap-2">
-                <p className="font-medium text-[#101828] dark:text-zinc-100 text-[0.9375rem]">
-                  @{item?.profile?.username}
-                </p>
-                <span className="inline-block bg-[#E6EAEF] dark:bg-zinc-600 w-[0.375rem] aspect-square rounded-full"></span>
-                <p className="text-[#475467] dark:text-zinc-400 text-[0.8125rem]">
-                  {item?.profile?.username}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium text-[#101828] dark:text-zinc-100 text-[0.9375rem]">
+                    @{item?.profile?.username}
+                  </p>
+                  <span className="inline-block bg-[#E6EAEF] dark:bg-zinc-600 w-[0.375rem] aspect-square rounded-full"></span>
+                  <p className="text-[#475467] dark:text-zinc-400 text-[0.8125rem]">
+                    {item?.profile?.username}
+                  </p>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
+
+        {!loading && hasMore && (
+          <div className="flex justify-center py-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={loadMore}
+              disabled={loadingMore}
+              className="h-8 px-3 text-[0.8125rem]"
+            >
+              {loadingMore ? (
+                <Loading color="#5757CD" height="16px" width="16px" />
+              ) : (
+                "Load more"
+              )}
+            </Button>
+          </div>
+        )}
       </div>
 
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>

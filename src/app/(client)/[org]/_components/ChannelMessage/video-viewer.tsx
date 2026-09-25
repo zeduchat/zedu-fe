@@ -48,7 +48,10 @@ const VideoViewer = ({ onClose, item, video }: VideoViewerProps) => {
       className="fixed inset-0 bg-black/90 flex flex-col justify-between p-4"
       style={{ zIndex: VIDEO_VIEWER_Z_INDEX }}
     >
-      <div className="relative flex justify-between items-start text-white">
+      <div
+        className="relative flex justify-between items-start text-white"
+        style={{ zIndex: VIDEO_VIEWER_Z_INDEX + 2 }}
+      >
         <div className="flex items-center gap-3 min-w-0">
           <Image
             src={item?.avatar_url || item?.default_avatar_url}
@@ -78,18 +81,12 @@ const VideoViewer = ({ onClose, item, video }: VideoViewerProps) => {
         </button>
       </div>
 
-      <div className="relative flex-grow flex items-center justify-center overflow-hidden py-4">
-        <video
-          src={video?.file_link}
-          controls
-          autoPlay
-          playsInline
-          className="max-h-[85vh] max-w-full rounded-md object-contain bg-black"
-          poster={`${video?.file_link}#t=0.1`}
-        />
-      </div>
+      <div className="relative flex-grow" />
 
-      <div className="flex justify-end items-center text-white/70 text-sm px-1">
+      <div
+        className="flex justify-end items-center text-white/70 text-sm px-1"
+        style={{ zIndex: VIDEO_VIEWER_Z_INDEX + 2 }}
+      >
         <span className="inline-flex items-center gap-1.5">
           <Maximize2 size={14} />
           Fullscreen player
