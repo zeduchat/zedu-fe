@@ -1,7 +1,7 @@
 "use client";
 
 import { Avatar, AvatarImage } from "~/components/ui/avatar";
-import { EllipsisVertical, Hash, Lock, PlusIcon } from "lucide-react";
+import { EllipsisVertical, Hash, Lock, Pin } from "lucide-react";
 import React, { useContext, useRef, useState } from "react";
 
 import { ACTIONS } from "~/store/Actions";
@@ -10,7 +10,9 @@ import CallButton from "../buzz-management/call-button";
 import ChannelDetailsDialog from "../channel-details-dialog";
 import { DataContext } from "~/store/GlobalState";
 import MenuDropdown from "./menu-dropdown";
+import PinnedMessagesModal from "../pinned-messages/pinned-messages-modal";
 import Tooltips from "../tooltip";
+import { cn } from "~/lib/utils";
 import { PostRequest } from "~/utils/new-request";
 import { showError } from "~/components/toast/sonner";
 import { useParams } from "next/navigation";
@@ -19,8 +21,12 @@ import {
   isUserDeactivated,
 } from "~/utils/user-deactivation";
 
+type ChannelHeaderTab = "messages" | "pins";
+
 const ChannelHeader = () => {
   const [isMenuDropdownOpen, setIsMenuDropdownOpen] = useState(false);
+  const [headerTab, setHeaderTab] = useState<ChannelHeaderTab>("messages");
+  const [pinsOpen, setPinsOpen] = useState(false);
   const menuDropdownRef = useRef<HTMLDivElement>(null);
   const { state, dispatch } = useContext(DataContext);
   const { channelDetails, user } = state;
@@ -99,106 +105,158 @@ const ChannelHeader = () => {
     }
   };
 
+  const headerTabs: {
+    id: ChannelHeaderTab;
+    label: string;
+    icon?: typeof Pin;
+  }[] = [
+    { id: "messages", label: "Messages" },
+    { id: "pins", label: "Pinned", icon: Pin },
+  ];
+
   return (
-    <nav className="flex items-center flex-wrap justify-between px-3 py-3 md:p-5 border-b border-[#E6EAEF]">
-      <ChannelDetailsDialog>
-        <Tooltips side="bottom" text="Get channel details">
-          <h2 className="text-base lg:text-lg font-bold hover:bg-gray-100 px-2 py-1 rounded-md flex items-center gap-1.5">
-            {(state?.channelName || channelDetails?.name) &&
-              (channelDetails?.is_private ? (
-                <Lock className="size-4 lg:size-5 shrink-0" />
-              ) : (
-                <Hash className="size-4 lg:size-5 shrink-0" />
-              ))}
-            {state?.channelName || channelDetails?.name}
-          </h2>
-        </Tooltips>
-      </ChannelDetailsDialog>
+    <nav className="border-b border-[#E6EAEF] px-3 pt-3 md:px-5 md:pt-4">
+      <div className="flex items-start justify-between gap-3">
+        <ChannelDetailsDialog>
+          <Tooltips side="bottom" text="Get channel details">
+            <h2 className="text-base lg:text-lg font-bold hover:bg-gray-100 px-2 py-1 rounded-md flex items-center gap-1.5">
+              {(state?.channelName || channelDetails?.name) &&
+                (channelDetails?.is_private ? (
+                  <Lock className="size-4 lg:size-5 shrink-0" />
+                ) : (
+                  <Hash className="size-4 lg:size-5 shrink-0" />
+                ))}
+              {state?.channelName || channelDetails?.name}
+            </h2>
+          </Tooltips>
+        </ChannelDetailsDialog>
 
-      {!state?.channelloading &&
-        state?.channelDetails?.access === true &&
-        !state?.channelDetails?.archived && (
-          <div className="flex items-center gap-3">
-            <div className="flex gap-3 items-center relative">
-              {!state?.hasJoined && (
-                <div>
-                  <CallButton
-                    onClick={
-                      channelDetails?.active_buzz ? handleJoin : handleStartBuzz
-                    }
-                    isActive={channelDetails?.active_buzz}
-                    startLoading={startLoading}
-                    joinLoading={joinLoading}
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="w-px h-5 bg-[#E6EAEF] hidden lg:block" />
-
-            {/* avatar badge group */}
-            <ChannelDetailsDialog>
-              <div
-                onClick={() =>
-                  dispatch({ type: ACTIONS.ACTIVE_TAB, payload: "people" })
-                }
-                className="hidden lg:flex rounded-[5px] border border-[#E6EAEF] p-2 h-9 cursor-pointer hover:bg-gray-50"
-              >
-                <Tooltips side="bottom" text="View all members of this channel">
-                  <div className="flex items-center gap-1.5">
-                    {channelDetails?.users
-                      ?.slice(0, 3)
-                      .map((member: any, index: number) => (
-                        <Avatar
-                          key={member.id || member?.profile?.user_id || index}
-                          className={`rounded-[5px] w-5 h-5 border border-[#E6EAEF] object-cover ${
-                            index > 0 ? "-ml-2.5" : ""
-                          }`}
-                        >
-                          <AvatarImage
-                            src={
-                              isUserDeactivated(member) ||
-                              isUserDeactivated(member?.profile)
-                                ? DEACTIVATED_AVATAR_SRC
-                                : member?.avatar_url ||
-                                  member?.default_avatar_url ||
-                                  DEACTIVATED_AVATAR_SRC
-                            }
-                            className="object-cover"
-                          />
-                        </Avatar>
-                      ))}
-
-                    {channelDetails?.users?.length > 3 && (
-                      <span className="text-[13px] font-semibold text-[#344054]">
-                        +{channelDetails.user_count - 3}
-                      </span>
-                    )}
+        {!state?.channelloading &&
+          state?.channelDetails?.access === true &&
+          !state?.channelDetails?.archived && (
+            <div className="flex items-center gap-3">
+              <div className="flex gap-3 items-center relative">
+                {!state?.hasJoined && (
+                  <div>
+                    <CallButton
+                      onClick={
+                        channelDetails?.active_buzz
+                          ? handleJoin
+                          : handleStartBuzz
+                      }
+                      isActive={channelDetails?.active_buzz}
+                      startLoading={startLoading}
+                      joinLoading={joinLoading}
+                    />
                   </div>
-                </Tooltips>
+                )}
               </div>
-            </ChannelDetailsDialog>
 
-            <div className="relative" ref={menuDropdownRef}>
-              <Tooltips side="bottom" text="More actions">
-                <Button
-                  variant="outline"
-                  className={`p-2 border-[#E6EAEF] h-9 ${
-                    isMenuDropdownOpen ? "bg-[#F6F7F9]" : ""
-                  }`}
-                  onClick={() => setIsMenuDropdownOpen((prev) => !prev)}
+              <div className="w-px h-5 bg-[#E6EAEF] hidden lg:block" />
+
+              {/* avatar badge group */}
+              <ChannelDetailsDialog>
+                <div
+                  onClick={() =>
+                    dispatch({ type: ACTIONS.ACTIVE_TAB, payload: "people" })
+                  }
+                  className="hidden lg:flex rounded-[5px] border border-[#E6EAEF] p-2 h-9 cursor-pointer hover:bg-gray-50"
                 >
-                  <EllipsisVertical className="w-5 h-5 text-[#344054] dark:text-zinc-300" />
-                </Button>
-              </Tooltips>
+                  <Tooltips
+                    side="bottom"
+                    text="View all members of this channel"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      {channelDetails?.users
+                        ?.slice(0, 3)
+                        .map((member: any, index: number) => (
+                          <Avatar
+                            key={member.id || member?.profile?.user_id || index}
+                            className={`rounded-[5px] w-5 h-5 border border-[#E6EAEF] object-cover ${
+                              index > 0 ? "-ml-2.5" : ""
+                            }`}
+                          >
+                            <AvatarImage
+                              src={
+                                isUserDeactivated(member) ||
+                                isUserDeactivated(member?.profile)
+                                  ? DEACTIVATED_AVATAR_SRC
+                                  : member?.avatar_url ||
+                                    member?.default_avatar_url ||
+                                    DEACTIVATED_AVATAR_SRC
+                              }
+                              className="object-cover"
+                            />
+                          </Avatar>
+                        ))}
 
-              <MenuDropdown
-                isOpen={isMenuDropdownOpen}
-                onClose={() => setIsMenuDropdownOpen(false)}
-              />
+                      {channelDetails?.users?.length > 3 && (
+                        <span className="text-[13px] font-semibold text-[#344054]">
+                          +{channelDetails.user_count - 3}
+                        </span>
+                      )}
+                    </div>
+                  </Tooltips>
+                </div>
+              </ChannelDetailsDialog>
+
+              <div className="relative" ref={menuDropdownRef}>
+                <Tooltips side="bottom" text="More actions">
+                  <Button
+                    variant="outline"
+                    className={`p-2 border-[#E6EAEF] h-9 ${
+                      isMenuDropdownOpen ? "bg-[#F6F7F9]" : ""
+                    }`}
+                    onClick={() => setIsMenuDropdownOpen((prev) => !prev)}
+                  >
+                    <EllipsisVertical className="w-5 h-5 text-[#344054] dark:text-zinc-300" />
+                  </Button>
+                </Tooltips>
+
+                <MenuDropdown
+                  isOpen={isMenuDropdownOpen}
+                  onClose={() => setIsMenuDropdownOpen(false)}
+                />
+              </div>
             </div>
-          </div>
-        )}
+          )}
+      </div>
+
+      <div className="mt-1 flex items-end gap-5 px-2">
+        {headerTabs.map((tab) => {
+          const active = headerTab === tab.id;
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => {
+                setHeaderTab(tab.id);
+                setPinsOpen(tab.id === "pins");
+              }}
+              className={cn(
+                "-mb-px inline-flex items-center gap-1.5 border-b-2 pb-2 text-sm font-semibold",
+                active
+                  ? "border-[#5757CD] text-[#5757CD]"
+                  : "border-transparent text-[#667085] hover:text-[#344054]"
+              )}
+            >
+              {Icon ? <Icon className="size-3.5" /> : null}
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <PinnedMessagesModal
+        open={pinsOpen}
+        onOpenChange={(open) => {
+          setPinsOpen(open);
+          if (!open) setHeaderTab("messages");
+        }}
+        channelId={id}
+        scope="channel"
+      />
     </nav>
   );
 };

@@ -314,7 +314,7 @@ const PinnedMessagesModal = ({
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto bg-[#F8F9FB] px-4 py-4 sm:px-5">
+        <div className="min-h-0 flex-1 overflow-y-auto bg-[#F9FAFB] px-4 py-4 sm:px-5">
           {loading ? (
             <div className="flex items-center justify-center py-16">
               <Loading />
@@ -450,7 +450,7 @@ function PinnedMessageCard({
         </div>
       )}
 
-      <div className="mt-3 flex items-center justify-between gap-3 border-t border-[#E6EAEF] bg-[#F8F9FB] px-4 py-2.5">
+      <div className="mt-3 flex items-center justify-between gap-3 border-t border-[#E6EAEF] bg-[#F9FAFB] px-4 py-2.5">
         <div className="flex min-w-0 items-center gap-2 text-[13px] text-[#667085]">
           <Pin className="size-3.5 shrink-0 text-[#667085]" />
           <span className="truncate">{caption}</span>
@@ -461,7 +461,7 @@ function PinnedMessageCard({
             onClick={onJump}
             disabled={!message}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[13px] font-medium text-[#344054] hover:bg-white",
+              "inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[13px] font-medium text-[#344054] hover:bg-[#F6F7F9]",
               !message && "cursor-not-allowed opacity-40"
             )}
           >
@@ -472,7 +472,7 @@ function PinnedMessageCard({
             type="button"
             onClick={onUnpin}
             disabled={unpinning}
-            className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[13px] font-medium text-[#344054] hover:bg-white disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[13px] font-medium text-[#344054] hover:bg-[#F6F7F9] disabled:opacity-50"
           >
             <PinOff className="size-3.5" />
             {unpinning ? "Unpinning" : "Unpin"}
