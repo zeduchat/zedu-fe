@@ -5,8 +5,10 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
+import { useDebounce } from "use-debounce";
 import {
   Archive,
   ArrowUpRight,
@@ -34,6 +36,8 @@ import { showSuccess } from "~/components/toast/sonner";
 import images from "~/assets/images";
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+
+const CHANNEL_USERS_PAGE_SIZE = 20;
 
 type ChannelListItem = {
   channels_id?: string;
@@ -65,6 +69,24 @@ function isArchivedChannel(channel?: ChannelListItem) {
   return channel?.archived === true || channel?.isArchived === true;
 }
 
+function memberKey(member: any) {
+  return String(
+    member?.id || member?.profile?.user_id || member?.user_id || ""
+  );
+}
+
+function mergeChannelMembers(current: any[], incoming: any[]) {
+  const seen = new Set(current.map(memberKey));
+  const next = [...current];
+  for (const member of incoming) {
+    const id = memberKey(member);
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    next.push(member);
+  }
+  return next;
+}
+
 const OrganisationChannelManagementPage = () => {
   const { state } = useContext(DataContext);
   const { orgSlug } = state;
@@ -83,6 +105,29 @@ const OrganisationChannelManagementPage = () => {
     null
   );
   const [memberSearch, setMemberSearch] = useState("");
+  const [debouncedMemberSearch] = useDebounce(memberSearch, 1500);
+  const [membersPage, setMembersPage] = useState(1);
+  const [membersHasMore, setMembersHasMore] = useState(false);
+  const [membersLoading, setMembersLoading] = useState(false);
+  const [membersLoadingMore, setMembersLoadingMore] = useState(false);
+  const membersChannelRef = useRef<string | null>(null);
+  const searchRequestRef = useRef(0);
+  const memberQueryRef = useRef("");
+  const membersScrollRef = useRef<HTMLDivElement>(null);
+  const membersLoadingMoreRef = useRef(false);
+  const loadMoreStateRef = useRef({
+    selectedChannelId: null as string | null,
+    membersLoading: false,
+    membersHasMore: false,
+    membersPage: 1,
+    memberSearch: "",
+    debouncedMemberSearch: "",
+  });
+  const baseMembersRef = useRef<{
+    members: any[];
+    page: number;
+    hasMore: boolean;
+  }>({ members: [], page: 1, hasMore: false });
   const [togglingAll, setTogglingAll] = useState(false);
   const [togglingUserId, setTogglingUserId] = useState<string | null>(null);
   const [archiving, setArchiving] = useState(false);
@@ -123,22 +168,179 @@ const OrganisationChannelManagementPage = () => {
     }
   }, []);
 
-  const loadMembers = useCallback(async (channelId: string) => {
-    const res = await GetRequest(`/channels/${channelId}/users`);
-    if (res?.status === 200 || res?.status === 201) {
-      setMembers(res?.data?.data || []);
-    }
-  }, []);
-
   useEffect(() => {
     if (!selectedChannelId) {
       setSelectedDetail(null);
+      setMembers([]);
+      setMembersHasMore(false);
       return;
     }
     setRestrictOverride(null);
     loadChannelDetail(selectedChannelId);
-    loadMembers(selectedChannelId);
   }, [selectedChannelId, loadChannelDetail]);
+
+  useEffect(() => {
+    setMemberSearch("");
+    setMembersPage(1);
+  }, [selectedChannelId]);
+
+  const restoreBaseMembers = () => {
+    const base = baseMembersRef.current;
+    setMembers(base.members);
+    setMembersPage(base.page);
+    setMembersHasMore(base.hasMore);
+    setMembersLoading(false);
+    setMembersLoadingMore(false);
+  };
+
+  const fetchChannelUsers = useCallback(
+    async (
+      channelId: string,
+      page: number,
+      search: string,
+      append: boolean
+    ) => {
+      const trimmed = search.trim();
+      const searchRequestId = trimmed ? ++searchRequestRef.current : 0;
+      if (append) setMembersLoadingMore(true);
+      else setMembersLoading(true);
+
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(CHANNEL_USERS_PAGE_SIZE),
+      });
+      if (trimmed) params.set("search", trimmed);
+
+      const res = await GetRequest(
+        `/channels/${channelId}/users?${params.toString()}`
+      );
+      if (trimmed && searchRequestId !== searchRequestRef.current) return;
+
+      if (res?.status === 200 || res?.status === 201) {
+        const incoming = res?.data?.data || [];
+        const pagination = res?.data?.pagination;
+        const currentPage = Number(pagination?.current_page) || page;
+        const totalPages = Number(pagination?.total_pages) || 1;
+        const hasMore = currentPage < totalPages && incoming.length > 0;
+
+        if (!trimmed) {
+          const baseMembers = append
+            ? mergeChannelMembers(baseMembersRef.current.members, incoming)
+            : incoming;
+          baseMembersRef.current = {
+            members: baseMembers,
+            page: currentPage,
+            hasMore,
+          };
+          if (!memberQueryRef.current) {
+            setMembers(baseMembers);
+            setMembersPage(currentPage);
+            setMembersHasMore(hasMore);
+          }
+        } else {
+          setMembers((prev) =>
+            append ? mergeChannelMembers(prev, incoming) : incoming
+          );
+          setMembersPage(currentPage);
+          setMembersHasMore(hasMore);
+        }
+      } else if (!append && (!trimmed ? !memberQueryRef.current : true)) {
+        setMembers([]);
+        setMembersHasMore(false);
+      }
+
+      if (!trimmed ? !memberQueryRef.current : true) {
+        setMembersLoading(false);
+        setMembersLoadingMore(false);
+      }
+    },
+    []
+  );
+
+  const handleMemberSearch = (value: string) => {
+    setMemberSearch(value);
+    if (value.trim() || !memberQueryRef.current) return;
+    memberQueryRef.current = "";
+    searchRequestRef.current += 1;
+    restoreBaseMembers();
+  };
+
+  useEffect(() => {
+    if (!selectedChannelId) return;
+
+    const channelChanged = membersChannelRef.current !== selectedChannelId;
+    if (channelChanged) {
+      membersChannelRef.current = selectedChannelId;
+      memberQueryRef.current = "";
+      baseMembersRef.current = { members: [], page: 1, hasMore: false };
+      fetchChannelUsers(selectedChannelId, 1, "", false);
+      return;
+    }
+
+    if (memberSearch.trim() !== debouncedMemberSearch.trim()) return;
+
+    const query = debouncedMemberSearch.trim();
+    if (!query) return;
+
+    memberQueryRef.current = query;
+    fetchChannelUsers(selectedChannelId, 1, query, false);
+  }, [
+    selectedChannelId,
+    debouncedMemberSearch,
+    memberSearch,
+    fetchChannelUsers,
+  ]);
+
+  loadMoreStateRef.current = {
+    selectedChannelId,
+    membersLoading,
+    membersHasMore,
+    membersPage,
+    memberSearch,
+    debouncedMemberSearch,
+  };
+
+  const loadMoreMembers = useCallback(() => {
+    const state = loadMoreStateRef.current;
+    if (
+      membersLoadingMoreRef.current ||
+      !state.selectedChannelId ||
+      state.membersLoading ||
+      !state.membersHasMore ||
+      state.memberSearch.trim() !== state.debouncedMemberSearch.trim()
+    ) {
+      return;
+    }
+
+    membersLoadingMoreRef.current = true;
+    void fetchChannelUsers(
+      state.selectedChannelId,
+      state.membersPage + 1,
+      state.debouncedMemberSearch,
+      true
+    ).finally(() => {
+      membersLoadingMoreRef.current = false;
+    });
+  }, [fetchChannelUsers]);
+
+  const onMembersScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    const el = event.currentTarget;
+    if (el.scrollHeight - el.scrollTop - el.clientHeight > 160) return;
+    loadMoreMembers();
+  };
+
+  useEffect(() => {
+    const el = membersScrollRef.current;
+    if (!el || membersLoading || !membersHasMore) return;
+    if (el.scrollHeight - el.scrollTop - el.clientHeight > 160) return;
+    loadMoreMembers();
+  }, [
+    members.length,
+    membersHasMore,
+    membersLoading,
+    membersLoadingMore,
+    loadMoreMembers,
+  ]);
 
   const filteredChannels = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -264,22 +466,6 @@ const OrganisationChannelManagementPage = () => {
     }
     setArchiving(false);
   };
-
-  const memberList = useMemo(() => {
-    const list = selectedDetail?.users || [];
-    const q = memberSearch.trim().toLowerCase();
-    if (!q) return list;
-    return list.filter((u: any) => {
-      const name = (
-        u?.profile?.username ||
-        u?.username ||
-        u?.profile?.full_name ||
-        ""
-      ).toLowerCase();
-      const email = (u?.profile?.email || u?.email || "").toLowerCase();
-      return name.includes(q) || email.includes(q);
-    });
-  }, [selectedDetail?.users, memberSearch]);
 
   if (rbacStatus === "loading") {
     return (
@@ -556,10 +742,7 @@ const OrganisationChannelManagementPage = () => {
                       <div className="mt-3 flex flex-wrap gap-4 text-xs text-[#667085] dark:text-zinc-400">
                         <span className="inline-flex items-center gap-1.5">
                           <Users className="h-3.5 w-3.5" />
-                          {selectedDetail?.users?.length ??
-                            selectedDetail?.members_count ??
-                            0}{" "}
-                          members
+                          {selectedDetail?.user_count ?? 0} members
                         </span>
                         <span className="inline-flex items-center gap-1.5">
                           <Shield className="h-3.5 w-3.5" />
@@ -674,14 +857,31 @@ const OrganisationChannelManagementPage = () => {
                           <Input
                             placeholder="Find a member..."
                             value={memberSearch}
-                            onChange={(e) => setMemberSearch(e.target.value)}
-                            className="pl-8 h-9 text-sm"
+                            onChange={(e) => handleMemberSearch(e.target.value)}
+                            className="pl-8 pr-8 h-9 text-sm"
                           />
+                          {membersLoading && memberSearch.trim() && (
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2">
+                              <Loading
+                                color="#5757CD"
+                                height="16px"
+                                width="16px"
+                              />
+                            </span>
+                          )}
                         </div>
                       </div>
 
-                      <div className="rounded-xl border border-[#E6EAEF] dark:border-white/10 divide-y divide-[#E6EAEF] dark:divide-white/10 max-h-[420px] overflow-y-auto">
-                        {members.length === 0 ? (
+                      <div
+                        ref={membersScrollRef}
+                        onScroll={onMembersScroll}
+                        className="rounded-xl border border-[#E6EAEF] dark:border-white/10 divide-y divide-[#E6EAEF] dark:divide-white/10 h-[70vh] min-h-[560px] overflow-y-auto"
+                      >
+                        {membersLoading ? (
+                          <div className="flex justify-center py-10">
+                            <Loading color="#5757CD" />
+                          </div>
+                        ) : members.length === 0 ? (
                           <p className="text-sm text-[#667085] dark:text-zinc-400 text-center py-10">
                             No members found.
                           </p>
@@ -689,7 +889,11 @@ const OrganisationChannelManagementPage = () => {
                           members.map((member: any) => {
                             return (
                               <div
-                                key={member?.user_id}
+                                key={
+                                  member?.id ||
+                                  member?.profile?.user_id ||
+                                  member?.user_id
+                                }
                                 className="flex items-center justify-between gap-3 px-4 py-3"
                               >
                                 <div className="flex items-center gap-3 min-w-0">
@@ -738,6 +942,15 @@ const OrganisationChannelManagementPage = () => {
                               </div>
                             );
                           })
+                        )}
+                        {!membersLoading && membersLoadingMore && (
+                          <div className="flex justify-center py-4">
+                            <Loading
+                              color="#5757CD"
+                              height="16px"
+                              width="16px"
+                            />
+                          </div>
                         )}
                       </div>
                     </div>
