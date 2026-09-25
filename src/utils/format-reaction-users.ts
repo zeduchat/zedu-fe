@@ -1,13 +1,5 @@
-/** Max names shown before Slack-style "and X others". */
 const MAX_REACTION_NAMES = 11;
 
-/**
- * Formats reaction usernames like Slack:
- * - "Alice"
- * - "Alice and Bob"
- * - "Alice, Bob and Carol"
- * - "Alice, Bob, … and 5 others" when over the cap
- */
 export function formatReactionUsers(
   names: string[],
   maxNames = MAX_REACTION_NAMES

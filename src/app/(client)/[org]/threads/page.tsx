@@ -63,7 +63,7 @@ const Threads = () => {
 
       <div
         className={cn(
-          "fixed right-0 top-0 mt-[60px] flex h-full transition-all duration-300 ease-in-out",
+          "fixed z-30 right-0 top-0 mt-[60px] flex h-full transition-all duration-300 ease-in-out",
           !isSmUp && state?.reply && "w-full"
         )}
         style={

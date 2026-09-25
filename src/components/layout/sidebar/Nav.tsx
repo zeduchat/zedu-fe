@@ -295,10 +295,10 @@ export default function ChannelNav({
                   </Tooltips>
                 </div>
                 <AccordionContent onClick={handleClose}>
-                  {state.homeDms.map((item: any) => (
+                  {state.homeDms.map((item: any, index: number) => (
                     <div
                       className="mb-1"
-                      key={item?.channel_id || item?.channels_id}
+                      key={item?.channel_id || item?.channels_id || index}
                     >
                       <PeopleHomeCard {...item} />
                     </div>

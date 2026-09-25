@@ -90,7 +90,7 @@ const PeoplePage = () => {
           setShowProfile={setShowProfile}
           showProfile={showProfile}
         />
-        <div className="absolute bottom-0 w-full">
+        <div className="absolute bottom-0 left-0 right-[17px]">
           <MessageBox
             subscription={state?.chatSubscription}
             sendMessage={handleSendMessage}

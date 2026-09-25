@@ -68,6 +68,10 @@ export interface Channel {
   preview_thread: Thread[];
   preview_message: string;
   isArchived?: boolean;
+  archived?: boolean;
+  /** Channel-wide top-level message write restriction */
+  is_restricted?: boolean;
+  restricted?: boolean;
 }
 
 export interface Pagination {

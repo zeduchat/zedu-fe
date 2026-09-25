@@ -45,7 +45,7 @@ const TypingUsers = () => {
   }
 
   return (
-    <p className="mx-5 mt-1 mb-2 text-xs text-[#667085] dark:text-zinc-400">
+    <p className="pointer-events-none absolute inset-x-3 top-full z-10 mt-1 text-xs text-[#667085] md:inset-x-5 dark:text-zinc-400">
       {label}
     </p>
   );

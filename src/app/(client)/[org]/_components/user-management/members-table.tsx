@@ -38,6 +38,7 @@ import EditMemberRoleModal from "./edit-member-role-modal";
 import RestrictMemberModal from "./restrict-user-access-modal";
 import { DataContext } from "~/store/GlobalState";
 import Loading from "~/components/ui/loading";
+import TablePagination from "./table-pagination";
 import { RequirePermission } from "~/components/rbac/RequirePermission";
 import { useRBAC } from "~/hooks/useRBAC";
 
@@ -395,43 +396,13 @@ export default function MembersTable({
             </TableBody>
           </Table>
 
-          <div className="flex items-center justify-between px-6 py-4 border-t">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-              className="gap-2"
-            >
-              <Icons name="move-left" svgProps={{}} /> Previous
-            </Button>
-
-            <div className="flex items-center gap-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (pageNum) => (
-                  <Button
-                    key={pageNum}
-                    variant={currentPage === pageNum ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => table.setPageIndex(pageNum - 1)}
-                    className="w-8 h-8 p-0"
-                  >
-                    {pageNum}
-                  </Button>
-                )
-              )}
-            </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-              className="gap-2"
-            >
-              Next <Icons name="move-right" svgProps={{}} />
-            </Button>
-          </div>
+          <TablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            canPrevious={table.getCanPreviousPage()}
+            canNext={table.getCanNextPage()}
+            onPageChange={(page) => table.setPageIndex(page - 1)}
+          />
         </>
       ) : (
         <TableEmptyState

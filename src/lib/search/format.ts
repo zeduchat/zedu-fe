@@ -34,9 +34,6 @@ function startOfLocalDay(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
-/**
- * Slack-style timestamps, e.g. "Yesterday at 5:45 PM", "Aug 14 at 8:26 AM".
- */
 export function formatSearchTimestamp(timestamp: string): string {
   const date = parseSearchTimestamp(timestamp);
   if (!date) return "";

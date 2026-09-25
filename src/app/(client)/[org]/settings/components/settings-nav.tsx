@@ -13,6 +13,7 @@ import {
   BanknoteIcon,
   Webhook,
   Palette,
+  Layers,
 } from "lucide-react";
 import {
   Accordion,
@@ -35,6 +36,7 @@ const ORG_NAV_ICONS: Record<string, React.ReactNode> = {
   "user-management": <UsersIcon className="w-5" />,
   "roles-permissions": <UserIcon className="w-5" />,
   webhooks: <Webhook className="w-5" />,
+  "channel-management": <Layers className="w-5" />,
   billing: <BanknoteIcon className="w-5" />,
 };
 

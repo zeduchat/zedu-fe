@@ -34,6 +34,10 @@ export const ChannelCard = (props: ComponentProps) => {
   const selectChannel = () => {
     dispatch({
       type: ACTIONS.MESSAGES,
+      payload: { newThreads: [], newPage: 1 },
+    });
+    dispatch({
+      type: ACTIONS.MESSAGES,
       payload: { newThreads: props.preview_thread || [], newPage: 1 },
     });
     localStorage.setItem("channelId", props?.channels_id);

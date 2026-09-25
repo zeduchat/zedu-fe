@@ -117,7 +117,9 @@ export const ChannelDetailsContent = ({ setIsOpen }: any) => {
                 {name}
                 {notifs != 0 && (
                   <div className="ml-1.5 min-w-[1.375rem] h-[1.375rem] px-1.5 inline-flex shrink-0 justify-center items-center rounded-full text-[0.6875rem] leading-none text-[#5757CD] bg-[#F2F4F7] tabular-nums">
-                    {name === "people" ? formatTabCount(notifs) : notifs}
+                    {name === "people"
+                      ? formatTabCount(state?.channelDetails?.user_count || 0)
+                      : notifs}
                   </div>
                 )}
               </TabsTrigger>

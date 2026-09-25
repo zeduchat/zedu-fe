@@ -90,7 +90,10 @@ const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
 
   return (
     <>
-      <div className="fixed inset-0 z-[70] flex items-center justify-center">
+      <div
+        data-message-preview
+        className="fixed inset-0 z-[70] flex items-center justify-center"
+      >
         <div
           className="absolute inset-0 bg-black/70 backdrop-blur-sm"
           onClick={onClose}

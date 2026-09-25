@@ -102,6 +102,7 @@ export default function ChatConnection() {
   const params = useParams();
   const id = params.id as string;
   const { state, dispatch } = useContext(DataContext);
+  const { homeDmsCallback } = state;
   const participantsRef = useRef(state.participants);
   const dmsRef = useRef(state.dms);
   const homeDmsRef = useRef(state.homeDms);
@@ -250,6 +251,10 @@ export default function ChatConnection() {
               reply: message,
               updates,
             },
+          });
+          dispatch({
+            type: ACTIONS.HOME_DMS_CALLBACK,
+            payload: !homeDmsCallback,
           });
         }
 

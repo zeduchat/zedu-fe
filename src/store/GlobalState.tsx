@@ -157,6 +157,7 @@ export const DataProvider = ({ children }: DataProviderProps) => {
     homeDmsCallback: false,
     deleteCallback: false,
     dmRenderCallback: false,
+    channelReady: true,
   };
 
   const [state, dispatch] = useReducer(reducers, initialState);
