@@ -34,6 +34,7 @@ export default function ReplyConnection() {
     };
 
     const onPublication = (ctx: any) => {
+      console.log(ctx, "connection logs from reply-connection");
       if (ctx?.data?.type === "message") {
         dispatch({
           type: ACTIONS.REPLIES,

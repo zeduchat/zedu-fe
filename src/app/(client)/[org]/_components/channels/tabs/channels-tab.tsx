@@ -110,7 +110,14 @@ export default function ChannelsTab() {
   );
 
   const selectChannel = (item: any) => {
-    dispatch({ type: ACTIONS.MESSAGES, payload: item?.preview_thread || [] });
+    dispatch({
+      type: ACTIONS.MESSAGES,
+      payload: { newThreads: [], newPage: 1 },
+    });
+    dispatch({
+      type: ACTIONS.MESSAGES,
+      payload: { newThreads: item?.preview_thread || [], newPage: 1 },
+    });
     localStorage.setItem("channelId", item?.channels_id);
     localStorage.setItem("channelName", item?.name);
     router.push(`/${orgSlug}/home/channels/${item.channels_id}`);

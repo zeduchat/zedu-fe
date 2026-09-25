@@ -160,8 +160,8 @@ const ChannelHeader = () => {
                               isUserDeactivated(member) ||
                               isUserDeactivated(member?.profile)
                                 ? DEACTIVATED_AVATAR_SRC
-                                : member?.profile?.avatar_url ||
-                                  member?.profile?.default_avatar_url ||
+                                : member?.avatar_url ||
+                                  member?.default_avatar_url ||
                                   DEACTIVATED_AVATAR_SRC
                             }
                             className="object-cover"
@@ -171,7 +171,7 @@ const ChannelHeader = () => {
 
                     {channelDetails?.users?.length > 3 && (
                       <span className="text-[13px] font-semibold text-[#344054]">
-                        +{channelDetails.users.length - 3}
+                        +{channelDetails.user_count - 3}
                       </span>
                     )}
                   </div>

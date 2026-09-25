@@ -75,11 +75,42 @@ interface VoiceMessage {
   timestamp: string;
 }
 
+const MESSAGE_DRAFTS_KEY = "zedu:message-drafts";
+
+function readMessageDrafts(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(MESSAGE_DRAFTS_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveMessageDraft(key: string, html: string, empty: boolean) {
+  if (!key || typeof window === "undefined") return;
+  const drafts = readMessageDrafts();
+  if (empty) {
+    if (!(key in drafts)) return;
+    delete drafts[key];
+  } else {
+    drafts[key] = html;
+  }
+  localStorage.setItem(MESSAGE_DRAFTS_KEY, JSON.stringify(drafts));
+}
+
+function loadMessageDraft(key: string) {
+  return readMessageDrafts()[key] || "";
+}
+
 const MessageBox = ({
   subscription,
   sendMessage,
   show = true,
   channelLoading = false,
+  draftKey,
 }: any) => {
   const { state, dispatch } = useContext(DataContext);
   const params = useParams();
@@ -162,6 +193,35 @@ const MessageBox = ({
     handleImagePaste,
     handleTyping
   );
+  const storageKey = draftKey || (id ? `conversation:${id}` : "");
+  const draftKeyRef = useRef(storageKey);
+
+  useEffect(() => {
+    if (!editor || !storageKey) return;
+
+    draftKeyRef.current = storageKey;
+
+    const persist = () => {
+      const key = draftKeyRef.current;
+      if (!key) return;
+      saveMessageDraft(key, editor.getHTML(), editor.isEmpty);
+    };
+
+    const saved = loadMessageDraft(storageKey);
+    if (saved) {
+      editor.commands.setContent(saved);
+      editor.commands.focus("end");
+    } else if (!editor.isEmpty) {
+      editor.commands.clearContent();
+    }
+
+    editor.on("update", persist);
+
+    return () => {
+      persist();
+      editor.off("update", persist);
+    };
+  }, [editor, storageKey]);
 
   const handleSave = () => {
     if (!text || !url) return;

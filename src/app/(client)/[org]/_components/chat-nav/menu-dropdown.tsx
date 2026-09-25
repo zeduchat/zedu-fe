@@ -1,6 +1,12 @@
 "use client";
 
-import { useRef, useEffect, useContext, useState } from "react";
+import {
+  useRef,
+  useEffect,
+  useContext,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
 import { useParams, useRouter } from "next/navigation";
 import { DataContext } from "~/store/GlobalState";
 import { ACTIONS } from "~/store/Actions";
@@ -9,6 +15,7 @@ import { showSuccess } from "~/components/toast/sonner";
 import Loading from "~/components/ui/loading";
 import { AddMembersModal } from "./add-members-modal";
 import { ViewMembersModal } from "./view-members-modal";
+import PinnedMessagesModal from "../pinned-messages/pinned-messages-modal";
 import { useRBAC } from "~/hooks/useRBAC";
 
 interface MenuDropdownProps {
@@ -24,6 +31,7 @@ const MenuDropdown = ({ isOpen, onClose, participants }: MenuDropdownProps) => {
   const [buttonLoading, setButtonLoading] = useState(false);
   const [addMembersOpen, setAddMembersOpen] = useState(false);
   const [viewMembersOpen, setViewMembersOpen] = useState(false);
+  const [pinsOpen, setPinsOpen] = useState(false);
   const params = useParams();
   const router = useRouter();
   const channelId = params.id as string;
@@ -63,6 +71,12 @@ const MenuDropdown = ({ isOpen, onClose, participants }: MenuDropdownProps) => {
 
   const handleOpenAddMembers = () => {
     setAddMembersOpen(true);
+    onClose();
+  };
+
+  const handleOpenPins = (event: ReactMouseEvent) => {
+    event.stopPropagation();
+    setPinsOpen(true);
     onClose();
   };
 
@@ -124,6 +138,10 @@ const MenuDropdown = ({ isOpen, onClose, participants }: MenuDropdownProps) => {
               </div>
             ) : null}
 
+            <div className={menuItemClass} onClick={handleOpenPins}>
+              Pinned Message
+            </div>
+
             <div className={dividerClass} />
 
             <div
@@ -151,6 +169,13 @@ const MenuDropdown = ({ isOpen, onClose, participants }: MenuDropdownProps) => {
         onClose={() => setAddMembersOpen(false)}
         channelId={channelId}
         existingParticipants={participants}
+      />
+
+      <PinnedMessagesModal
+        open={pinsOpen}
+        onOpenChange={setPinsOpen}
+        channelId={channelId}
+        scope="chat"
       />
     </>
   );
