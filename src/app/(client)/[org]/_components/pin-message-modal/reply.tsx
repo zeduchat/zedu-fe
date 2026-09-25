@@ -18,11 +18,11 @@ import { useParams } from "next/navigation";
 import { DeleteSavedMessage } from "~/utils/new-request";
 import Loading from "~/components/ui/loading";
 
-const PinReplyMessageDialog = ({ open, setOpen }: any) => {
+const PinReplyMessageDialog = ({ open, setOpen, id: channels_id }: any) => {
   const { state } = useContext(DataContext);
   const { threadReply } = state;
   const params = useParams();
-  const id = params.id as string;
+  const id = (params.id as string) || channels_id;
   const [deleteloading, setDeleteloading] = useState(false);
 
   const handleDelete = async () => {

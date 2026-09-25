@@ -33,7 +33,7 @@ const MessageContextMenu = ({ item }: any) => {
   const { user, orgSlug, thread } = state;
   const params = useParams();
   const pathname = usePathname();
-  const id = params.id as string;
+  const id = (params.id || thread?.channels_id || item?.channels_id) as string;
   const [unpinModal, setUnpinModal] = useState(false);
 
   useEffect(() => {
@@ -76,7 +76,10 @@ const MessageContextMenu = ({ item }: any) => {
       channelId: id,
       threadId: parentThreadId,
       messageId: item?.id,
-      context: getMessageLinkContext(pathname),
+      context:
+        thread?.channel_type === "DM" || thread?.channel_type === "GroupDm"
+          ? "dm"
+          : getMessageLinkContext(pathname),
     });
 
     await navigator.clipboard.writeText(link);
@@ -129,14 +132,14 @@ const MessageContextMenu = ({ item }: any) => {
             transition={{ duration: 0.1 }}
             className="popover-content"
           >
-            <div className="group flex items-center justify-between px-4 py-1 my-3 text-sm text-gray-700 hover:bg-blue-500 hover:text-white cursor-pointer">
+            {/* <div className="group flex items-center justify-between px-4 py-1 my-3 text-sm text-gray-700 hover:bg-blue-500 hover:text-white cursor-pointer">
               <div className="flex items-center gap-2">
                 <BellOff size={16} />
                 <span>Turn off notifications for replies</span>
               </div>
             </div>
 
-            <hr />
+            <hr /> */}
 
             <div className="group flex items-center justify-between px-4 py-1 my-2 text-sm text-gray-700 hover:bg-blue-500 hover:text-white cursor-pointer">
               <div className="flex items-center gap-2">
@@ -150,7 +153,7 @@ const MessageContextMenu = ({ item }: any) => {
 
             <hr />
 
-            <div className="group flex items-center justify-between px-4 py-1 my-2 text-sm text-gray-700 hover:bg-blue-500 hover:text-white cursor-pointer">
+            {/* <div className="group flex items-center justify-between px-4 py-1 my-2 text-sm text-gray-700 hover:bg-blue-500 hover:text-white cursor-pointer">
               <div className="flex items-center gap-2">
                 <Clock size={16} />
                 <span>Remind me about this</span>
@@ -160,7 +163,7 @@ const MessageContextMenu = ({ item }: any) => {
               </span>
             </div>
 
-            <hr />
+            <hr /> */}
 
             <div
               onClick={handleCopyLink}
@@ -250,12 +253,12 @@ const MessageContextMenu = ({ item }: any) => {
               </>
             )}
 
-            <div className="group flex items-center justify-between px-4 py-1 my-2 text-sm text-gray-700 hover:bg-blue-500 hover:text-white cursor-pointer">
+            {/* <div className="group flex items-center justify-between px-4 py-1 my-2 text-sm text-gray-700 hover:bg-blue-500 hover:text-white cursor-pointer">
               <div className="flex items-center gap-2">
                 <MoreHorizontal size={16} />
                 <span>More message shortcuts...</span>
               </div>
-            </div>
+            </div> */}
           </motion.div>
         </PopoverContent>
       </Popover>
@@ -271,9 +274,13 @@ const MessageContextMenu = ({ item }: any) => {
       <DeleteReplyMessageDialog
         open={deleteMessage}
         setOpen={setDeleteMessage}
-        id={item?.channels_id}
+        id={id}
       />
-      <PinReplyMessageDialog open={unpinModal} setOpen={setUnpinModal} />
+      <PinReplyMessageDialog
+        open={unpinModal}
+        setOpen={setUnpinModal}
+        id={id}
+      />
     </>
   );
 };

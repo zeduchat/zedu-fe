@@ -116,6 +116,39 @@ export default function ReplyConnection() {
 
       if (
         result?.section === "reply_message" &&
+        result?.notification_type === "pinned_message_event"
+      ) {
+        const ids = ctx?.data?.modification_ids;
+
+        dispatch({
+          type: ACTIONS.UPDATE_REPLY_PIN,
+          payload: {
+            threadId: ids.message_id,
+            is_pin: true,
+            details: ctx?.data?.pinned_details,
+          },
+        });
+        return;
+      }
+
+      if (
+        result?.section === "reply_message" &&
+        result?.notification_type === "unpinned_message_event"
+      ) {
+        const ids = ctx?.data?.modification_ids;
+
+        dispatch({
+          type: ACTIONS.UPDATE_REPLY_PIN,
+          payload: {
+            threadId: ids.message_id,
+            is_pin: false,
+          },
+        });
+        return;
+      }
+
+      if (
+        result?.section === "reply_message" &&
         result?.notification_type === "reaction_event"
       ) {
         const ids = ctx?.data?.modification_ids;
