@@ -40,3 +40,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Workspace work log
+THINGS_WORKED_ON.md
+things_worked_on.md
+WORK_LOG.md
