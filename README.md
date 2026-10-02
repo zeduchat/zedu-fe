@@ -8,7 +8,7 @@ Modern teams depend on multiple disconnected tools: chat apps, conferencing tool
 
 The platform supports:
 
-- Unified messaging across channels, direct messages, and AI coworker interactions
+- A Unified messaging across channels, direct messages, and AI coworker interactions
 
 - Real-time collaboration through voice and video calls
 
@@ -20,7 +20,7 @@ The platform supports:
 
 - Intelligent search and workspace discovery
 
-This repository contains the frontend implementation for the Zedu application.
+This repository contains the frontend implementation for the Zedu application only.
 
 ## Getting Started
 
