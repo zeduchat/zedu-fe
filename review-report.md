@@ -14,6 +14,8 @@
 
 - **ERROR**: `src/utils/apple-emoji.tsx` — Hardcoded URL added: "https://cdn.jsdelivr.net/npm/emoji-datasource-apple@15.0.1/img/apple/64/${unified}.png". Put base URLs and secrets in environment variables (e.g. process.env.NEXT_PUBLIC_BASE_URL).
 
+
+
 ### ESLint (changed files)
 
 - **ERROR**: `changed-files` — ESLint reported issues in changed files.
