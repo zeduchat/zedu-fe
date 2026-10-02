@@ -22,7 +22,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  //
+  const gtmBaseUrl = gtmScriptUrl();
+  const gaId = process.env.NEXT_PUBLIC_GA_ID;
+  const gtmSrc = gtmBaseUrl
+    ? gaId
+      ? `${gtmBaseUrl}?id=${gaId}`
+      : gtmBaseUrl
+    : null;
 
   return (
     <html
@@ -31,23 +37,22 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <Script
-          async
-          src={`${gtmScriptUrl()}?id=${process.env.NEXT_PUBLIC_GA_ID}`}
-        />
-        <Script
-          id="google-analytics"
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}', {
-                page_path: window.location.pathname,
-              });
-            `,
-          }}
-        />
+        {gtmSrc && <Script async src={gtmSrc} />}
+        {gaId && (
+          <Script
+            id="google-analytics"
+            dangerouslySetInnerHTML={{
+              __html: `
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${gaId}', {
+                  page_path: window.location.pathname,
+                });
+              `,
+            }}
+          />
+        )}
       </head>
 
       <body className="max-w-screen overflow-x-hidden" suppressHydrationWarning>
