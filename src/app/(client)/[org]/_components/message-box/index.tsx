@@ -327,15 +327,16 @@ const MessageBox = ({
 
     content = content.replace(plainTextContent, fullyConvertedText);
 
-    if (subscription) {
-      editor.commands.clearContent();
-      setMedia([]);
-      setMedias([]);
-      setVoiceThumbnails([]);
+    // Sending goes over HTTP; it must not depend on the realtime
+    // subscription being live, otherwise a dropped socket makes the
+    // send button silently do nothing.
+    editor.commands.clearContent();
+    setMedia([]);
+    setMedias([]);
+    setVoiceThumbnails([]);
 
-      sendMessage(id, uuid, content, medias);
-      dispatch({ type: ACTIONS.CLEAR_MENTIONS });
-    }
+    sendMessage(id, uuid, content, medias);
+    dispatch({ type: ACTIONS.CLEAR_MENTIONS });
   };
 
   const handleKeyDown = (event: any) => {

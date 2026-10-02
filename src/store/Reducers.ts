@@ -468,6 +468,14 @@ const reducers = (state: any, action: any) => {
         ...state,
         channelSubscription: payload,
       };
+    case ACTIONS.REMOVE_OPTIMISTIC_MESSAGE:
+      return {
+        ...state,
+        messages: (state.messages || []).filter(
+          (msg: any) =>
+            !(msg?.isOptimistic && msg?.thread_id === payload?.thread_id)
+        ),
+      };
     case ACTIONS.CHAT_SUBSCRIPTION:
       return {
         ...state,

@@ -101,7 +101,15 @@ const ChannelsPage = () => {
       mentions: state?.mentions,
     };
 
-    await PostRequest(`/threads/${id}`, payload);
+    const res: any = await PostRequest(`/threads/${id}`, payload);
+    const ok = res?.status === 200 || res?.status === 201;
+    if (!ok) {
+      // PostRequest already toasts the server message; drop the pending bubble
+      dispatch({
+        type: ACTIONS.REMOVE_OPTIMISTIC_MESSAGE,
+        payload: { thread_id: uuid },
+      });
+    }
   };
 
   // reply messages

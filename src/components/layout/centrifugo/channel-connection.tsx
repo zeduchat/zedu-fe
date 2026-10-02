@@ -282,6 +282,11 @@ export default function ChannelConnection() {
       if (sub.state !== "subscribed") {
         sub.subscribe();
       }
+      // Expose the subscription right away (as chat-connection does) so
+      // typing indicators work even before/if "subscribed" fires. If the
+      // subscription was already live (shared instance), "subscribed"
+      // would never fire again.
+      dispatch({ type: ACTIONS.CHANNEL_SUBSCRIPTION, payload: sub });
 
       // Cleanup on channel change or unmount — keep the shared connection alive
       return () => {
