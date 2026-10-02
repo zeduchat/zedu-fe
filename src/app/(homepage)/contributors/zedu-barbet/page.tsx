@@ -6,16 +6,22 @@ export const metadata: Metadata = {
 };
 
 const members = [
-  "Marcus Bennett",
-  "Olivia Carter",
-  "Daniel Morrison",
-  "Sophia Reynolds",
-  "Ethan Parker",
-  "Maya Thompson",
-  "Lucas Anderson",
-  "Chloe Mitchell",
-  "Nathan Brooks",
-  "Amelia Foster",
+  { name: "Emmanuel Aklah", github: "Aklah42" },
+  { name: "Modupe Adenuga", github: "msnuga3" },
+  { name: "Godstime Okoene", github: "GGStyles4" },
+  { name: "Kenechukwu Modebelu", github: "KennyMod5" },
+  { name: "Eyitene Ejiro", github: "ejiro-eyitene6" },
+  { name: "Ubeh-sylvanus Izuchukwu", github: "anonymous-cybe7" },
+  { name: "Janet Okedoyin", github: "bimbzzyjane8" },
+  { name: "Mgboawaji Williamson", github: "codeWithGodstime9" },
+  { name: "Uduma Ifechukwu", github: "UI-Light10" },
+  { name: "Abdulsalam Abdulmuiz Olalekan", github: "Iampeace00111" },
+  { name: "Jinadu-Paul Oluwatamilore", github: "TammyCodes2912" },
+  { name: "Chimdike John", github: "cdJohnEl13" },
+  { name: "Adebukola, Jonah", github: "b26-netizen14" },
+  { name: "Rabiah Usman", github: "rabiah4u15" },
+  { name: "Adisa Abubakr", github: "adisa-ade16" },
+  { name: "Adedoyin Ogunsola", github: "adegram" },
 ];
 
 const getInitials = (name: string) =>
@@ -39,7 +45,7 @@ const ContributorsPage = () => {
 
       <section className="w-full">
         <div className="grid w-full auto-rows-fr grid-cols-1 items-stretch justify-items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {members.map((name) => (
+          {members.map(({ name, github }) => (
             <div
               key={name}
               className="flex h-full min-h-[200px] flex-col items-center justify-center gap-3 rounded-2xl border border-neutral-300 bg-white p-6 text-center shadow-sm"
@@ -49,7 +55,7 @@ const ContributorsPage = () => {
               </div>
               <h2 className="text-lg font-semibold">{name}</h2>
               <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs text-neutral-600">
-                Team Zedu-barbet
+                GitHub: {github}
               </span>
             </div>
           ))}
