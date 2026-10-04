@@ -43,7 +43,7 @@ const Welcome = () => {
 
         <div className="mt-[50px] text-center">
           <h1 className="font-semibold mb-3 leading-8 text-[46px] max-lg:text-3xl max-lg:font-bold">
-            Welcome to Zedu.
+            Welcome to Zedu!
           </h1>
           <p className=" my-8 text-center text-md md:text-lg text-balance text-[rgba(110,110,111,1)]">
             Your intelligent workspace where AI agents and humans collaborate in

@@ -274,7 +274,7 @@ function Login() {
               Login to Zedu
             </h1>
             <p className="w-full text-center text-[14px] md:text-[16px] text-[#344054] font-[400] leading-[21px] md:leading-[27px]">
-              Welcome back! We&apos;ve missed you!
+              Welcome back! It&apos;s good to see you again!
             </p>
           </div>
 
