@@ -27,7 +27,7 @@ This repository contains the frontend implementation for the Zedu application.
 To run this app locally, you should have the following programs installed on your computer:
 
 - [nodejs](https://nodejs.org/)>=20.0.0
-- [pnpm](https://yarnpkg.com/)>=9.4.0
+- [pnpm](https://pnpm.io/)>=9.4.0
 
 #### Clone this repository
 
