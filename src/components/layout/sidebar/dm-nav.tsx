@@ -274,7 +274,7 @@ export default function DMNav({ resizerRef, sidebarWidth, sidebarRef }: any) {
                 return (
                   <Fragment key={String(dm.channel_id || dm.channels_id)}>
                     <div
-                      className={`flex items-start gap-3 px-3 py-4 hover:bg-[#4B4BB4] ${dm?.channel_id === id || dm?.channels_id === id ? "bg-[#4B4BB4]" : ""}`}
+                      className={`flex items-start gap-3 px-3 py-4 hover:bg-blue-200 ${dm?.channel_id === id || dm?.channels_id === id ? "bg-[#4B4BB4]" : ""}`}
                       onClick={() =>
                         dm?.is_suggested
                           ? handleSuggestedRoute(dm)
