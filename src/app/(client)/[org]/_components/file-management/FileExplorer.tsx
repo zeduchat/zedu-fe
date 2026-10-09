@@ -1254,28 +1254,37 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
                   regularFiles.length === 0 &&
                   pinnedFiles.length === 0 && (
                     <div className="flex flex-col gap-2 text-[#344054] justify-center items-center mt-40">
-                      {(viewType === "All files" ||
-                        viewType === "My Files") && (
+                      {debouncedFileNameSearch && (
                         <>
-                          <p className="text-2xl">No files yet</p>
-                          <p>Upload or drag & drop to get started</p>
+                          <p className="text-2xl">No matching files</p>
+                          <p>Try a different file name</p>
                         </>
                       )}
-                      {viewType === "Shared with me" && (
-                        <>
-                          <p className="text-2xl">No Files Shared Yet</p>
-                          <p>Files shared with you will appear here</p>
-                        </>
-                      )}
-                      {viewType === "Deleted Files" && (
-                        <>
-                          <p className="text-2xl">No deleted files</p>
-                          <p>
-                            Files you delete will be deleted permanently after
-                            30 days
-                          </p>
-                        </>
-                      )}
+                      {!debouncedFileNameSearch &&
+                        (viewType === "All files" ||
+                          viewType === "My Files") && (
+                          <>
+                            <p className="text-2xl">No files yet</p>
+                            <p>Upload or drag & drop to get started</p>
+                          </>
+                        )}
+                      {!debouncedFileNameSearch &&
+                        viewType === "Shared with me" && (
+                          <>
+                            <p className="text-2xl">No Files Shared Yet</p>
+                            <p>Files shared with you will appear here</p>
+                          </>
+                        )}
+                      {!debouncedFileNameSearch &&
+                        viewType === "Deleted Files" && (
+                          <>
+                            <p className="text-2xl">No deleted files</p>
+                            <p>
+                              Files you delete will be deleted permanently after
+                              30 days
+                            </p>
+                          </>
+                        )}
                     </div>
                   )}
               </>
