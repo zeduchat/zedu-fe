@@ -1,0 +1,39 @@
+export type Contributor = {
+  name: string;
+  username: string;
+};
+
+export const zeduWeaverContributors: Contributor[] = [
+  { name: "Omotomiwa Abdulraheem Afonja", username: "S.F Tommy" },
+  { name: "Owai E. Owai", username: "thisOx2" },
+  { name: "Kallay Ummi M", username: "Khay" },
+  { name: "Peace Ihendi", username: "Pearl" },
+  { name: "Abimbola Soneye", username: "The Product Girlie" },
+  { name: "Folajomi Bello (Purple Queen)", username: "Magafox" },
+  { name: "Esoh Bassey Emmanuel", username: "Emmanuel Young" },
+  { name: "Ayodeji Adeniyi Oluwafemi", username: "Dayjigud" },
+  { name: "Favour Daniel", username: "MR.FÃVY" },
+  { name: "Bamijoko Mercy", username: "Bambam" },
+  { name: "Egeonu Chiamaka Happiness", username: "happiness egeonu" },
+  { name: "Faith Obi", username: "Faith_Dev_" },
+  { name: "Abiodun Adeleke", username: "Tearsmith" },
+  { name: "Naomi Okoro", username: "Nayohmee" },
+  { name: "Ugonwa Ohagwasi", username: "nwa" },
+  { name: "Okeke Raphael", username: "roktech" },
+  { name: "Emmanuel Umeogu", username: "Emmalaka" },
+  { name: "Obiorah Paschal", username: "Maazi" },
+  { name: "Opeyemi Folorunsho", username: "Pleasure" },
+  { name: "Raji Murewa", username: "Murewa Raji" },
+  { name: "Pearl Akpaka", username: "PearlAkpaka" },
+  { name: "Onyedikachi Oluchi", username: "Jemi" },
+  { name: "Stephen Okoro", username: "venson" },
+  { name: "Quell", username: "Quell" },
+  { name: "Ndifreke Samuel", username: "Freksam" },
+  { name: "Oke kolawole sunday", username: "Zeus" },
+  { name: "Ofure Asotie", username: "FuureSama" },
+  { name: "Ubah Delight Okechukwu", username: "DOUG" },
+  { name: "Helen Efebe", username: "HelenGift" },
+  { name: "Kharimah", username: "Kharimah" },
+  { name: "Ugwoke Victor", username: "victech-1" },
+  { name: "Faithie Icheke", username: "Imani of Nations" },
+];
