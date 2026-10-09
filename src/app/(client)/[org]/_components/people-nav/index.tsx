@@ -1,6 +1,6 @@
 "use client";
 
-import { EllipsisVertical, HeadphonesIcon } from "lucide-react";
+import { HeadphonesIcon, Search } from "lucide-react";
 import { useContext, useRef, useState } from "react";
 
 import { ACTIONS } from "~/store/Actions";
@@ -15,10 +15,12 @@ import Loading from "~/components/ui/loading";
 import { PostRequest } from "~/utils/new-request";
 import { showError } from "~/components/toast/sonner";
 import { useParams } from "next/navigation";
+import StartBuzzConfirmModal from "../buzz-management/start-buzz-confirm-modal";
 
 const PeopleHeader = ({ user }: { user: any }) => {
   const { state, dispatch } = useContext(DataContext);
   const [startLoading, setStartLoading] = useState(false);
+  const [startBuzzConfirmOpen, setStartBuzzConfirmOpen] = useState(false);
 
   const params = useParams();
   const id = params.id as string;
@@ -70,6 +72,7 @@ const PeopleHeader = ({ user }: { user: any }) => {
         dispatch({ type: ACTIONS.HAS_JOINED, payload: true });
         dispatch({ type: ACTIONS.BUZZ_SIDEBAR, payload: true });
 
+        setStartBuzzConfirmOpen(false);
         setStartLoading(false);
       }
     } catch (error) {
@@ -109,10 +112,23 @@ const PeopleHeader = ({ user }: { user: any }) => {
       </div>
 
       <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() =>
+            dispatch({ type: ACTIONS.CONVERSATION_SEARCH_OPEN, payload: true })
+          }
+          className={cn(
+            "inline-flex items-center justify-center gap-2 px-3 h-9 rounded-md font-medium relative border"
+          )}
+          aria-label="Search messages"
+        >
+          <Search size={16} />
+        </button>
+
         {!isUserDeactivated(user) && (
           <button
             type="button"
-            onClick={handleCall}
+            onClick={() => setStartBuzzConfirmOpen(true)}
             className={cn(
               "inline-flex items-center justify-center gap-2 px-4 h-9 rounded-md font-medium relative border"
             )}
@@ -125,6 +141,15 @@ const PeopleHeader = ({ user }: { user: any }) => {
           </button>
         )}
       </div>
+
+      <StartBuzzConfirmModal
+        open={startBuzzConfirmOpen}
+        onOpenChange={setStartBuzzConfirmOpen}
+        onConfirm={handleCall}
+        loading={startLoading}
+        variant="direct_chat"
+        displayName={user?.username || "this chat"}
+      />
     </nav>
   );
 };

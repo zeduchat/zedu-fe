@@ -23,8 +23,8 @@ const QuetzalContributorsPage = () => {
           Meet <span className="text-primary-500">Team Quetzal</span>
         </h1>
         <p className="max-w-[95%] text-xs text-neutral-600 sm:max-w-[90%] sm:text-base md:max-w-[65%] lg:max-w-[45%] lg:text-lg">
-          The {zeduQuetzalContributors.length} contributors who helped build
-          Zedu.
+          The {zeduQuetzalContributors.length} contributors who came together to
+          build and improve Zedu during HNG 15.
         </p>
       </section>
 

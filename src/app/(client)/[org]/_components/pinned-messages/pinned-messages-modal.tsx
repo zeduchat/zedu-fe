@@ -13,9 +13,10 @@ import { ACTIONS } from "~/store/Actions";
 import { DeleteSavedMessage, GetRequest } from "~/utils/new-request";
 import { showError } from "~/components/toast/sonner";
 import {
+  applyMessageHighlightClasses,
   clearMessageHighlight,
-  MESSAGE_HIGHLIGHT_CLASS,
   MESSAGE_HIGHLIGHT_DURATION_MS,
+  removeMessageHighlightClasses,
   setMessageHighlight,
 } from "~/utils/message-highlight";
 import { cn } from "~/lib/utils";
@@ -93,9 +94,9 @@ const scrollPinnedMessageIntoView = (elementIds: string[]) => {
     if (!element) continue;
 
     element.scrollIntoView({ behavior: "auto", block: "center" });
-    element.classList.add(MESSAGE_HIGHLIGHT_CLASS);
+    applyMessageHighlightClasses(element);
     window.setTimeout(() => {
-      element.classList.remove(MESSAGE_HIGHLIGHT_CLASS);
+      removeMessageHighlightClasses(element);
     }, MESSAGE_HIGHLIGHT_DURATION_MS);
 
     return true;

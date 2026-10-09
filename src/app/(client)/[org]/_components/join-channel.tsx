@@ -11,6 +11,11 @@ const JoinChannel = () => {
   const [buttonloading, setButtonloading] = useState(false);
   const params = useParams();
   const id = params.id as string;
+  const detailsMatch =
+    String(state?.channelDetails?.channels_id || "") === String(id || "");
+  const channelName = detailsMatch
+    ? state?.channelDetails?.name || state?.channelName
+    : state?.channelName;
 
   // join channels
   const handleJoin = async () => {
@@ -34,11 +39,13 @@ const JoinChannel = () => {
   //
 
   return (
-    <div className="h-[170px] bg-neutral-100 border-t flex flex-col items-center justify-center ">
-      <h1 className="mb-2 text-xl font-semibold">
-        # {state?.channelDetails?.name}
+    <div className="h-[170px] bg-neutral-100 dark:bg-[#1A1D21] border-t border-[#E6EAEF] dark:border-white/10 flex flex-col items-center justify-center">
+      <h1 className="mb-2 text-xl font-semibold text-[#1D2939] dark:text-zinc-100">
+        # {channelName}
       </h1>
-      <p className="text-base mb-3">You are not a member of this channel</p>
+      <p className="text-base mb-3 text-[#667085] dark:text-zinc-400">
+        You are not a member of this channel
+      </p>
       <Button onClick={handleJoin} className="bg-blue-500 text-white px-5">
         {buttonloading ? (
           <span className="flex items-center gap-x-2">

@@ -13,8 +13,9 @@ import { useParams, useSearchParams } from "next/navigation";
 import EditReplyMessageBox from "../message-box/edit-reply";
 import { BookmarkFilledIcon } from "@radix-ui/react-icons";
 import {
-  MESSAGE_HIGHLIGHT_CLASS,
+  applyMessageHighlightClasses,
   MESSAGE_HIGHLIGHT_DURATION_MS,
+  removeMessageHighlightClasses,
 } from "~/utils/message-highlight";
 
 const ReplyMessage = ({ fetchMoreData, hasMore }: any) => {
@@ -34,9 +35,9 @@ const ReplyMessage = ({ fetchMoreData, hasMore }: any) => {
       if (!el) return false;
 
       el.scrollIntoView({ behavior: "auto", block: "center" });
-      el.classList.add(MESSAGE_HIGHLIGHT_CLASS);
+      applyMessageHighlightClasses(el);
       setTimeout(() => {
-        el.classList.remove(MESSAGE_HIGHLIGHT_CLASS);
+        removeMessageHighlightClasses(el);
       }, MESSAGE_HIGHLIGHT_DURATION_MS);
       return true;
     };

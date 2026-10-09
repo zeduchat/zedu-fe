@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useContext, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useInChatView } from "~/hooks/use-in-chat-view";
 import Image from "next/image";
 import {
   Download,
@@ -47,10 +48,19 @@ const DocumentAttachmentCard: React.FC<DocumentAttachmentCardProps> = ({
   onOpenPreview,
 }) => {
   const { dispatch } = useContext(DataContext);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const isInView = useInChatView(cardRef);
+  const [showInlinePreview, setShowInlinePreview] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [previewError, setPreviewError] = useState(false);
   const [deleteMessage, setDeleteMessage] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isInView) return;
+    const timeoutId = window.setTimeout(() => setShowInlinePreview(true), 150);
+    return () => window.clearTimeout(timeoutId);
+  }, [isInView]);
 
   const category = getDocumentCategory(mediaItem);
   const ext = normalizeFileExtension(mediaItem.file_type, mediaItem.file_name);
@@ -99,6 +109,7 @@ const DocumentAttachmentCard: React.FC<DocumentAttachmentCardProps> = ({
   return (
     <>
       <div
+        ref={cardRef}
         className="group relative w-[240px] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -135,7 +146,7 @@ const DocumentAttachmentCard: React.FC<DocumentAttachmentCardProps> = ({
           </div>
 
           <div className="relative h-[150px] overflow-hidden bg-[#F8F9FA]">
-            {canInlinePreview && !previewError ? (
+            {canInlinePreview && !previewError && showInlinePreview ? (
               <iframe
                 src={inlinePreviewSrc}
                 title={`Preview of ${mediaItem.file_name}`}

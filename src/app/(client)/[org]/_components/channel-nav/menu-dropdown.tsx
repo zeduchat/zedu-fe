@@ -100,6 +100,19 @@ const MenuDropdown = ({ isOpen, onClose }: MenuDropdownProps) => {
               Export
             </div>
 
+            <div
+              className={menuItemClass}
+              onClick={() => {
+                dispatch({
+                  type: ACTIONS.CONVERSATION_SEARCH_OPEN,
+                  payload: true,
+                });
+                onClose();
+              }}
+            >
+              Search
+            </div>
+
             {canManageChannels ? (
               <div
                 className={menuItemClass}

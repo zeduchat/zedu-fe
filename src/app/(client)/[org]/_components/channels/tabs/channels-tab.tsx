@@ -120,12 +120,21 @@ export default function ChannelsTab() {
     });
     localStorage.setItem("channelId", item?.channels_id);
     localStorage.setItem("channelName", item?.name);
+    dispatch({ type: ACTIONS.CHANNEL_NAME, payload: item?.name || "" });
     router.push(`/${orgSlug}/home/channels/${item.channels_id}`);
   };
 
   // join channels
   const handleJoin = async (id: string) => {
     setButtonloading(true);
+
+    const channel = allChannels?.find(
+      (item: Channel) => item.channels_id === id
+    );
+    if (channel?.name) {
+      localStorage.setItem("channelName", channel.name);
+      dispatch({ type: ACTIONS.CHANNEL_NAME, payload: channel.name });
+    }
 
     const user = JSON.parse(localStorage.getItem("user") || "{}");
 

@@ -37,7 +37,7 @@ const UseHomeChannel = () => {
     }
   }, [
     orgId,
-    state?.channelCallback,
+    // state?.channelCallback,
     dispatch,
     state?.joinCallback,
     state?.leaveCallback,
@@ -125,7 +125,7 @@ const UseHomeChannel = () => {
     };
 
     void fetchSidebarThreads();
-  }, [orgId, state?.token, dispatch, state?.countCallback, state?.loadThread]);
+  }, [orgId, state?.token, dispatch]);
 
   // useEffect(() => {
   //   if (orgId) {

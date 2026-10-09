@@ -11,6 +11,7 @@ import {
   Smile,
 } from "lucide-react";
 import UseTextEditor from "../editor";
+import { normalizeOutgoingMessageHtml } from "../editor/normalize-message-html";
 import { DataContext } from "~/store/GlobalState";
 import { EditorContent } from "@tiptap/react";
 import {
@@ -60,7 +61,11 @@ const EditReplyMessageBox = ({ subscription, sendMessage }: any) => {
   // Handle message submission (no need to upload images here)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    let content = editor?.getHTML();
+    const editorText = editor?.getText() ?? "";
+    let content = normalizeOutgoingMessageHtml(
+      editor?.getHTML() ?? "",
+      editorText
+    );
 
     const strippedContent = content?.replace(/<[^>]+>/g, "").trim();
 

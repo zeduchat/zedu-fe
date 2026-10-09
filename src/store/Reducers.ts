@@ -578,6 +578,11 @@ const reducers = (state: any, action: any) => {
         ...state,
         channelReady: payload,
       };
+    case ACTIONS.CONVERSATION_SEARCH_OPEN:
+      return {
+        ...state,
+        conversationSearchOpen: Boolean(action.payload),
+      };
     case ACTIONS.UPDATE_MESSAGE_THREAD: {
       const { threadId, reply, updates } = action.payload;
 
@@ -1336,7 +1341,7 @@ const reducers = (state: any, action: any) => {
         ...state,
         buzzChats: payload,
       };
-    case ACTIONS.THREAD_MENTIONS:
+    case ACTIONS.THREAD_MENTIONS: {
       if (action.payload?.reset) {
         return {
           ...state,
@@ -1355,23 +1360,38 @@ const reducers = (state: any, action: any) => {
         };
       }
 
+      const incoming = action.payload.newThreads || [];
+      const isFirstPage = action.payload.newPage === 1;
+      const previous = state.threadMentions || [];
+      const seen = new Set(
+        previous
+          .map(
+            (group: any) =>
+              group?.thread_id || group?.thread_messages?.[0]?.thread_id
+          )
+          .filter(Boolean)
+      );
+      const appended = incoming.filter((group: any) => {
+        const id = group?.thread_id || group?.thread_messages?.[0]?.thread_id;
+        if (!id || seen.has(id)) return false;
+        seen.add(id);
+        return true;
+      });
+      const hasMore =
+        typeof action.payload.hasMore === "boolean"
+          ? action.payload.hasMore && (isFirstPage || appended.length > 0)
+          : state.threadMentionsHasMore;
+
       return {
         ...state,
-        threadMentions:
-          action.payload.newPage === 1
-            ? action.payload.newThreads || []
-            : [
-                ...(state.threadMentions || []),
-                ...(action.payload.newThreads || []),
-              ],
-        ...(typeof action.payload.hasMore === "boolean"
-          ? { threadMentionsHasMore: action.payload.hasMore }
-          : {}),
+        threadMentions: isFirstPage ? incoming : [...previous, ...appended],
+        threadMentionsHasMore: hasMore,
         ...(action.payload.newPage === 1 &&
         typeof action.payload.unseenThreadCount === "number"
           ? { unseenThreadCount: action.payload.unseenThreadCount }
           : {}),
       };
+    }
 
     case ACTIONS.UNSEEN_THREAD_COUNT:
       return {

@@ -55,6 +55,7 @@ import { UploadRequest } from "~/utils/new-request";
 import { compressImage } from "~/utils/compress-image";
 import { localGifToFile, type LocalGif } from "~/lib/gifs/local-pack";
 import UseTextEditor from "../editor";
+import { normalizeOutgoingMessageHtml } from "../editor/normalize-message-html";
 import UseTyping from "../typing-users/use-typing";
 import TypingUsers from "../typing-users";
 import { VoiceRecorder } from "../voice/voice-recorder";
@@ -305,10 +306,11 @@ const MessageBox = ({
     if (channelLoading || !editor) return;
 
     // Get full HTML content from editor (keeps links, mentions, etc.)
-    let content = editor.getHTML();
+    const editorText = editor.getText();
+    let content = normalizeOutgoingMessageHtml(editor.getHTML(), editorText);
 
     // Extract plain text to check if there's any content (ignore tags)
-    const plainTextContent = editor.getText().trim();
+    const plainTextContent = editorText.trim();
     const hasTextContent = plainTextContent.length > 0;
     const hasMediaContent = medias.length > 0;
 

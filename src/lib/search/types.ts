@@ -3,11 +3,13 @@ export type MessageSearchResult = {
     user_id: string;
     user_name: string;
     avatar_url: string;
+    default_avatar_url?: string;
     is_deactivated?: boolean;
     is_restricted?: boolean;
   };
   messages: Array<{
     message_id: string;
+    thread_id?: string;
     message: string;
     timestamp: string;
   }>;

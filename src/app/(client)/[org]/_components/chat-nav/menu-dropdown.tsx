@@ -142,6 +142,19 @@ const MenuDropdown = ({ isOpen, onClose, participants }: MenuDropdownProps) => {
               Pinned Message
             </div>
 
+            <div
+              className={menuItemClass}
+              onClick={() => {
+                dispatch({
+                  type: ACTIONS.CONVERSATION_SEARCH_OPEN,
+                  payload: true,
+                });
+                onClose();
+              }}
+            >
+              Search
+            </div>
+
             <div className={dividerClass} />
 
             <div

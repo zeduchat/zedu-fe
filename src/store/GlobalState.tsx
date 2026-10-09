@@ -158,6 +158,7 @@ export const DataProvider = ({ children }: DataProviderProps) => {
     deleteCallback: false,
     dmRenderCallback: false,
     channelReady: true,
+    conversationSearchOpen: false,
   };
 
   const [state, dispatch] = useReducer(reducers, initialState);

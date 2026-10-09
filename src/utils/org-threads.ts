@@ -1,6 +1,8 @@
 import type { ThreadGroup, ThreadsPagination } from "~/types/threads";
 import { GetRequest } from "~/utils/new-request";
 
+export const ORGANISATION_THREADS_PAGE_LIMIT = 50;
+
 export type LoadOrganisationThreadsResult = {
   success: boolean;
   threads: ThreadGroup[];
@@ -54,6 +56,23 @@ export function parseOrganisationThreadsResponse(res: {
   };
 }
 
+export function organisationThreadsHasMore(
+  threads: ThreadGroup[],
+  pagination?: ThreadsPagination
+): boolean {
+  if (threads.length === 0) return false;
+
+  const currentPage = Number(pagination?.current_page) || 1;
+  const totalPages = Number(pagination?.total_pages_count) || 0;
+
+  if (totalPages > currentPage) return true;
+
+  const pageCount = Number(pagination?.page_count) || 0;
+  if (pageCount > currentPage && pageCount !== threads.length) return true;
+
+  return threads.length >= ORGANISATION_THREADS_PAGE_LIMIT;
+}
+
 export async function loadOrganisationThreadsPage(
   orgId: string,
   page: number
@@ -69,19 +88,13 @@ export async function loadOrganisationThreadsPage(
 
   try {
     const res = await GetRequest(
-      `/threads/organisations/${orgId}?page=${page}&limit=50`
+      `/threads/organisations/${orgId}?page=${page}&limit=${ORGANISATION_THREADS_PAGE_LIMIT}`
     );
 
     if (res?.status === 200 || res?.status === 201) {
       const { threads, unseenThreadCount, pagination } =
         parseOrganisationThreadsResponse(res);
-
-      let hasMore = false;
-      if (pagination) {
-        hasMore = pagination.current_page < pagination.total_pages_count;
-      } else {
-        hasMore = threads.length >= 50;
-      }
+      const hasMore = organisationThreadsHasMore(threads, pagination);
 
       return { success: true, threads, hasMore, unseenThreadCount };
     }

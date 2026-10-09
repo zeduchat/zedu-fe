@@ -23,6 +23,10 @@ import { ACTIONS } from "~/store/Actions";
 import { useIsSmUp } from "~/hooks/use-media-query";
 import { cn } from "~/lib/utils";
 import RestrictedChannel from "../../../_components/restricted-channel";
+import ConversationSearchSidebar, {
+  CONVERSATION_SEARCH_PANEL_TRANSITION,
+  getConversationSearchSidebarWidth,
+} from "../../../_components/conversation-search/conversation-search-sidebar";
 
 const ChannelsPage = () => {
   const params = useParams();
@@ -158,6 +162,10 @@ const ChannelsPage = () => {
   if (state?.reply) {
     totalSidePanelWidth += getThreadsSidebarLayoutWidth(true, isSmUp);
   }
+  totalSidePanelWidth += getConversationSearchSidebarWidth(
+    Boolean(state?.conversationSearchOpen),
+    isSmUp
+  );
 
   const channelReady =
     String(state?.channelDetails?.channels_id || "") ===
@@ -171,7 +179,10 @@ const ChannelsPage = () => {
 
       {/* MAIN CONTENT */}
       <div
-        className="relative flex flex-col flex-1 transition-[margin] duration-300 ease-in-out"
+        className={cn(
+          "relative flex flex-col flex-1 transition-[margin]",
+          CONVERSATION_SEARCH_PANEL_TRANSITION
+        )}
         style={{ marginRight: `${totalSidePanelWidth}px` }}
       >
         <ChannelHeader />
@@ -198,7 +209,8 @@ const ChannelsPage = () => {
       {/* Master Side Panels Container - Holds all right-aligned panels */}
       <div
         className={cn(
-          "fixed z-30 mt-[60px] right-0 top-0 h-full flex transition-all duration-300 ease-in-out",
+          "fixed z-30 mt-[60px] right-0 top-0 h-full flex overflow-hidden transition-[width]",
+          CONVERSATION_SEARCH_PANEL_TRANSITION,
           !isSmUp && state?.reply && "w-full"
         )}
         style={
@@ -224,6 +236,15 @@ const ChannelsPage = () => {
             />
           </div>
         )}
+
+        <ConversationSearchSidebar
+          channelId={String(channelId || "")}
+          conversationLabel={
+            state?.channelName || state?.channelDetails?.name
+              ? `#${state?.channelName || state?.channelDetails?.name}`
+              : undefined
+          }
+        />
       </div>
     </div>
   );

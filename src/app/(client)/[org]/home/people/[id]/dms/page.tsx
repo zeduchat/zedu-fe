@@ -19,6 +19,10 @@ import ChatAgoraConnection from "~/components/layout/centrifugo/chat-agora-conne
 import { ACTIONS } from "~/store/Actions";
 import { useIsSmUp } from "~/hooks/use-media-query";
 import { cn } from "~/lib/utils";
+import ConversationSearchSidebar, {
+  CONVERSATION_SEARCH_PANEL_TRANSITION,
+  getConversationSearchSidebarWidth,
+} from "~/app/(client)/[org]/_components/conversation-search/conversation-search-sidebar";
 
 const ChatPage = () => {
   const { state, dispatch } = useContext(DataContext);
@@ -122,12 +126,19 @@ const ChatPage = () => {
   if (state?.reply) {
     totalSidePanelWidth += getThreadsSidebarLayoutWidth(true, isSmUp);
   }
+  totalSidePanelWidth += getConversationSearchSidebarWidth(
+    Boolean(state?.conversationSearchOpen),
+    isSmUp
+  );
 
   return (
     <div className="flex h-[calc(100vh-70px)] relative w-full overflow-hidden">
       <ChatConnection />
       <div
-        className="relative flex flex-col flex-1 transition-[margin] duration-300 ease-in-out"
+        className={cn(
+          "relative flex flex-col flex-1 transition-[margin]",
+          CONVERSATION_SEARCH_PANEL_TRANSITION
+        )}
         style={{ marginRight: `${totalSidePanelWidth}px` }}
       >
         <ChatHeader participants={participants} />
@@ -143,7 +154,8 @@ const ChatPage = () => {
       {/* Master Side Panels Container - Holds all right-aligned panels */}
       <div
         className={cn(
-          "fixed z-30 mt-[60px] right-0 top-0 h-full flex transition-all duration-300 ease-in-out",
+          "fixed z-30 mt-[60px] right-0 top-0 h-full flex overflow-hidden transition-[width]",
+          CONVERSATION_SEARCH_PANEL_TRANSITION,
           !isSmUp && state?.reply && "w-full"
         )}
         style={
@@ -174,6 +186,11 @@ const ChatPage = () => {
             />
           </div>
         )}
+
+        <ConversationSearchSidebar
+          channelId={id}
+          conversationLabel={state?.dmDetails?.name || "Group chat"}
+        />
       </div>
     </div>
   );

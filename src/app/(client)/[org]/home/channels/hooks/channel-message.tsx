@@ -17,7 +17,7 @@ const UseChannel = () => {
   const fetchThreads = async (newPage: number = 1) => {
     try {
       const res = await GetRequest(
-        `/threads/channels/${id}?page=${newPage}&limit=80`
+        `/threads/channels/${id}?page=${newPage}&limit=40`
       );
 
       if (res?.status === 200 || res?.status === 201) {
@@ -30,11 +30,11 @@ const UseChannel = () => {
 
         prefetchAvatars(newThreads);
 
-        // Set hasMore true only if messages exceed 80 and user scrolls
+        // Set hasMore true only if messages exceed 40 and user scrolls
         if (newPage > 1 && newThreads.length > 0) {
           setHasMore(true);
         } else {
-          setHasMore(newThreads.length >= 80);
+          setHasMore(newThreads.length >= 40);
         }
       }
       setLoading(false);
@@ -59,7 +59,7 @@ const UseChannel = () => {
         dispatch({ type: ACTIONS.MESSAGE_LOADING, payload: false })
       );
     }
-  }, [id, token, dispatch, state?.countCallback, state?.triggerCallback]);
+  }, [id, token, state?.countCallback]);
 
   const fetchMoreData = () => {
     if (hasMore) {

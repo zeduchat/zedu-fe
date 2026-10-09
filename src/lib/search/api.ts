@@ -64,6 +64,39 @@ export async function searchMessages(
   throw response;
 }
 
+export async function searchChannelMessages(
+  channelId: string,
+  query: string,
+  sortBy: MessageSearchFilters["sortBy"] = "relevance"
+): Promise<MessageSearchResult[]> {
+  const trimmed = query.trim();
+  if (!channelId || !trimmed) {
+    return [];
+  }
+
+  const params = new URLSearchParams({
+    query: trimmed,
+    sortBy: sortBy || "relevance",
+  });
+
+  const response = await GetRequest(
+    `/search/channel/${channelId}?${params.toString()}`
+  );
+
+  if (isSuccessResponse(response)) {
+    return normalizeSearchResults<MessageSearchResult>(
+      (response as ApiResponse).data?.data
+    );
+  }
+
+  const status = getResponseStatus(response);
+  if (status === 404) {
+    return [];
+  }
+
+  throw response;
+}
+
 export async function searchUsers(
   orgId: string,
   query: string

@@ -121,21 +121,29 @@ export default function GeneralNotificationConnection() {
         result?.section === "channels_section" &&
         result?.notification_type === "unread_thread_change"
       ) {
+        const channelUpdate = ctx.data?.data;
+        const previewPayload = channelUpdate?.payload;
+
+        if (previewPayload?.exist) {
+          dispatch({
+            type: ACTIONS.PREPEND_CHANNEL_PREVIEW,
+            payload: previewPayload.message,
+          });
+        }
+
         dispatch({
           type: ACTIONS.THREAD_COUNT,
-          payload: ctx.data.data.thread_count,
+          payload: channelUpdate.thread_count,
         });
 
         dispatch({
           type: ACTIONS.UPDATE_THREAD_COUNT,
           payload: {
-            channels_id: ctx.data.data.channels_id,
-            mention_count: ctx.data.data.mention_count,
-            thread_count: ctx.data.data.thread_count,
+            channels_id: channelUpdate.channels_id,
+            mention_count: channelUpdate.mention_count,
+            thread_count: channelUpdate.thread_count,
           },
         });
-        console.log("channel message general notification", ctx?.data);
-        dispatch({ type: ACTIONS.CHANNEL_CALLBACK });
       }
 
       // DM notifications
@@ -155,8 +163,18 @@ export default function GeneralNotificationConnection() {
             thread_count: ctx.data.data.thread_count,
           },
         });
+        const dmUpdate = ctx.data?.data;
+        const latestMessage = dmUpdate?.preview_thread?.[0];
 
-        dispatch({ type: ACTIONS.HOME_DMS_CALLBACK });
+        if (latestMessage?.thread_id && dmUpdate?.channel_id) {
+          dispatch({
+            type: ACTIONS.PREPEND_HOME_DM_PREVIEW,
+            payload: {
+              ...latestMessage,
+              channel_id: dmUpdate.channel_id,
+            },
+          });
+        }
       }
 
       // Org threads sidebar badge (server-maintained unseen count)

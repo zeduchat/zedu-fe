@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useInChatView } from "~/hooks/use-in-chat-view";
 
 interface LinkPreview {
   title: string;
@@ -18,52 +19,56 @@ interface MediaItem {
 
 const previewCache = new Map<string, LinkPreview[]>();
 
+const extractLinks = (text: string) => {
+  const urlRegex =
+    /((?:https?:\/\/|www\.)[^\s<"]+|\b\w+\.(?:com|co|ng|net|org|io|dev|ai|app|cc)\b)/gi;
+
+  return Array.from(
+    new Set(
+      (text.match(urlRegex) || []).map((url) => {
+        let cleanedUrl = url.replace(/['">,.;!]+$/, "");
+        if (cleanedUrl.startsWith("www.")) {
+          cleanedUrl = `http://${cleanedUrl}`;
+        }
+        return cleanedUrl;
+      })
+    )
+  );
+};
+
 const PreviewLinks = ({
   item,
 }: {
   item: { id?: string; message: string; media?: MediaItem[] };
 }) => {
   const [previews, setPreviews] = useState<LinkPreview[]>([]);
-  const prevMessageRef = useRef<string>("");
-
-  // Extract links from text
-  const extractLinks = (text: string) => {
-    const urlRegex =
-      /((?:https?:\/\/|www\.)[^\s<"]+|\b\w+\.(?:com|co|ng|net|org|io|dev|ai|app|cc)\b)/gi;
-    return Array.from(
-      new Set(
-        (text.match(urlRegex) || []).map((url) => {
-          let cleanedUrl = url.replace(/['">,.;!]+$/, "");
-          if (cleanedUrl.startsWith("www.")) {
-            cleanedUrl = `http://${cleanedUrl}`;
-          }
-          return cleanedUrl;
-        })
-      )
-    );
-  };
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isInView = useInChatView(containerRef);
 
   useEffect(() => {
-    //Only run if this particular message text changed
-    if (prevMessageRef.current === item.message) return;
-    prevMessageRef.current = item.message;
+    if (!isInView) return;
 
-    const urls = extractLinks(item.message);
+    const message = item.message;
+    const urls = extractLinks(message);
     if (urls.length === 0) {
       setPreviews([]);
       return;
     }
 
-    // Check if we already have previews cached for this message
-    if (previewCache.has(item.message)) {
-      setPreviews(previewCache.get(item.message)!);
+    const cached = previewCache.get(message);
+    if (cached) {
+      setPreviews(cached);
       return;
     }
+
+    const controller = new AbortController();
+    let cancelled = false;
 
     const fetchPreview = async (url: string) => {
       try {
         const response = await fetch(
-          `/api/link-preview?url=${encodeURIComponent(url)}`
+          `/api/link-preview?url=${encodeURIComponent(url)}`,
+          { signal: controller.signal }
         );
         if (!response.ok) return null;
         const data: LinkPreview = await response.json();
@@ -73,53 +78,68 @@ const PreviewLinks = ({
       }
     };
 
-    const loadPreviews = async () => {
-      const previewData = await Promise.all(urls.map(fetchPreview));
-      const uniquePreviews = Array.from(
-        new Map(
-          previewData
-            .filter((p): p is LinkPreview => Boolean(p))
-            .map((p) => [p!.url, p])
-        ).values()
-      );
+    const timeoutId = window.setTimeout(() => {
+      const loadPreviews = async () => {
+        const previewData = await Promise.all(urls.map(fetchPreview));
+        if (cancelled) return;
 
-      // Cache result for this message text
-      previewCache.set(item.message, uniquePreviews);
-      setPreviews(uniquePreviews);
+        const uniquePreviews = Array.from(
+          new Map(
+            previewData
+              .filter((p): p is LinkPreview => Boolean(p))
+              .map((p) => [p.url, p])
+          ).values()
+        );
+
+        previewCache.set(message, uniquePreviews);
+        setPreviews(uniquePreviews);
+      };
+
+      void loadPreviews();
+    }, 150);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+      controller.abort();
     };
+  }, [isInView, item.message]);
 
-    loadPreviews();
-  }, []);
+  return (
+    <div ref={containerRef} className="contents">
+      {previews.length > 0 ? (
+        <div className="mt-2">
+          {previews.map((preview, index) => (
+            <a
+              key={index}
+              href={preview.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block border w-full rounded-md p-3 mb-2 hover:bg-gray-100 transition"
+            >
+              <div className="mb-2">
+                <div className="text-sm font-semibold text-gray-800">
+                  {preview.siteName}
+                </div>
+                <div className="text-blue-600 font-medium">{preview.title}</div>
+                <div className="text-gray-600 text-sm">
+                  {preview.description}
+                </div>
+              </div>
 
-  return previews.length > 0 ? (
-    <div className="mt-2">
-      {previews.map((preview, index) => (
-        <a
-          key={index}
-          href={preview.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block border w-full rounded-md p-3 mb-2 hover:bg-gray-100 transition"
-        >
-          <div className="mb-2">
-            <div className="text-sm font-semibold text-gray-800">
-              {preview.siteName}
-            </div>
-            <div className="text-blue-600 font-medium">{preview.title}</div>
-            <div className="text-gray-600 text-sm">{preview.description}</div>
-          </div>
-
-          {preview.image && (
-            <img
-              src={preview.image}
-              alt={preview.title}
-              className="w-80 h-40 object-cover rounded-md mt-2"
-            />
-          )}
-        </a>
-      ))}
+              {preview.image && (
+                <img
+                  src={preview.image}
+                  alt={preview.title}
+                  className="w-80 h-40 object-cover rounded-md mt-2"
+                />
+              )}
+            </a>
+          ))}
+        </div>
+      ) : null}
     </div>
-  ) : null;
+  );
 };
 
 export default PreviewLinks;

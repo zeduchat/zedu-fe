@@ -1,17 +1,23 @@
 import { useEffect, useRef } from "react";
 import {
+  applyMessageHighlightClasses,
   clearMessageHighlight,
+  findHighlightMessageElement,
   getMessageHighlightId,
-  MESSAGE_HIGHLIGHT_CLASS,
+  messageMatchesHighlight,
   MESSAGE_HIGHLIGHT_DURATION_MS,
+  removeMessageHighlightClasses,
+  scrollHighlightMessageIntoView,
+  type HighlightableMessage,
 } from "~/utils/message-highlight";
 
-const MAX_FETCH_ATTEMPTS = 20;
+const MAX_FETCH_ATTEMPTS = 30;
+const RETRY_DELAYS_MS = [0, 50, 120, 250, 400, 650, 900, 1200, 1600];
 
 interface UseMessageHighlightOptions {
   dataId?: string;
   loading: boolean;
-  chats: Array<{ thread_id?: string }>;
+  chats: HighlightableMessage[];
   hasMore: boolean;
   fetchMoreData: () => void;
 }
@@ -26,6 +32,20 @@ export function useMessageHighlight({
   const highlightedRef = useRef(false);
   const fetchAttemptsRef = useRef(0);
   const lastHighlightIdRef = useRef<string | null>(null);
+  const retryTimersRef = useRef<number[]>([]);
+
+  useEffect(() => {
+    return () => {
+      retryTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+      retryTimersRef.current = [];
+    };
+  }, []);
+
+  useEffect(() => {
+    if (dataId == null && getMessageHighlightId()) {
+      highlightedRef.current = false;
+    }
+  }, [dataId]);
 
   useEffect(() => {
     const highlightId = getMessageHighlightId() || dataId || null;
@@ -34,22 +54,21 @@ export function useMessageHighlight({
       highlightedRef.current = false;
       fetchAttemptsRef.current = 0;
       lastHighlightIdRef.current = highlightId;
+      retryTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+      retryTimersRef.current = [];
     }
 
     if (!highlightId || highlightedRef.current) return;
 
-    const highlightElement = () => {
-      const el =
-        document.getElementById(`thread-${highlightId}`) ||
-        document.getElementById(`reply-${highlightId}`);
-
+    const applyHighlight = (): boolean => {
+      const el = findHighlightMessageElement(highlightId, chats);
       if (!el) return false;
 
-      el.scrollIntoView({ behavior: "auto", block: "center" });
-      el.classList.add(MESSAGE_HIGHLIGHT_CLASS);
+      scrollHighlightMessageIntoView(el);
+      applyMessageHighlightClasses(el);
 
-      setTimeout(() => {
-        el.classList.remove(MESSAGE_HIGHLIGHT_CLASS);
+      window.setTimeout(() => {
+        removeMessageHighlightClasses(el);
       }, MESSAGE_HIGHLIGHT_DURATION_MS);
 
       clearMessageHighlight();
@@ -57,15 +76,20 @@ export function useMessageHighlight({
       return true;
     };
 
-    if (highlightElement()) return;
+    if (applyHighlight()) return;
 
-    const messageInList = chats.some((chat) => chat.thread_id === highlightId);
+    const messageInList = chats.some((chat) =>
+      messageMatchesHighlight(chat, highlightId)
+    );
 
     if (messageInList) {
-      requestAnimationFrame(() => {
-        if (!highlightElement()) {
-          setTimeout(() => highlightElement(), 100);
-        }
+      RETRY_DELAYS_MS.forEach((delay) => {
+        const timer = window.setTimeout(() => {
+          if (!highlightedRef.current) {
+            applyHighlight();
+          }
+        }, delay);
+        retryTimersRef.current.push(timer);
       });
       return;
     }
@@ -73,6 +97,18 @@ export function useMessageHighlight({
     if (!loading && hasMore && fetchAttemptsRef.current < MAX_FETCH_ATTEMPTS) {
       fetchAttemptsRef.current += 1;
       fetchMoreData();
+      return;
+    }
+
+    if (!loading && !hasMore) {
+      RETRY_DELAYS_MS.forEach((delay) => {
+        const timer = window.setTimeout(() => {
+          if (!highlightedRef.current) {
+            applyHighlight();
+          }
+        }, delay);
+        retryTimersRef.current.push(timer);
+      });
     }
   }, [dataId, loading, chats, hasMore, fetchMoreData]);
 }

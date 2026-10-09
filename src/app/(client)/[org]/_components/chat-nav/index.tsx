@@ -16,6 +16,7 @@ import {
   DEACTIVATED_AVATAR_SRC,
   isUserDeactivated,
 } from "~/utils/user-deactivation";
+import StartBuzzConfirmModal from "../buzz-management/start-buzz-confirm-modal";
 
 const ChatHeader = ({ participants }: any) => {
   const [isMenuDropdownOpen, setIsMenuDropdownOpen] = useState(false);
@@ -24,6 +25,7 @@ const ChatHeader = ({ participants }: any) => {
   const { state, dispatch } = useContext(DataContext);
   const { user } = state;
   const [startLoading, setStartLoading] = useState(false);
+  const [startBuzzConfirmOpen, setStartBuzzConfirmOpen] = useState(false);
 
   const params = useParams();
   const id = params.id as string;
@@ -82,6 +84,7 @@ const ChatHeader = ({ participants }: any) => {
         dispatch({ type: ACTIONS.HAS_JOINED, payload: true });
         dispatch({ type: ACTIONS.BUZZ_SIDEBAR, payload: true });
 
+        setStartBuzzConfirmOpen(false);
         setStartLoading(false);
       }
     } catch (error) {
@@ -89,6 +92,13 @@ const ChatHeader = ({ participants }: any) => {
       setStartLoading(false);
     }
   };
+
+  const buzzVariant =
+    (participants?.length ?? 0) > 2 ? "group_chat" : "direct_chat";
+  const buzzDisplayName =
+    buzzVariant === "group_chat"
+      ? participantLabel || "Group chat"
+      : participants?.[0]?.username || participantLabel || "this chat";
 
   //
 
@@ -101,7 +111,7 @@ const ChatHeader = ({ participants }: any) => {
       <div className="flex items-center gap-3">
         <button
           type="button"
-          onClick={handleCall}
+          onClick={() => setStartBuzzConfirmOpen(true)}
           className={cn(
             "inline-flex items-center justify-center gap-2 px-4 h-9 rounded-md font-medium relative border"
           )}
@@ -170,6 +180,16 @@ const ChatHeader = ({ participants }: any) => {
         onClose={() => setViewMembersOpen(false)}
         channelId={id}
         participants={participants}
+      />
+
+      <StartBuzzConfirmModal
+        open={startBuzzConfirmOpen}
+        onOpenChange={setStartBuzzConfirmOpen}
+        onConfirm={handleCall}
+        loading={startLoading}
+        variant={buzzVariant}
+        displayName={buzzDisplayName}
+        memberCount={participants?.length}
       />
     </nav>
   );

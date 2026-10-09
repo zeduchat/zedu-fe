@@ -43,6 +43,7 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 import UseTextEditor from "./editor";
+import { normalizeOutgoingMessageHtml } from "./editor/normalize-message-html";
 import Tooltips from "./tooltip";
 import { CHAT_FILE_ACCEPT } from "~/utils/document-files";
 import { localGifToFile, type LocalGif } from "~/lib/gifs/local-pack";
@@ -139,7 +140,11 @@ const FirstMessageBox = ({ sendMessage }: any) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    let content = editor?.getHTML();
+    const editorText = editor?.getText() ?? "";
+    let content = normalizeOutgoingMessageHtml(
+      editor?.getHTML() ?? "",
+      editorText
+    );
 
     const strippedContent = content?.replace(/<[^>]+>/g, "").trim();
 

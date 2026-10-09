@@ -7,6 +7,7 @@ import React, { useContext, useRef, useState } from "react";
 import { ACTIONS } from "~/store/Actions";
 import { Button } from "~/components/ui/button";
 import CallButton from "../buzz-management/call-button";
+import StartBuzzConfirmModal from "../buzz-management/start-buzz-confirm-modal";
 import ChannelDetailsDialog from "../channel-details-dialog";
 import { DataContext } from "~/store/GlobalState";
 import MenuDropdown from "./menu-dropdown";
@@ -32,9 +33,16 @@ const ChannelHeader = () => {
   const { channelDetails, user } = state;
 
   const id = useParams().id as string;
+  const detailsMatch =
+    String(channelDetails?.channels_id || "") === String(id || "");
+  const displayName = detailsMatch
+    ? channelDetails?.name || state?.channelName
+    : state?.channelName;
+  const showPrivateIcon = detailsMatch && channelDetails?.is_private;
 
   const [startLoading, setStartLoading] = useState(false);
   const [joinLoading, setJoinLoading] = useState(false);
+  const [startBuzzConfirmOpen, setStartBuzzConfirmOpen] = useState(false);
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,6 +105,7 @@ const ChannelHeader = () => {
         dispatch({ type: ACTIONS.HAS_JOINED, payload: true });
         dispatch({ type: ACTIONS.BUZZ_SIDEBAR, payload: true });
 
+        setStartBuzzConfirmOpen(false);
         setStartLoading(false);
       }
     } catch (error) {
@@ -120,13 +129,13 @@ const ChannelHeader = () => {
         <ChannelDetailsDialog>
           <Tooltips side="bottom" text="Get channel details">
             <h2 className="text-base lg:text-lg font-bold hover:bg-gray-100 px-2 py-1 rounded-md flex items-center gap-1.5">
-              {(state?.channelName || channelDetails?.name) &&
-                (channelDetails?.is_private ? (
+              {displayName &&
+                (showPrivateIcon ? (
                   <Lock className="size-4 lg:size-5 shrink-0" />
                 ) : (
                   <Hash className="size-4 lg:size-5 shrink-0" />
                 ))}
-              {state?.channelName || channelDetails?.name}
+              {displayName}
             </h2>
           </Tooltips>
         </ChannelDetailsDialog>
@@ -142,7 +151,10 @@ const ChannelHeader = () => {
                       onClick={
                         channelDetails?.active_buzz
                           ? handleJoin
-                          : handleStartBuzz
+                          : async (e) => {
+                              e.preventDefault();
+                              setStartBuzzConfirmOpen(true);
+                            }
                       }
                       isActive={channelDetails?.active_buzz}
                       startLoading={startLoading}
@@ -256,6 +268,17 @@ const ChannelHeader = () => {
         }}
         channelId={id}
         scope="channel"
+      />
+
+      <StartBuzzConfirmModal
+        open={startBuzzConfirmOpen}
+        onOpenChange={setStartBuzzConfirmOpen}
+        onConfirm={handleStartBuzz}
+        loading={startLoading}
+        variant="channel"
+        displayName={displayName || "channel"}
+        memberCount={channelDetails?.user_count}
+        isPrivate={channelDetails?.is_private}
       />
     </nav>
   );

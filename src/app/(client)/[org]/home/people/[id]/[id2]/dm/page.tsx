@@ -18,6 +18,10 @@ import { ACTIONS } from "~/store/Actions";
 import { isUserDeactivated } from "~/utils/user-deactivation";
 import { useIsSmUp } from "~/hooks/use-media-query";
 import { cn } from "~/lib/utils";
+import ConversationSearchSidebar, {
+  CONVERSATION_SEARCH_PANEL_TRANSITION,
+  getConversationSearchSidebarWidth,
+} from "~/app/(client)/[org]/_components/conversation-search/conversation-search-sidebar";
 
 const DmPage = () => {
   const { state, dispatch } = useContext(DataContext);
@@ -149,13 +153,20 @@ const DmPage = () => {
   if (state?.reply) {
     totalSidePanelWidth += getThreadsSidebarLayoutWidth(true, isSmUp);
   }
+  totalSidePanelWidth += getConversationSearchSidebarWidth(
+    Boolean(state?.conversationSearchOpen),
+    isSmUp
+  );
 
   return (
     <div className="flex h-[calc(100vh-70px)] relative w-full overflow-hidden">
       <ChatConnection />
 
       <div
-        className="relative flex flex-col flex-1 transition-[margin] duration-300 ease-in-out"
+        className={cn(
+          "relative flex flex-col flex-1 transition-[margin]",
+          CONVERSATION_SEARCH_PANEL_TRANSITION
+        )}
         style={{ marginRight: `${totalSidePanelWidth}px` }}
       >
         <PeopleHeader user={previewParticipant || participant} />
@@ -183,7 +194,8 @@ const DmPage = () => {
       {/* Master Side Panels Container - Holds all right-aligned panels */}
       <div
         className={cn(
-          "fixed z-30 mt-[60px] right-0 top-0 h-full flex transition-all duration-300 ease-in-out",
+          "fixed z-30 mt-[60px] right-0 top-0 h-full flex overflow-hidden transition-[width]",
+          CONVERSATION_SEARCH_PANEL_TRANSITION,
           !isSmUp && state?.reply && "w-full"
         )}
         style={
@@ -221,6 +233,13 @@ const DmPage = () => {
             />
           </div>
         )}
+
+        <ConversationSearchSidebar
+          channelId={id}
+          conversationLabel={
+            previewParticipant?.username || participant?.username
+          }
+        />
       </div>
     </div>
   );
