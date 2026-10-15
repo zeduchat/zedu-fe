@@ -1,49 +1,67 @@
-<!-- Do not delete this PR template. Just edit it to include the required information -->
+## Ticket
 
-# Description
+<!-- Link the approved ClickUp/Linear ticket. -->
 
-<!-- If your PR fixes an open issue, use `Closes #999` to link your PR with the issue. #999 stands for the issue number you are fixing -->
+- **Ticket ID:** <!-- e.g. CHAT-142 -->
+- **Ticket title:**
 
-<!-- Github Issue Example: Closes #31 -->
+## Team lead
 
-**Closes #issue_number_here**
+<!-- @handle of your team lead. They review and approve before Zedu reviewers pick this up. -->
 
-# Changes proposed
+@
 
-## What were you told to do?
+## What changed
 
-<!-- Write the title of the issue/feature you are working on -->
+<!-- Short summary of the change. -->
 
-## What did you do?
+## Why
 
-<!-- Talk about the things you did eg. files changes, dependencies installed e.t.c -->
+<!-- The problem or reason this ticket exists. -->
 
-# Check List (Check all the applicable boxes)
+## How to test
 
-🚨Please review the [contribution guideline](CONTRIBUTING.md) for this repository.
+<!-- Numbered steps a reviewer can follow to verify the change themselves. -->
 
-<!-- Mark all the applicable boxes. To mark the box as done follow the following conventions -->
+1.
 
-<!--
-[x] - Correct; marked as done
-[X] - Correct; marked as done
-[ ] - Correct; marked as **not** done
+## What to expect
 
-[] - Not Correct; syntax error
-[ x] - Not Correct; space between the brackets
--->
+<!-- The expected behaviour after following the steps above. -->
 
-- [ ] My code follows the code style of this project.
-- [ ] This PR does not contain plagiarized content.
-- [ ] The title and description of the PR is clear and explains the approach.
-- [ ] I am making a pull request against the **dev branch** (left side).
-- [ ] My commit messages styles matches our requested structure.
-- [ ] My code additions will fail neither code linting checks nor unit test.
-- [ ] I am only making changes to files I was requested to.
+## Backend
 
-# Screenshots/Videos
+<!-- Leave this section empty: your preview runs against the live backend. Use a test account, not a real one.
+     Only if this PR needs backend work that isn't on dev yet, add a line here starting with "Backend URL:"
+     followed by that backend's host, for example https://api.<team>.groups.zedu.chat. The Backend dependency
+     check then blocks merging until the backend lands on the live backend and you delete the line. -->
 
-<!-- If the changes are static page changes or UI changes add screenshots -->
-<!-- If the changes involve implementing a functionality or working with apis, include a video
-detailing how to implement the functionality and the request to the api and responses from the api endpoint-->
-<!-- Add all the screenshots/videos which support your changes i.e before your change and after your change -->
+## Test evidence
+
+<!-- The Build check reports the build result automatically. Say which backend you tested against,
+     and whether tests were added or updated for what this ticket changed (and why not, if not). -->
+
+- Tested against:
+- Tests:
+
+## Mandatory checks
+
+_A consolidated team PR ticks **Atomic** per ticket and lists its tickets in the description. The Size check is switched off for now._
+
+- [ ] **Atomic:** one logical change, at most ~400 lines of meaningful code (lockfiles and generated files like `*.tsbuildinfo` don't count). Larger needs a `size-override` label from a reviewer.
+- [ ] **Database / API contract:** schema changes follow Expand-Contract — no destructive drops or renames.
+- [ ] **Preview:** I checked the change in the PR's preview (or ran it locally, if the PR has no preview).
+- [ ] **Protected files:** I did not change `.github/`, `AGENTS.md`, `CONTRIBUTING.md` or tooling config without reviewer agreement and the `config-change-approved` label.
+
+## Screenshots / recording
+
+<!-- Required for visible or interactive changes. Otherwise write "N/A, non-visual change". -->
+
+## Checklist
+
+- [ ] Linked to an approved ticket
+- [ ] Only intended files changed
+- [ ] No secrets or debug code committed
+- [ ] Tests added/updated for what this ticket changed (not retroactive coverage of unrelated code)
+- [ ] Team lead approved this PR
+- [ ] Self-reviewed (`git status` / `git diff`)
