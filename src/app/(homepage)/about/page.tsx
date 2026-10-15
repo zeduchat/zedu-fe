@@ -168,7 +168,6 @@ const AboutPage = () => {
               title={card.title}
               desc={card.desc}
               showBadge
-              showArrow
               className="h-full"
             />
           ))}
