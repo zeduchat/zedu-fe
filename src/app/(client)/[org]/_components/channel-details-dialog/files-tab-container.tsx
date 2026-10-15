@@ -290,7 +290,7 @@ export function FilesTabContainer() {
 
   const fetchPage = useCallback(
     async (pageNumber: number, replace: boolean) => {
-      if (!channelId || fetchInFlightRef.current) return;
+      if (!channelId) return;
 
       if (filter === "links") {
         setFiles([]);
@@ -299,6 +299,8 @@ export function FilesTabContainer() {
         setInitialLoading(false);
         return;
       }
+
+      if (fetchInFlightRef.current) return;
 
       fetchInFlightRef.current = true;
       setLoading(true);
