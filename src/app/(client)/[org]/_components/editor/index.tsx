@@ -283,11 +283,14 @@ function createSuggestionRender(getPopulateFn: () => PopulateFn) {
 const UseTextEditor = (
   subscription?: any,
   handleImagePaste?: any,
-  handleTyping?: (isTyping: boolean) => void
+  handleTyping?: (isTyping: boolean) => void,
+  customPlaceholder?: string
 ) => {
   const { state, dispatch } = useContext(DataContext);
   const name = localStorage.getItem("channelName") || "";
   const [isEmpty, setIsEmpty] = useState(true);
+  const placeholderRef = useRef(customPlaceholder);
+  placeholderRef.current = customPlaceholder;
 
   const memberPopulateRef = useRef<PopulateFn>(null!);
   const channelPopulateRef = useRef<PopulateFn>(null!);
@@ -717,7 +720,15 @@ const UseTextEditor = (
       }),
       MessageEnter,
       Placeholder.configure({
-        placeholder: `Message #${name}`,
+        placeholder: () => {
+          if (placeholderRef.current !== undefined) {
+            return placeholderRef.current;
+          }
+          const currentName = localStorage.getItem("channelName") || "";
+          return currentName
+            ? `Message #${currentName}`
+            : "Start typing a message...";
+        },
       }),
       Mention.configure({
         HTMLAttributes: {
