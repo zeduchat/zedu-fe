@@ -7,6 +7,7 @@ import {
   SmilePlus,
   Bookmark,
   BookmarkCheck,
+  UserPlus,
 } from "lucide-react";
 import MessageItem from "./message-item";
 import { AppleEmojiText } from "~/app/(client)/[org]/_components/apple-emoji/apple-emoji-text";
@@ -212,6 +213,45 @@ const Message = ({
       setShowMobileActions(!showMobileActions);
     }
   };
+
+  if (item?.type === "system") {
+    const noticeText = String(item?.message || "")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    const noticeParts = noticeText.split(/(@[a-zA-Z0-9_.-]+)/g);
+    const noticeTime = new Date(item?.created_at)
+      .toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      })
+      .replace(/\s?(am|pm)/i, "");
+
+    return (
+      <div className="flex items-center gap-2 px-5 py-0.5 text-[13px] leading-5 text-[#6B7280]">
+        <UserPlus size={14} className="shrink-0 text-[#98A2B3]" />
+        <p className="min-w-0 flex-1">
+          {noticeParts.map((part, index) => {
+            if (!part.startsWith("@")) return <span key={index}>{part}</span>;
+            const name = part.slice(1);
+            return (
+              <button
+                key={`${name}-${index}`}
+                type="button"
+                className="font-semibold text-[#6B7280] hover:text-[#5757CD]"
+                onClick={handleOpen}
+              >
+                {name}
+              </button>
+            );
+          })}
+        </p>
+        <span className="shrink-0 text-xs text-[#98A2B3]">{noticeTime}</span>
+      </div>
+    );
+  }
 
   return (
     <div
