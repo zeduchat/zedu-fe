@@ -8,9 +8,11 @@ import { DynamicFooter } from "../_components/footer/dynamic-footer";
 import { Building2, ShieldCheck, UserRoundCog } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "About",
+  title: {
+    absolute: "About Zedu | Our Mission and Learning Community",
+  },
   description:
-    "Learn how Zedu helps schools, universities, and bootcamps run structured, AI-assisted learning communication with organized channels, collaboration tools, and educator-first workflows.",
+    "Learn how Zedu brings educators and learning communities together through structured communication and AI-assisted collaboration.",
   keywords: [
     "about Zedu",
     "education communication platform",
@@ -25,9 +27,9 @@ export const metadata: Metadata = {
     icon: "/TelexIcon.svg",
   },
   openGraph: {
-    title: "About Zedu - Structured Learning Communication Built for Education",
+    title: "About Zedu | Our Mission and Learning Community",
     description:
-      "See Zedu's mission, product philosophy, and approach to building secure, organized, and AI-assisted communication for modern learning teams.",
+      "Learn how Zedu brings educators and learning communities together through structured communication and AI-assisted collaboration.",
     url: siteUrl("/about"),
     siteName: "Zedu",
     images: [
@@ -42,9 +44,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "About Zedu - Built for Structured Learning",
+    title: "About Zedu | Our Mission and Learning Community",
     description:
-      "Discover how Zedu helps educators and learners communicate clearly with structured channels, AI assistance, and secure collaboration.",
+      "Learn how Zedu brings educators and learning communities together through structured communication and AI-assisted collaboration.",
     images: [ogImageUrl("og-image-5.png")],
   },
   alternates: {
