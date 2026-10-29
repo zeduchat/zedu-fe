@@ -3,12 +3,16 @@ import { ArrowBtn, OutlineBtn } from "../ui/Button";
 export const DynamicFooter = ({
   text,
   description,
+  backgroundClassName = "bg-blue-50/30",
 }: {
   text: string;
   description: string;
+  backgroundClassName?: string;
 }) => {
   return (
-    <div className="flex flex-col items-center gap-5 bg-blue-50/30 px-4 py-12 text-center sm:gap-6 sm:px-8 sm:py-16">
+    <div
+      className={`flex flex-col items-center gap-5 ${backgroundClassName} px-4 py-12 text-center sm:gap-6 sm:px-8 sm:py-16`}
+    >
       <h2 className="text-2xl font-semibold leading-tight text-neutral-900 sm:text-3xl md:text-4xl">
         {text}
       </h2>
