@@ -1,16 +1,61 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { homeFAQs, type HomeFAQ } from "../../_lib/faqData";
 import { Accordion } from "~/components/ui/accordion";
 import { FAQAccordionItem } from "./faq/FAQAccordionItem";
 
 type FAQSectionProps = {
   faqs?: HomeFAQ[];
+  answerFragments?: Record<string, string>;
 };
 
-export const FAQSection = ({ faqs = homeFAQs }: FAQSectionProps) => {
+export const FAQSection = ({
+  faqs = homeFAQs,
+  answerFragments,
+}: FAQSectionProps) => {
   const [openItem, setOpenItem] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!answerFragments) return;
+
+    let scrollFrame: number | undefined;
+
+    const openLinkedAnswer = () => {
+      if (scrollFrame) cancelAnimationFrame(scrollFrame);
+
+      let fragment: string;
+      try {
+        fragment = decodeURIComponent(window.location.hash.slice(1));
+      } catch {
+        return;
+      }
+
+      const faq = faqs.find(
+        (item) => answerFragments[item.id] === fragment && fragment !== ""
+      );
+
+      if (!faq) return;
+
+      setOpenItem(faq.id);
+      scrollFrame = requestAnimationFrame(() => {
+        scrollFrame = requestAnimationFrame(() => {
+          document.getElementById(fragment)?.scrollIntoView({
+            behavior: "auto",
+            block: "start",
+          });
+        });
+      });
+    };
+
+    openLinkedAnswer();
+    window.addEventListener("hashchange", openLinkedAnswer);
+
+    return () => {
+      window.removeEventListener("hashchange", openLinkedAnswer);
+      if (scrollFrame) cancelAnimationFrame(scrollFrame);
+    };
+  }, [answerFragments, faqs]);
 
   const handleToggle = (value: string) => {
     setOpenItem(value || null);
@@ -41,6 +86,7 @@ export const FAQSection = ({ faqs = homeFAQs }: FAQSectionProps) => {
               key={faq.id}
               faq={faq}
               isOpen={openItem === faq.id}
+              answerFragment={answerFragments?.[faq.id]}
             />
           ))}
         </Accordion>
