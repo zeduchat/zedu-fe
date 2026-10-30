@@ -44,45 +44,37 @@ export const FAQAccordionItem = ({
     }
   };
 
-  const trigger = (
-    <AccordionTrigger className="px-4 py-4 text-sm font-semibold text-[#101828] hover:no-underline sm:px-6 sm:py-6 sm:text-base">
-      {faq.question}
-      <span className="text-[#7141F8]">
-        {isOpen ? (
-          <Minus className="h-5 w-5 sm:h-6 sm:w-6" />
-        ) : (
-          <Plus className="h-5 w-5 sm:h-6 sm:w-6" />
-        )}
-      </span>
-    </AccordionTrigger>
-  );
-
   return (
     <AccordionItem
       id={answerFragment}
       value={faq.id}
       className="scroll-mt-28 overflow-hidden rounded-xl border border-[#E5E8FF] bg-[#FAFAFF]"
     >
-      {answerFragment ? (
-        <div className="flex items-center [&>h3]:min-w-0 [&>h3]:flex-1">
-          {trigger}
+      <AccordionTrigger className="px-4 py-4 text-sm font-semibold text-[#101828] hover:no-underline sm:px-6 sm:py-6 sm:text-base">
+        {faq.question}
+        <span className="text-[#7141F8]">
+          {isOpen ? (
+            <Minus className="h-5 w-5 sm:h-6 sm:w-6" />
+          ) : (
+            <Plus className="h-5 w-5 sm:h-6 sm:w-6" />
+          )}
+        </span>
+      </AccordionTrigger>
+      <AccordionContent className="px-4 text-sm font-normal text-[#344054] sm:px-6 sm:text-base">
+        <p>{faq.answer}</p>
+        {answerFragment && (
           <Button
             type="button"
-            variant="ghost"
+            variant="link"
             size="sm"
             onClick={copyAnswerLink}
             aria-label={`Copy link to answer: ${faq.question}`}
-            className="mr-2 shrink-0 text-primary-500 hover:bg-primary-50 hover:text-primary-400 sm:mr-4"
+            className="mt-3 h-auto px-0 py-0 text-primary-500 hover:text-primary-400"
           >
             <Link aria-hidden="true" className="h-4 w-4" />
-            <span className="sr-only sm:ml-2 sm:not-sr-only">Copy link</span>
+            <span className="ml-2">Copy link to this answer</span>
           </Button>
-        </div>
-      ) : (
-        trigger
-      )}
-      <AccordionContent className="px-4 text-sm font-normal text-[#344054] sm:px-6 sm:text-base">
-        {faq.answer}
+        )}
       </AccordionContent>
       {answerFragment && (
         <span
