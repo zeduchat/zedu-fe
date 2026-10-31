@@ -57,6 +57,11 @@ const supportLinks: FooterLink[] = [
     label: "Contact Us",
     href: "/contact-sales",
   },
+  {
+    id: 4,
+    label: "Refer a program",
+    href: "/refer",
+  },
 ];
 
 const resourcesLinks: FooterLink[] = [
