@@ -59,14 +59,22 @@ const downloadExportFile = async (
     if (fileUrl.origin === window.location.origin) {
       link.href = fileUrl.toString();
     } else {
-      const response = await fetch(fileUrl.toString());
-      if (!response.ok) {
-        throw new Error("Failed to fetch export file");
-      }
+      try {
+        const response = await fetch(fileUrl.toString());
+        if (!response.ok) {
+          throw new Error("Failed to fetch export file");
+        }
 
-      const objectUrl = URL.createObjectURL(await response.blob());
-      link.href = objectUrl;
-      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+        const objectUrl = URL.createObjectURL(await response.blob());
+        link.href = objectUrl;
+        window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+      } catch {
+        // The file host may not allow CORS reads, so let the browser open
+        // the URL directly as before instead of failing the download.
+        link.href = fileUrl.toString();
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+      }
     }
 
     document.body.appendChild(link);
