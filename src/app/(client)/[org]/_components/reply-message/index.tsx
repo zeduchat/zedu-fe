@@ -1,5 +1,5 @@
 "use client";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { DataContext } from "~/store/GlobalState";
 import InfiniteScroll from "react-infinite-scroll-component";
 import ReplyMessages from "../ChannelMessage/reply-message";
@@ -18,6 +18,8 @@ import {
   MESSAGE_HIGHLIGHT_DURATION_MS,
   removeMessageHighlightClasses,
 } from "~/utils/message-highlight";
+import { shouldFetchSearchReply } from "~/lib/search/navigate";
+import { showError, showSuccess } from "~/components/toast/sonner";
 
 const ReplyMessage = ({ fetchMoreData, hasMore }: any) => {
   const { state, dispatch } = useContext(DataContext);
@@ -28,9 +30,20 @@ const ReplyMessage = ({ fetchMoreData, hasMore }: any) => {
   const channelId = (thread?.channels_id || params.id) as string;
   const [popupId, setPopupId] = useState<any>(null);
   const replyMessageId = searchParams.get("message_id");
+  const urlThreadId = searchParams.get("thread_id");
+  const requestedReplyPageRef = useRef<string | null>(null);
+  const fetchMoreDataRef = useRef(fetchMoreData);
 
   useEffect(() => {
-    if (!replyMessageId || !replies?.length) return;
+    fetchMoreDataRef.current = fetchMoreData;
+  }, [fetchMoreData]);
+
+  useEffect(() => {
+    if (!replyMessageId) {
+      requestedReplyPageRef.current = null;
+      return;
+    }
+    if (!replies?.length) return;
 
     const highlightReply = () => {
       const el = document.getElementById(`reply-${replyMessageId}`);
@@ -44,27 +57,78 @@ const ReplyMessage = ({ fetchMoreData, hasMore }: any) => {
       return true;
     };
 
-    if (highlightReply()) return;
+    if (highlightReply()) {
+      requestedReplyPageRef.current = null;
+      return;
+    }
 
-    requestAnimationFrame(() => {
-      highlightReply();
+    const animationFrame = requestAnimationFrame(() => {
+      if (highlightReply()) {
+        requestedReplyPageRef.current = null;
+        return;
+      }
+
+      const currentThreadReplies = replies.filter(
+        (reply: { thread_id?: string }) =>
+          !reply.thread_id || reply.thread_id === thread?.thread_id
+      );
+
+      // The link points at a reply in one thread. Opening another thread must
+      // not page through that thread looking for it.
+      if (thread?.thread_id !== urlThreadId) return;
+
+      if (
+        shouldFetchSearchReply(replyMessageId, currentThreadReplies, hasMore)
+      ) {
+        const requestKey = `${replyMessageId}:${currentThreadReplies.length}`;
+        if (requestedReplyPageRef.current !== requestKey) {
+          requestedReplyPageRef.current = requestKey;
+          fetchMoreDataRef.current();
+        }
+      }
     });
-  }, [replyMessageId, replies]);
+
+    return () => cancelAnimationFrame(animationFrame);
+  }, [replyMessageId, urlThreadId, replies, hasMore, thread?.thread_id]);
 
   // edit message
   const handleEditMessage = async (content: any) => {
-    // payload
-    const payload = {
-      content: content,
-      message_id: threadReply?.id,
-      thread_id: threadReply?.thread_id,
-    };
+    try {
+      const payload = {
+        content: content,
+        message_id: threadReply?.id,
+        thread_id: threadReply?.thread_id,
+      };
 
-    await PutRequest(`/channels/${channelId}/messages`, payload);
-    dispatch({
-      type: ACTIONS.IS_EDIT_REPLY,
-      payload: false,
-    });
+      const res = await PutRequest(`/channels/${channelId}/messages`, payload);
+      if (res?.status === 200 || res?.status === 201) {
+        const updatedReplies = (replies || []).map((msg: any) =>
+          msg.id === threadReply?.id || msg.thread_id === threadReply?.thread_id
+            ? { ...msg, content: content }
+            : msg
+        );
+        dispatch({
+          type: ACTIONS.REPLIES,
+          payload: {
+            newThreads: updatedReplies,
+            newPage: 1,
+          },
+        });
+        dispatch({
+          type: ACTIONS.IS_EDIT_REPLY,
+          payload: false,
+        });
+        showSuccess("Message updated");
+      } else {
+        const errorMsg =
+          res?.response?.data?.message ||
+          res?.data?.message ||
+          "Failed to update message";
+        showError(errorMsg);
+      }
+    } catch (err: any) {
+      showError(err?.message || "Failed to update message");
+    }
   };
 
   // saved for later messages
