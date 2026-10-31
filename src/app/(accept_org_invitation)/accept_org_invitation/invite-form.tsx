@@ -3,7 +3,12 @@
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { GetRequest, InviteRequest } from "~/utils/new-request";
+import {
+  GetRequest,
+  InviteRequest,
+  SaveMessage as PostOptInRequest,
+} from "~/utils/new-request";
+import { showWarning } from "~/components/toast/sonner";
 import Loading from "~/components/ui/loading";
 import { useRouter, useSearchParams } from "next/navigation";
 import { DataContext } from "~/store/GlobalState";
@@ -72,6 +77,28 @@ const InviteForm = () => {
         localStorage.setItem("orgSlug", orgSlug);
       }
 
+      // Unchecked preserves existing consent; explicit opt-outs need API support.
+      if (marketingOptIn) {
+        try {
+          const user = res.data.data.user;
+          // Use the silent POST helper so an existing opt-in shows no error toast.
+          const optInRes = await PostOptInRequest("/optin", {
+            first_name: user.first_name,
+            last_name: user.last_name,
+            email: user.email,
+          });
+          const status = optInRes?.response?.status ?? optInRes?.status;
+
+          if (status !== 200 && status !== 201 && status !== 409) {
+            throw new Error("Marketing opt-in was not saved");
+          }
+        } catch {
+          showWarning(
+            "Invitation accepted, but your marketing preference could not be saved."
+          );
+        }
+      }
+
       router.push(`/${orgSlug}/invited`);
       return true;
     }
@@ -79,7 +106,7 @@ const InviteForm = () => {
     setButtonLoading(false);
     setLoading(false);
     return false;
-  }, [invitation_token, router]);
+  }, [invitation_token, marketingOptIn, router]);
 
   useEffect(() => {
     if (!org_id || !invitation_token || hasInitialized.current) return;
@@ -226,6 +253,7 @@ const InviteForm = () => {
                   id="marketing"
                   type="checkbox"
                   checked={marketingOptIn}
+                  disabled={buttonLoading}
                   onChange={(e) => setMarketingOptIn(e.target.checked)}
                   className="mt-1"
                 />
