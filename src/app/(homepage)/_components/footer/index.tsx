@@ -1,6 +1,5 @@
 "use client";
-import { isValidEmail } from "~/lib/utils";
-import React, { useState } from "react";
+import React, { useId, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Plus_Jakarta_Sans } from "next/font/google";
@@ -137,6 +136,9 @@ const Footer = () => {
   };
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
+  // #1407: ties the visible label and any error message to the email field.
+  const newsletterId = useId();
+  const newsletterErrorId = `${newsletterId}-error`;
   const [loading, setLoading] = useState<boolean>(false);
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -211,40 +213,20 @@ const Footer = () => {
               onSubmit={handleSubmit}
               className="flex w-full flex-col gap-3 text-slate-100 antialiased"
             >
-              <div className="flex flex-col gap-1">
-                <label
-                  htmlFor="newsletter-email"
-                  className="text-base font-bold tracking-tight text-white"
-                >
-                  Sign up to our Newsletter
-                </label>
-                <p className="text-xs font-normal text-white/80 leading-relaxed">
-                  Fresh ideas, useful insights, delivered to your inbox.
-                </p>
-              </div>
-
-              <div className="flex h-12 w-full items-center justify-between gap-2 rounded-2xl bg-white p-1.5 shadow-md focus-within:ring-2 focus-within:ring-[#6042EC] focus-within:ring-offset-2 focus-within:ring-offset-[#303073]">
-                <div className="flex items-center gap-2.5 pl-3 flex-1 min-w-0">
-                  <svg
-                    className="h-5 w-5 text-gray-400 shrink-0"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.75}
-                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                    />
-                  </svg>
+              <label htmlFor={newsletterId} className="font-medium text-white/95">
+                Sign up to our Newsletter
+              </label>
+              <div>
+                <div className="flex h-14 w-full items-center justify-between gap-2 rounded-xl bg-white p-1.5">
                   <input
-                    id="newsletter-email"
+                    id={newsletterId}
                     type="email"
                     name="newsletter"
-                    aria-invalid={!!error}
-                    aria-describedby={error ? "newsletter-error" : undefined}
-                    placeholder="Your email address"
+                    required
+                    autoComplete="email"
+                    aria-invalid={error ? true : undefined}
+                    aria-describedby={error ? newsletterErrorId : undefined}
+                    placeholder="johndoe@example.com"
                     value={email}
                     onChange={(e) => {
                       setEmail(e.target.value);
@@ -257,24 +239,11 @@ const Footer = () => {
                     className="h-full min-w-0 flex-1 bg-transparent border-none text-sm font-medium text-gray-900 placeholder:text-gray-400 placeholder:font-normal focus:outline-none"
                   />
                 </div>
-                <button
-                  type="submit"
-                  aria-label="Subscribe to newsletter"
-                  disabled={loading}
-                  className="flex h-full items-center justify-center gap-1.5 px-4 text-xs font-semibold text-white bg-[#6042EC] hover:bg-[#7254FC] disabled:opacity-70 transition-all duration-200 rounded-xl shrink-0 shadow-sm"
-                >
-                  {loading ? (
-                    <Loader2
-                      className="h-4 w-4 animate-spin"
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    <>
-                      <span>Subscribe</span>
-                      <span className="text-sm font-semibold">→</span>
-                    </>
-                  )}
-                </button>
+                {error && (
+                  <p id={newsletterErrorId} role="alert" className="text-red-500 text-sm mt-2">
+                    {error}
+                  </p>
+                )}
               </div>
 
               {error && (
