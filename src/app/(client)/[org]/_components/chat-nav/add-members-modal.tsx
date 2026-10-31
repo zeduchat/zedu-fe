@@ -11,6 +11,11 @@ import { showSuccess, showError } from "~/components/toast/sonner";
 import Loading from "~/components/ui/loading";
 import { useOrganisationUsers } from "~/hooks/useOrganisationUsers";
 
+// A group DM holds 10 people including the creator, and the API accepts at
+// most 9 new participants in a single request.
+const MAX_GROUP_PARTICIPANTS = 10;
+const MAX_ADD_PER_REQUEST = 9;
+
 interface AddMembersModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -49,6 +54,9 @@ export const AddMembersModal: React.FC<AddMembersModalProps> = ({
   const [search, setSearch] = useState("");
   const [highlightIndex, setHighlightIndex] = useState(0);
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [liveParticipants, setLiveParticipants] = useState<
+    AddMembersModalProps["existingParticipants"] | null
+  >(null);
 
   const {
     loading: usersLoading,
@@ -63,9 +71,15 @@ export const AddMembersModal: React.FC<AddMembersModalProps> = ({
   );
 
   const participantList = useMemo(
-    () => normalizeParticipants(existingParticipants),
-    [existingParticipants]
+    () => normalizeParticipants(liveParticipants ?? existingParticipants),
+    [liveParticipants, existingParticipants]
   );
+
+  const remainingSlots = Math.max(
+    0,
+    MAX_GROUP_PARTICIPANTS - participantList.length
+  );
+  const selectableSlots = Math.min(MAX_ADD_PER_REQUEST, remainingSlots);
 
   const existingParticipantIds = useMemo(() => {
     const ids = new Set<string>();
@@ -81,8 +95,27 @@ export const AddMembersModal: React.FC<AddMembersModalProps> = ({
       setSelected([]);
       setSearch("");
       setHighlightIndex(0);
+      setLiveParticipants(null);
+      return;
     }
-  }, [isOpen]);
+    if (!orgId || !channelId) return;
+
+    let cancelled = false;
+    const loadParticipants = async () => {
+      const res = await GetRequest(
+        `/organisations/${orgId}/dms/participants/${channelId}`
+      );
+      if (cancelled) return;
+      if (res?.status === 200 || res?.status === 201) {
+        setLiveParticipants(res?.data?.data?.participants ?? []);
+      }
+    };
+    loadParticipants();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, orgId, channelId]);
 
   useEffect(() => {
     if (!isOpen || usersLoading || !hasMore || search.trim()) return;
@@ -117,7 +150,8 @@ export const AddMembersModal: React.FC<AddMembersModalProps> = ({
   }, [orgMembers, selected, existingParticipantIds, state?.user?.user_id]);
 
   const handleSelectUser = (user: User) => {
-    if (!selected.some((u) => u.id === user.id)) {
+    const alreadySelected = selected.some((u) => u.id === user.id);
+    if (!alreadySelected && selected.length < selectableSlots) {
       setSelected((prev) => [...prev, user]);
     }
     setSearch("");
@@ -155,15 +189,26 @@ export const AddMembersModal: React.FC<AddMembersModalProps> = ({
       `/organisations/${orgId}/dms/participants/${channelId}`
     );
     if (res?.status === 200 || res?.status === 201) {
+      const participants = res?.data?.data?.participants ?? [];
+      setLiveParticipants(participants);
       dispatch({
         type: ACTIONS.PARTICIPANTS,
-        payload: res?.data?.data?.participants ?? [],
+        payload: participants,
       });
     }
   };
 
   const handleAddMembers = async () => {
     if (!orgId || !channelId || selected.length === 0) return;
+
+    if (selected.length > selectableSlots) {
+      showError(
+        `You can add up to ${selectableSlots} more ${
+          selectableSlots === 1 ? "person" : "people"
+        } to this group.`
+      );
+      return;
+    }
 
     setSubmitLoading(true);
     try {
@@ -222,6 +267,19 @@ export const AddMembersModal: React.FC<AddMembersModalProps> = ({
             search={search}
             onSearchChange={setSearch}
           />
+
+          <p
+            role={selectableSlots === 0 ? "alert" : undefined}
+            className={`mt-2 text-xs ${
+              selectableSlots === 0 ? "text-[#B42318]" : "text-[#667085]"
+            }`}
+          >
+            {selectableSlots === 0
+              ? "This group already has the maximum of 10 people."
+              : `Up to ${selectableSlots} more ${
+                  selectableSlots === 1 ? "person" : "people"
+                } can join this group (10 maximum).`}
+          </p>
 
           <div className="flex gap-6 border-b mb-3 pt-4">
             <button

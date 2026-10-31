@@ -28,6 +28,10 @@ export interface User {
   default_avatar_url: string;
 }
 
+// The API accepts at most 9 participants when a group DM is created; the
+// creator is added on top, so a group holds 10 people including you.
+const MAX_GROUP_PARTICIPANTS = 9;
+
 const UserRow = React.memo(function UserRow({
   user,
   index,
@@ -163,21 +167,35 @@ const NewChatHeader = ({ onUsersSelected }: any) => {
     onUsersSelected(selectedUsers);
   }, [selectedUsers, onUsersSelected]);
 
+  const atLimit = selectedUsers.length >= MAX_GROUP_PARTICIPANTS;
+
   const handleSearch = (search: string) => {
     setInputValue(search);
     highlightRef.current = 0;
     setHighlightIndex(0);
-    if (!open) setOpen(true);
+    if (!open && !atLimit) setOpen(true);
   };
 
-  const handleSelectUser = useCallback((user: User) => {
-    setSelectedUsers((prev) => [...prev, user]);
-    setInputValue("");
-    highlightRef.current = 0;
-    setHighlightIndex(0);
-    setOpen(false);
-    setTimeout(() => inputRef.current?.focus(), 10);
-  }, []);
+  const handleSelectUser = useCallback(
+    (user: User) => {
+      if (selectedUsers.length >= MAX_GROUP_PARTICIPANTS) {
+        setInputValue("");
+        setOpen(false);
+        return;
+      }
+      setSelectedUsers((prev) =>
+        prev.some((selected) => selected.id === user.id)
+          ? prev
+          : [...prev, user]
+      );
+      setInputValue("");
+      highlightRef.current = 0;
+      setHighlightIndex(0);
+      setOpen(false);
+      setTimeout(() => inputRef.current?.focus(), 10);
+    },
+    [selectedUsers.length]
+  );
 
   const handleHoverRow = useCallback((index: number) => {
     highlightRef.current = index;
@@ -190,7 +208,7 @@ const NewChatHeader = ({ onUsersSelected }: any) => {
 
   const handleInputClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setOpen(true);
+    if (!atLimit) setOpen(true);
   };
 
   const handleListScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -206,7 +224,7 @@ const NewChatHeader = ({ onUsersSelected }: any) => {
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       event.preventDefault();
       if (!open) {
-        setOpen(true);
+        if (!atLimit) setOpen(true);
         return;
       }
 
@@ -267,7 +285,7 @@ const NewChatHeader = ({ onUsersSelected }: any) => {
               onClick={() => {
                 inputRef.current?.focus();
                 setIsInputFocused(true);
-                setOpen(true);
+                if (!atLimit) setOpen(true);
               }}
             >
               {isInputFocused ? (
@@ -327,7 +345,9 @@ const NewChatHeader = ({ onUsersSelected }: any) => {
                 placeholder={
                   selectedUsers.length === 0
                     ? "#a-channel, @somebody, or somebody"
-                    : ""
+                    : atLimit
+                      ? "Maximum of 9 people selected"
+                      : ""
                 }
                 className="flex-1 outline-none text-[15px] placeholder:text-[#98A2B3] min-w-[200px]"
               />
@@ -377,6 +397,13 @@ const NewChatHeader = ({ onUsersSelected }: any) => {
           </PopoverContent>
         </Popover>
       </div>
+
+      {atLimit && (
+        <p role="alert" className="mt-2 text-sm text-[#B42318]">
+          Groups can have up to 10 people, including you. Remove someone to add
+          another.
+        </p>
+      )}
     </div>
   );
 };
