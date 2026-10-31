@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ogImageUrl, siteUrl } from "~/lib/env-urls";
+import { siteUrl } from "~/lib/env-urls";
 import Image from "next/image";
 import { Star } from "lucide-react";
 import { ArrowBtn, OutlineBtn } from "~/app/(homepage)/_components/ui/Button";
@@ -28,14 +28,6 @@ export const metadata: Metadata = {
       "Manage cohorts, support hands-on learning, and build strong bootcamp communities with organized channels and real-time collaboration.",
     url: siteUrl("/solutions/bootcamps"),
     siteName: "Zedu",
-    images: [
-      {
-        url: ogImageUrl("og-image-5.png"),
-        width: 1200,
-        height: 630,
-        alt: "Zedu bootcamps solution page preview",
-      },
-    ],
     type: "website",
     locale: "en_US",
   },
@@ -44,7 +36,6 @@ export const metadata: Metadata = {
     title: "Zedu for Bootcamps - Cohort Management Platform",
     description:
       "Build and manage bootcamp cohorts where mentors, instructors, and students collaborate easily with organized channels and real-time feedback.",
-    images: [ogImageUrl("og-image-5.png")],
   },
   alternates: {
     canonical: siteUrl("/solutions/bootcamps"),

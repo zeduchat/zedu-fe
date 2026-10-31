@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { ogImageUrl, siteUrl } from "~/lib/env-urls";
+import { siteUrl } from "~/lib/env-urls";
 import Image from "next/image";
 import { ArrowBtn } from "../../_components/ui/Button";
 import { FeaturedCard } from "../../_components/ui/FeaturedCard";
@@ -27,14 +27,6 @@ export const metadata: Metadata = {
       "Store lectures, assignments, and class resources in organized spaces while keeping collaboration connected to the right learning context.",
     url: siteUrl("/products/file-management"),
     siteName: "Zedu",
-    images: [
-      {
-        url: ogImageUrl("og-image-5.png"),
-        width: 1200,
-        height: 630,
-        alt: "Zedu file management for structured learning resources",
-      },
-    ],
     type: "website",
   },
   twitter: {
@@ -42,7 +34,6 @@ export const metadata: Metadata = {
     title: "Zedu File Management - Structured Learning Resources",
     description:
       "Keep course files organized, searchable, and secure with a collaboration-ready workspace built for education.",
-    images: [ogImageUrl("og-image-5.png")],
   },
   alternates: {
     canonical: siteUrl("/products/file-management"),

@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { ogImageUrl, siteUrl } from "~/lib/env-urls";
+import { siteUrl } from "~/lib/env-urls";
 import { DynamicFooter } from "../_components/footer/dynamic-footer";
 import { FAQSection } from "../_components/home/FAQSection";
 import type { HomeFAQ } from "../_lib/faqData";
@@ -32,14 +32,6 @@ export const metadata: Metadata = {
       "Compare Zedu plans and features to run structured cohorts, manage learning communication, and scale AI-powered education workflows.",
     url: siteUrl("/pricing"),
     siteName: "Zedu",
-    images: [
-      {
-        url: ogImageUrl("og-image-5.png"),
-        width: 1200,
-        height: 630,
-        alt: "Zedu pricing plans and feature comparison",
-      },
-    ],
     type: "website",
   },
   twitter: {
@@ -47,7 +39,6 @@ export const metadata: Metadata = {
     title: "Zedu Pricing - Flexible Plans for Modern Learning Teams",
     description:
       "Choose a Zedu plan that fits your school, bootcamp, or cohort and unlock AI-powered communication and learning workflows.",
-    images: [ogImageUrl("og-image-5.png")],
   },
   alternates: {
     canonical: siteUrl("/pricing"),

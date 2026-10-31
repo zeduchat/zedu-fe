@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { ogImageUrl, siteUrl } from "~/lib/env-urls";
+import { siteUrl } from "~/lib/env-urls";
 import Image from "next/image";
 import { ArrowBtn } from "../../_components/ui/Button";
 import {
@@ -32,14 +32,6 @@ export const metadata: Metadata = {
       "Keep learning conversations structured with channels built for schools, universities, and cohort-based programs.",
     url: siteUrl("/products/channels"),
     siteName: "Zedu",
-    images: [
-      {
-        url: ogImageUrl("og-image-5.png"),
-        width: 1200,
-        height: 630,
-        alt: "Zedu channels for organized learning communication",
-      },
-    ],
     type: "website",
   },
   twitter: {
@@ -47,7 +39,6 @@ export const metadata: Metadata = {
     title: "Zedu Channels - Structured Class Communication",
     description:
       "Create focused discussions, announcements, and threaded conversations with channels designed for modern education teams.",
-    images: [ogImageUrl("og-image-5.png")],
   },
   alternates: {
     canonical: siteUrl("/products/channels"),
