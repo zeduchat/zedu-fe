@@ -116,6 +116,16 @@ export function pageCampaign(pathname: string | null | undefined): string {
   return slug || "home";
 }
 
+/** App Store URL from NEXT_PUBLIC_APP_STORE_URL, without campaign tags. "" when not set. */
+export function appStoreUrl(): string {
+  return storeBaseUrl("app");
+}
+
+/** Google Play URL from NEXT_PUBLIC_PLAY_STORE_URL, without campaign tags. "" when not set. */
+export function playStoreUrl(): string {
+  return storeBaseUrl("play");
+}
+
 /** Numeric App Store id from NEXT_PUBLIC_APP_STORE_URL (".../id1234567890"). */
 export function appStoreAppId(): string {
   return appStoreUrl().match(/\/id(\d+)/)?.[1] ?? "";
