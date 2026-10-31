@@ -23,7 +23,7 @@ export function ogImageUrl(fileName: string): string {
 }
 
 export function contactSalesUrl(): string {
-  return `${readEnv("NEXT_PUBLIC_BASE_URL")}/contact`;
+  return `${clean(process.env.NEXT_PUBLIC_BASE_URL)}/contact`;
 }
 
 type Store = "app" | "play";
