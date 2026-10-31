@@ -46,15 +46,15 @@ export const homeFAQs: HomeFAQ[] = [
 export const pricingFAQs: HomeFAQ[] = [
   {
     id: "pricing-faq-1",
-    question: "Do we pay per student or a flat rate per workspace?",
+    question: "How is pricing structured?",
     answer:
-      "Zedu does not charge punitive per-student seat fees on standard plans. Unlike corporate chat platforms that bill $7–$15 per user each month, Zedu offers predictable tiered plans with unlimited participants, so your educational budget remains predictable even as your cohorts grow.",
+      "Zedu offers a free Starter plan, a Pro plan at ₦20,000 per month, and custom Enterprise pricing. See the plan comparison for included features and limits, or contact sales about Enterprise.",
   },
   {
     id: "pricing-faq-2",
-    question: "Can we switch plans or pause between cohorts?",
+    question: "How can we change our plan between cohorts?",
     answer:
-      "Yes. Bootcamps and academic terms run on cyclical schedules, so you can upgrade for an active cohort and switch plans or pause directly in your workspace billing settings. All changes take effect at the end of your current billing period.",
+      "Review the plans available in your workspace billing settings. Contact sales to discuss options for your cohort schedule or an Enterprise plan.",
   },
   {
     id: "pricing-faq-3",
@@ -70,21 +70,20 @@ export const pricingFAQs: HomeFAQ[] = [
   },
   {
     id: "pricing-faq-5",
-    question:
-      "Do you offer discounts for schools, non-profits, or student clubs?",
+    question: "Can schools and non-profits ask about special pricing?",
     answer:
-      "Yes. We offer special educational rates and grants for accredited K-12 schools, registered non-profit educational initiatives, and student-run hackathons. Contact our sales team with proof of non-profit or institutional affiliation to apply.",
+      "Contact our sales team to ask whether special pricing is available for your organisation. Eligibility and any discount are confirmed by the team.",
   },
   {
     id: "pricing-faq-6",
-    question: "What payment methods and currencies are supported?",
+    question: "How are online subscription payments processed?",
     answer:
-      "We accept all major credit and debit cards (Visa, Mastercard, American Express) via secure Stripe processing, with support for local and international billing. Annual and Enterprise institutional contracts can also be settled via direct invoice and bank transfer.",
+      "Online subscription billing is processed through Stripe. Contact our sales team with questions about payment arrangements for an institutional plan.",
   },
   {
     id: "pricing-faq-7",
     question: "What happens to our cohort data and channels if we downgrade?",
     answer:
-      "All your cohort channels, message histories, uploaded resources, and student submissions remain securely saved and accessible. Downgrading only adjusts feature limits (such as monthly AI credit allotments); you will never lose access to your previous cohort archives.",
+      "Plan limits can affect available features. Before downgrading, contact support to confirm how the change may affect access to your channels, files, and cohort history.",
   },
 ];
