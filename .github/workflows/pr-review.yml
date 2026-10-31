@@ -71,12 +71,26 @@ jobs:
               --output review-report.json
           fi
 
+      # Pull requests opened from a fork receive a read-only token, so this
+      # action gets "Resource not accessible by integration" when it tries to
+      # post the report. The review itself still runs and the report is kept as
+      # an artifact, so a missing comment must not fail the check.
       - name: Post PR comment
         uses: marocchino/sticky-pull-request-comment@v2
         if: github.event_name == 'pull_request' && always()
+        continue-on-error: true
         with:
           header: pr-review-bot
           path: review-report.md
+
+      - name: Upload review report
+        if: github.event_name == 'pull_request' && always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-review-report
+          path: review-report.json
+          if-no-files-found: ignore
 
       - name: Fail on review errors
         if: steps.review.outcome == 'failure'
