@@ -9,7 +9,9 @@ import { ComparisonShowcase } from "~/app/(homepage)/_components/ui/ComparisonSh
 import { DynamicFooter } from "../../_components/footer/dynamic-footer";
 
 export const metadata: Metadata = {
-  title: "Schools Solutions",
+  title: {
+    absolute: "Zedu for Schools - Structured Communication for Classrooms",
+  },
   description:
     "Improve classroom communication with Zedu. Give teachers and students structured channels for lessons, assignments, discussions, and school-wide updates in one platform.",
   keywords: [
