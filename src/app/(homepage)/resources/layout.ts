@@ -5,9 +5,9 @@ import { ogImageUrl, siteUrl } from "~/lib/env-urls";
 // The page is a client component, so its metadata lives here. Without it the
 // page falls back to the homepage's title, description and canonical.
 export const metadata: Metadata = {
-  title: "Resources",
+  title: "Resources | Zedu",
   description:
-    "Guides, case studies and templates to help universities, schools and bootcamps run better learning communities with Zedu.",
+    "Guides, case studies and templates to help universities, schools, and bootcamps run better learning communities with Zedu.",
   openGraph: {
     title: "Resources for Modern Learning Teams | Zedu",
     description:
