@@ -42,3 +42,49 @@ export const homeFAQs: HomeFAQ[] = [
       "Pricing is flexible based on your institution size, usage needs, and required features. Zedu offers plans for growing cohorts and custom options for larger schools or multi-program organisations.",
   },
 ];
+
+export const pricingFAQs: HomeFAQ[] = [
+  {
+    id: "pricing-faq-1",
+    question: "Do we pay per student or a flat rate per workspace?",
+    answer:
+      "Zedu does not charge punitive per-student seat fees on standard plans. Unlike corporate chat platforms that bill $7–$15 per user each month, Zedu offers predictable tiered plans with unlimited participants, so your educational budget remains predictable even as your cohorts grow.",
+  },
+  {
+    id: "pricing-faq-2",
+    question: "Can we switch plans or pause between cohorts?",
+    answer:
+      "Yes. Bootcamps and academic terms run on cyclical schedules, so you can upgrade for an active cohort and switch plans or pause directly in your workspace billing settings. All changes take effect at the end of your current billing period.",
+  },
+  {
+    id: "pricing-faq-3",
+    question: "Is there a free trial, and do I need a credit card to start?",
+    answer:
+      "No credit card is required. You can launch a free workspace on the Starter plan immediately with organized channels, file sharing, and direct messaging. When you need expanded cohorts, higher AI credit allocations, and advanced moderation tools, you can easily upgrade to Pro.",
+  },
+  {
+    id: "pricing-faq-4",
+    question: "How do AI credits work across plans?",
+    answer:
+      "Every plan includes a monthly allocation of AI credits for automated class summaries, learner Q&A, and study assistants. If your workspace exhausts its monthly allotment, all core communication (messaging, audio, and files) continues without interruption, and admins can top up extra credits at any time.",
+  },
+  {
+    id: "pricing-faq-5",
+    question:
+      "Do you offer discounts for schools, non-profits, or student clubs?",
+    answer:
+      "Yes. We offer special educational rates and grants for accredited K-12 schools, registered non-profit educational initiatives, and student-run hackathons. Contact our sales team with proof of non-profit or institutional affiliation to apply.",
+  },
+  {
+    id: "pricing-faq-6",
+    question: "What payment methods and currencies are supported?",
+    answer:
+      "We accept all major credit and debit cards (Visa, Mastercard, American Express) via secure Stripe processing, with support for local and international billing. Annual and Enterprise institutional contracts can also be settled via direct invoice and bank transfer.",
+  },
+  {
+    id: "pricing-faq-7",
+    question: "What happens to our cohort data and channels if we downgrade?",
+    answer:
+      "All your cohort channels, message histories, uploaded resources, and student submissions remain securely saved and accessible. Downgrading only adjusts feature limits (such as monthly AI credit allotments); you will never lose access to your previous cohort archives.",
+  },
+];
