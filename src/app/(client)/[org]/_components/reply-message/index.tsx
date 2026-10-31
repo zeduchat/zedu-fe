@@ -7,7 +7,7 @@ import Thread from "../ChannelMessage/thread";
 import UserAvatar from "~/components/layout/user-avatar";
 import { Pin } from "lucide-react";
 import MessageItem from "../ChannelMessage/message-item";
-import { GetRequest, PutRequest } from "~/utils/new-request";
+import { PutRequest } from "~/utils/new-request";
 import { ACTIONS } from "~/store/Actions";
 import { useParams, useSearchParams } from "next/navigation";
 import EditReplyMessageBox from "../message-box/edit-reply";
@@ -106,27 +106,6 @@ const ReplyMessage = ({ fetchMoreData, hasMore }: any) => {
     });
   };
 
-  // saved for later messages
-  useEffect(() => {
-    const orgId = localStorage.getItem("orgId") || "";
-
-    const loadSavedChats = async () => {
-      const res = await GetRequest(`/organisations/${orgId}/saved/message`);
-
-      if (res?.status === 200 || res?.status === 201) {
-        const result = res?.data?.data?.map((item: any) => {
-          return item.type === "thread"
-            ? { id: item.id, thread_id: item.thread_id }
-            : { id: item.id };
-        });
-
-        dispatch({ type: ACTIONS.BOOKMARKS, payload: result });
-      }
-    };
-
-    loadSavedChats();
-  }, [dispatch]);
-
   //
 
   return (
@@ -163,7 +142,9 @@ const ReplyMessage = ({ fetchMoreData, hasMore }: any) => {
               const shouldShowAvatar =
                 !nextMessage || nextMessage.user_id !== item.user_id;
 
-              const isSaved = bookmarks?.some((b: any) => b.id === item.id);
+              const isSaved = bookmarks?.some(
+                (b: any) => b.message_id === item.id
+              );
 
               return (
                 <React.Fragment key={item.id ?? index}>

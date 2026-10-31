@@ -32,6 +32,7 @@ import {
   resolveChannelIdForOrgSwitch,
 } from "~/utils/org-switch";
 import { useOrganisationUsers } from "~/hooks/useOrganisationUsers";
+import { useLoadSavedMessages } from "~/hooks/useSavedMessages";
 import { isReservedPathSegment } from "~/lib/reserved-paths";
 import ErrorState, {
   ErrorStateVariant,
@@ -59,6 +60,7 @@ const ClientLayout = ({
     (typeof window !== "undefined" ? localStorage.getItem("orgId") || "" : "");
 
   useOrganisationUsers(orgId, { enabled: isInitialized && !!orgId });
+  useLoadSavedMessages(orgId, { enabled: isInitialized && !!orgId });
 
   useEffect(() => {
     if (
