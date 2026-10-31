@@ -62,8 +62,13 @@ const supportLinks: FooterLink[] = [
 const resourcesLinks: FooterLink[] = [
   { id: 0, label: "Resource Library", href: "/resources" },
   { id: 1, label: "Templates", href: "/templates" },
-  { id: 2, label: "Privacy Policy", href: "/policy" },
-  { id: 3, label: "Terms of Service", href: "/terms-of-service" },
+  {
+    id: 2,
+    label: "Google Classroom Alternative",
+    href: "/alternatives/google-classroom",
+  },
+  { id: 3, label: "Privacy Policy", href: "/policy" },
+  { id: 4, label: "Terms of Service", href: "/terms-of-service" },
 ];
 
 const footerSections = [
