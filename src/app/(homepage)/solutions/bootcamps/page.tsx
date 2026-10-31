@@ -9,7 +9,7 @@ import { ComparisonShowcase } from "~/app/(homepage)/_components/ui/ComparisonSh
 import { DynamicFooter } from "../../_components/footer/dynamic-footer";
 
 export const metadata: Metadata = {
-  title: "Bootcamps Solutions",
+  title: "Cohort Management & Learning Platform for Bootcamps",
   description:
     "Streamline bootcamp management with Zedu. Give instructors, mentors, and students one cohort management platform for structured learning, collaboration, and community building.",
   keywords: [
