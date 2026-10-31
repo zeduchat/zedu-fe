@@ -1,6 +1,5 @@
 describe("Contact Sales phone validation", () => {
   it("rejects alphabetic phone input and accepts a valid formatted phone number", () => {
-    const baseUrl = Cypress.env("baseUrl") || "http://localhost:3000";
     let requestCount = 0;
 
     cy.intercept("POST", "**/contact", (request) => {
@@ -12,7 +11,7 @@ describe("Contact Sales phone validation", () => {
       });
     }).as("contactSales");
 
-    cy.visit(`${baseUrl}/contact-sales`);
+    cy.visit("/contact-sales");
 
     cy.get("#name").type("Test User");
     cy.get("#email").type("test@example.com");
@@ -30,10 +29,14 @@ describe("Contact Sales phone validation", () => {
     });
 
     cy.get("#phone").clear().type("+234 801 234 5678");
+    cy.get("#organization_type").click();
+    cy.contains("[role=option]", "Bootcamp").click();
     cy.contains("button", "Send").click();
 
-    cy.wait("@contactSales")
-      .its("request.body.phone_number")
-      .should("equal", "2348012345678");
+    cy.wait("@contactSales").then(({ request }) => {
+      expect(request.body.phone_number).to.equal("2348012345678");
+      expect(request.body.organization_type).to.equal("Bootcamp");
+      expect(request.body.message).to.match(/^Organization type: Bootcamp/);
+    });
   });
 });

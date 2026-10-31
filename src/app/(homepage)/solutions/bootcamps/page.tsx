@@ -22,9 +22,6 @@ export const metadata: Metadata = {
     "hands-on learning platform",
     "Zedu bootcamps",
   ],
-  icons: {
-    icon: "/TelexIcon.svg",
-  },
   openGraph: {
     title: "Zedu for Bootcamps - Structured Cohort Management",
     description:
@@ -99,7 +96,7 @@ const comparisonData = {
     "Important updates and resources are often lost in crowded channels or long messages and chats",
     "Students often don't know where to ask questions about lectures, and finding resources becomes difficult",
     "Mentors struggle to keep track of student progress and manage group programs across different platforms",
-    "Feedback on assignments and discussions happen in scattered places, making it hard to follow progress.",
+    "Feedback on assignments and discussions happens in scattered places, making it hard to follow progress.",
   ],
   withTitle: "With Zedu",
   withItems: [
@@ -107,7 +104,7 @@ const comparisonData = {
     "Each cohort has focused channels for lessons, resources, and updates",
     "Students receive real-time help through organized discussion channels",
     "Mentors and instructors can track progress and collaboration in one central workspace",
-    "All feedback and collaboration happens in structured threads that are easy to follow.",
+    "All feedback and collaboration happen in structured threads that are easy to follow.",
   ],
 };
 

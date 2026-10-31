@@ -1,14 +1,14 @@
 import { Metadata } from "next";
 import { ogImageUrl, siteUrl } from "~/lib/env-urls";
 import Image from "next/image";
-import { ArrowBtn, OutlineBtn } from "../../_components/ui/Button";
+import { ArrowBtn } from "../../_components/ui/Button";
 import { FeaturedCard } from "../../_components/ui/FeaturedCard";
 import { DynamicFooter } from "../../_components/footer/dynamic-footer";
 import { FAQSection } from "../../_components/home/FAQSection";
 import type { HomeFAQ } from "../../_lib/faqData";
 
 export const metadata: Metadata = {
-  title: "File Management",
+  title: "File Management for Classes and Cohorts",
   description:
     "Manage course files in one structured workspace with Zedu File Management. Organize resources, share securely, and collaborate across classes, cohorts, and departments.",
   keywords: [
@@ -21,9 +21,6 @@ export const metadata: Metadata = {
     "school file workspace",
     "university course files",
   ],
-  icons: {
-    icon: "/TelexIcon.svg",
-  },
   openGraph: {
     title: "Zedu File Management - Organize and Share Learning Materials",
     description:
@@ -162,11 +159,10 @@ const FileManagementProductsPage = () => {
         </p>
         <div className="flex w-full max-w-md flex-row items-center justify-center gap-2 sm:gap-3">
           <ArrowBtn
-            text="Start Organising Files"
+            text="Start Organizing Files"
             linkToHome
             className="justify-center"
           />
-          <OutlineBtn text="Watch demo" />
         </div>
         <div className="w-full max-w-6xl overflow-hidden rounded-2xl">
           <div className="relative aspect-[16/10]  w-full sm:aspect-[16/9] lg:aspect-[2/1] ">

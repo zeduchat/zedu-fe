@@ -59,9 +59,19 @@ export const resources: ResourceItem[] = [
     category: "Guides",
     title: "Using AI assistant for Learning",
     description:
-      "Discover how AI help summarize discussions, answer questions, and support students Zedu workspace.",
+      "Discover how AI helps summarize discussions, answer questions, and support students in the Zedu workspace.",
     image: "/images/homepage/resources/image-4.png",
     link: "#",
+  },
+  {
+    id: 5,
+    tab: "guides",
+    category: "Guides",
+    title: "Moving Your Class from WhatsApp/Telegram to Zedu",
+    description:
+      "Lost messages, buried files and no structure? Here is how to move your class from a chat group to organised channels, step by step.",
+    image: "/images/homepage/resources/image-5.jfif",
+    link: "/resources/moving-your-class-from-whatsapp-telegram-to-zedu",
   },
   {
     id: 6,

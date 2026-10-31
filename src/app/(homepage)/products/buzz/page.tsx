@@ -8,7 +8,7 @@ import type { HomeFAQ } from "../../_lib/faqData";
 import { DynamicFooter } from "../../_components/footer/dynamic-footer";
 
 export const metadata: Metadata = {
-  title: "Buzz: Instant Voice Calls for Learning Teams",
+  title: "Buzz - Instant Voice Conversations for Learning Teams",
   description:
     "Use Zedu Buzz to start instant voice conversations inside learning channels. Collaborate in real time, clarify lessons faster, and review AI-generated session summaries.",
   keywords: [
@@ -22,9 +22,6 @@ export const metadata: Metadata = {
     "university class discussions",
     "interactive communication for students",
   ],
-  icons: {
-    icon: "/TelexIcon.svg",
-  },
   openGraph: {
     title: "Zedu Buzz - Instant Voice Conversations for Learning Teams",
     description:
@@ -121,14 +118,14 @@ const BuzzProductsPage = () => {
           <div className="flex flex-col items-center gap-5 text-center lg:max-w-[470px] lg:items-start lg:text-left">
             <h1 className="text-3xl font-semibold leading-tight text-[#1f2530] sm:text-4xl lg:text-[44px] lg:leading-[1.12]">
               <span className="text-primary-500">Start a Buzz</span> Talk
-              Instantly with Your Team .
+              Instantly with Your Team.
             </h1>
             <p className="max-w-[46ch] text-sm leading-relaxed text-[#5a6170] sm:text-base">
               Buzz lets students, educators, and teams jump into quick voice
               conversations directly inside learning channels.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-start">
-              <ArrowBtn text="Start a buzz" linkToHome />
+              <ArrowBtn text="Start a Buzz" linkToHome />
               {/* <OutlineBtn text="Watch a Demo" /> */}
             </div>
           </div>

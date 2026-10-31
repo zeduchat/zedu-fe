@@ -114,7 +114,9 @@ const DmPage = () => {
       media: medias,
     };
 
-    await PostRequest(`/dms/channels/${id}/threads`, secondPayload);
+    const res = await PostRequest(`/dms/channels/${id}/threads`, secondPayload);
+    // Tells the message box whether to keep the typed text as a draft.
+    return res?.status === 200 || res?.status === 201;
   };
 
   const handleReplyMessage = async (
@@ -206,7 +208,7 @@ const DmPage = () => {
       {/* Master Side Panels Container - Holds all right-aligned panels */}
       <div
         className={cn(
-          "fixed z-30 mt-[60px] right-0 top-0 h-full flex overflow-hidden transition-[width]",
+          "fixed z-30 right-0 top-[60px] bottom-0 flex overflow-hidden transition-[width]",
           CONVERSATION_SEARCH_PANEL_TRANSITION,
           !isSmUp && state?.reply && "w-full"
         )}
