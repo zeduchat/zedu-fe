@@ -1427,6 +1427,7 @@ const reducers = (state: any, action: any) => {
           threadMentions: null,
           threadMentionsHasMore: false,
           unseenThreadCount: 0,
+          unseenThreadCountRevision: (state.unseenThreadCountRevision || 0) + 1,
         };
       }
       if (action.payload?.isRealTime) {
@@ -1467,17 +1468,38 @@ const reducers = (state: any, action: any) => {
         threadMentionsHasMore: hasMore,
         ...(action.payload.newPage === 1 &&
         typeof action.payload.unseenThreadCount === "number"
-          ? { unseenThreadCount: action.payload.unseenThreadCount }
+          ? {
+              unseenThreadCount: action.payload.unseenThreadCount,
+              unseenThreadCountRevision:
+                (state.unseenThreadCountRevision || 0) + 1,
+            }
           : {}),
       };
     }
 
     case ACTIONS.UNSEEN_THREAD_COUNT:
+      if (typeof payload !== "number") return state;
       return {
         ...state,
-        unseenThreadCount:
-          typeof payload === "number" ? payload : state.unseenThreadCount,
+        unseenThreadCount: payload,
+        unseenThreadCountRevision: (state.unseenThreadCountRevision || 0) + 1,
       };
+
+    case ACTIONS.SYNC_UNSEEN_THREAD_COUNT: {
+      const { unseenThreadCount, expectedRevision } = action.payload || {};
+      if (
+        typeof unseenThreadCount !== "number" ||
+        expectedRevision !== (state.unseenThreadCountRevision || 0)
+      ) {
+        return state;
+      }
+
+      return {
+        ...state,
+        unseenThreadCount,
+        unseenThreadCountRevision: (state.unseenThreadCountRevision || 0) + 1,
+      };
+    }
 
     case ACTIONS.MUTE_PARTICIPANT:
       return {

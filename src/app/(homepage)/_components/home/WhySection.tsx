@@ -92,7 +92,7 @@ export const WhySection = () => {
             </div>
             <div className="mt-1">
               <ArrowBtn
-                text="Get started for free"
+                text="Set up your learning space"
                 linkToHome
                 className={cn(celebration && celebration.heroButtonClass)}
               />

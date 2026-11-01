@@ -143,7 +143,7 @@ const AmbassadorsPage = () => {
           <div className="relative w-full overflow-hidden rounded-3xl">
             <div className="relative aspect-[16/11] w-full sm:aspect-[4/3] lg:aspect-[16/10]">
               <Image
-                src="/images/homepage/solutions/schools-hero.png"
+                src="/images/homepage/solutions/schools-hero.jpg"
                 alt="Students seated together while collaborating in a Zedu workspace"
                 fill
                 priority

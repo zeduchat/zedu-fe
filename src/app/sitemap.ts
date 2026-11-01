@@ -20,6 +20,7 @@ const PAGES: { path: string; priority: number }[] = [
   { path: "/products/channels", priority: 0.7 },
   { path: "/products/buzz", priority: 0.7 },
   { path: "/products/file-management", priority: 0.7 },
+  { path: "/products/ai", priority: 0.7 },
   { path: "/download", priority: 0.6 },
   { path: "/contact-sales", priority: 0.6 },
   { path: "/ambassadors", priority: 0.6 },

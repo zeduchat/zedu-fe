@@ -45,6 +45,7 @@ const dropdownSections: DropdownSection[] = [
       { label: "Buzz", href: "/products/buzz" },
       { label: "Channels", href: "/products/channels" },
       { label: "File Management", href: "/products/file-management" },
+      { label: "AI Assistant", href: "/products/ai" },
     ],
   },
   {
@@ -409,7 +410,9 @@ const Header: React.FC = () => {
                   <Link
                     href="/contact-sales"
                     className="flex w-full items-center justify-center rounded-lg border border-white/40 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-white/10"
-                    onClick={() => setIsOpen(false)}
+                    onClick={function () {
+                      setIsOpen(false);
+                    }}
                   >
                     Contact Sales
                   </Link>

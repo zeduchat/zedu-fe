@@ -9,14 +9,14 @@ import { DynamicFooter } from "./_components/footer/dynamic-footer";
 import { getHomeStructuredData } from "./_lib/homeStructuredData";
 
 const description =
-  "Zedu is an AI-powered platform for bootcamps and learning communities. Organize cohorts, run classes and manage communication in one workspace.";
+  "Stop juggling scattered chat groups, meeting links, and shared folders. Zedu brings learners and educators together in one organized space built for bootcamps and learning communities.";
 export const metadata: Metadata = {
   title: {
-    absolute: "Zedu - Learning Platform for Bootcamps, Schools, and Cohorts",
+    absolute: "Zedu - One Workspace for Your Entire Cohort",
   },
   description,
   openGraph: {
-    title: "Zedu - Learning Platform for Bootcamps, Schools, and Cohorts",
+    title: "Zedu - One Workspace for Your Entire Cohort",
     description,
     url: "/",
     siteName: "Zedu",

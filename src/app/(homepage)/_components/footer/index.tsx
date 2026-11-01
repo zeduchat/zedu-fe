@@ -1,6 +1,6 @@
 "use client";
 import { isValidEmail } from "~/lib/utils";
-import React, { useState } from "react";
+import React, { useId, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Plus_Jakarta_Sans } from "next/font/google";
@@ -23,13 +23,12 @@ type FooterLink = {
   label: string;
   href: string;
 };
-
 const productLinks: FooterLink[] = [
   { id: 0, label: "Buzz", href: "/products/buzz" },
   { id: 1, label: "Channels", href: "/products/channels" },
   { id: 2, label: "File Management", href: "/products/file-management" },
+  { id: 3, label: "AI Assistant", href: "/products/ai" },
 ];
-
 const solutionLinks: FooterLink[] = [
   { id: 0, label: "Bootcamps", href: "/solutions/bootcamps" },
   { id: 1, label: "Schools", href: "/solutions/schools" },
@@ -108,21 +107,17 @@ const socialLinks = [
 
 const appStoreLinks = [
   {
-    id: 0,
-    store: "app" as const,
-    icon: "/images/app-download/app-store-badge-2.png",
-    label: "App Store",
-    rating: "4.9",
-    starKey: "app",
-  },
-  {
-    id: 1,
-    store: "play" as const,
-    icon: "/images/app-download/google-play-badge-2.png",
-    label: "Play Store",
-    rating: "4.7",
-    starKey: "play",
-  },
+  id: 0,
+  store: "app" as const,
+  icon: "/images/app-download/app-store-badge-2.png",
+  label: "App Store",
+},
+{
+  id: 1,
+  store: "play" as const,
+  icon: "/images/app-download/google-play-badge-2.png",
+  label: "Google Play",
+},
 ];
 
 const plusJakartaSans = Plus_Jakarta_Sans({ subsets: ["latin"] });
@@ -136,6 +131,9 @@ const Footer = () => {
   };
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
+  // #1407: ties the visible label and any error message to the email field.
+  const newsletterId = useId();
+  const newsletterErrorId = `${newsletterId}-error`;
   const [loading, setLoading] = useState<boolean>(false);
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -192,7 +190,7 @@ const Footer = () => {
             >
               <div className="flex flex-col gap-1">
                 <label
-                  htmlFor="newsletter-email"
+                  htmlFor={newsletterId}
                   className="text-base font-bold tracking-tight text-white"
                 >
                   Sign up to our Newsletter
@@ -218,11 +216,13 @@ const Footer = () => {
                     />
                   </svg>
                   <input
-                    id="newsletter-email"
+                    id={newsletterId}
                     type="email"
                     name="newsletter"
-                    aria-invalid={!!error}
-                    aria-describedby={error ? "newsletter-error" : undefined}
+                    required
+                    autoComplete="email"
+                    aria-invalid={error ? true : undefined}
+                    aria-describedby={error ? newsletterErrorId : undefined}
                     placeholder="Your email address"
                     value={email}
                     onChange={(e) => {
@@ -258,7 +258,7 @@ const Footer = () => {
 
               {error && (
                 <p
-                  id="newsletter-error"
+                  id={newsletterErrorId}
                   className="text-xs font-medium text-red-300"
                   role="alert"
                 >

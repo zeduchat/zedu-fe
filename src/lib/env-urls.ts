@@ -194,8 +194,9 @@ export function officeEmbedUrl(fileUrl: string): string | null {
   return `${base}?src=${encodeURIComponent(fileUrl)}`;
 }
 
+// Called from client components (the Files page owner avatars), so it reads the variable in full.
 export function uiAvatarUrl(name: string): string {
-  return `${readEnv("NEXT_PUBLIC_UI_AVATARS_URL")}?name=${encodeURIComponent(name)}`;
+  return `${clean(process.env.NEXT_PUBLIC_UI_AVATARS_URL)}?name=${encodeURIComponent(name)}`;
 }
 
 export function instagramUrl(): string {

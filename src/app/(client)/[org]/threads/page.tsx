@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext } from "react";
+import { useCallback, useContext, useRef } from "react";
 import { ThreadList } from "../_components/threads/thread-lists";
 import ThreadsSidebar, {
   getThreadsSidebarLayoutWidth,
@@ -11,14 +11,43 @@ import { PostRequest } from "~/utils/new-request";
 import UseThreadReply from "../home/channels/hooks/use-thread-reply";
 import HoverSidebar from "../_components/profile-sidebar/hover-sidebar";
 import { ACTIONS } from "~/store/Actions";
-import { useIsSmUp } from "~/hooks/use-media-query";
+import { useIsSmUp, useMediaQuery } from "~/hooks/use-media-query";
 import { cn } from "~/lib/utils";
+import { loadOrganisationThreadsPage } from "~/utils/org-threads";
 
 const Threads = () => {
   const { state, dispatch } = useContext(DataContext);
   const { thread, loadThread } = state;
-  const { fetchMoreData, hasMore } = UseThreadReply();
   const isSmUp = useIsSmUp();
+  const isDesktopWidth = useMediaQuery("(min-width: 1024px)");
+  const refreshRequestId = useRef(0);
+  const unseenThreadCountRevisionRef = useRef(
+    state?.unseenThreadCountRevision ?? 0
+  );
+  unseenThreadCountRevisionRef.current = state?.unseenThreadCountRevision ?? 0;
+
+  const refreshUnseenThreadCount = useCallback(async () => {
+    const orgId = state?.orgId || localStorage.getItem("orgId") || "";
+    if (!orgId) return;
+
+    const requestId = ++refreshRequestId.current;
+    const expectedRevision = unseenThreadCountRevisionRef.current;
+    const { success, unseenThreadCount } = await loadOrganisationThreadsPage(
+      orgId,
+      1
+    );
+
+    if (success && requestId === refreshRequestId.current) {
+      dispatch({
+        type: ACTIONS.SYNC_UNSEEN_THREAD_COUNT,
+        payload: { unseenThreadCount, expectedRevision },
+      });
+    }
+  }, [dispatch, state?.orgId]);
+
+  const { fetchMoreData, hasMore } = UseThreadReply(
+    isDesktopWidth ? refreshUnseenThreadCount : undefined
+  );
 
   const handleReplyMessage = async (
     id: string,

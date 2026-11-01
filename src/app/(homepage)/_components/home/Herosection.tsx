@@ -199,38 +199,41 @@ const HeroSection = () => {
       />
 
       <h1 className="text-3xl font-bold leading-tight text-neutral-900 sm:text-4xl md:text-5xl lg:text-6xl text-center max-w-5xl">
-        Built for Bootcamps and{" "}
+        One Workspace for Your{" "}
         <span
           className={`transition-colors duration-300 ${
             celebration ? celebration.heroSpanClass : "text-primary-500"
           }`}
         >
-          Learning
+          Entire
         </span>{" "}
-        Communities
+        Cohort
       </h1>
 
       <p className="max-w-[95%] text-xs text-neutral-600 sm:max-w-[90%] sm:text-base md:max-w-[65%] lg:max-w-[50%] lg:text-lg">
         {celebration
           ? `${celebration.description} Bring learners and educators together with organized channels, AI cohort assistants, and seamless collaboration.`
-          : "Bring learners and educators together with organized conversations, seamless cohort collaboration, and affordable communication tools built for learning communities."}
+          : "Stop juggling scattered chat groups, meeting links, and shared folders. Zedu brings learners and educators together in one organized space built for bootcamps and learning communities."}
       </p>
 
       {/* Hero CTA buttons */}
-      <div className="flex w-full max-w-md flex-row items-center justify-center gap-2.5 sm:gap-4">
+      <div className="flex w-full max-w-2xl flex-col items-center justify-center gap-2.5 sm:flex-row sm:gap-4">
         <ArrowBtn
-          text="Try for free"
+          text="Launch Your First Cohort Free"
           linkToHome
           loggedInText="Go to Dashboard"
           className={cn(
-            "justify-center shadow-md",
+            "justify-center text-sm sm:whitespace-nowrap sm:text-base shadow-md",
             celebration && celebration.heroButtonClass
           )}
         />
         <OutlineBtn
           text="Contact sales"
           href="/contact-sales"
-          className={cn(celebration && celebration.heroOutlineBtnClass)}
+          className={cn(
+            "whitespace-nowrap",
+            celebration && celebration.heroOutlineBtnClass
+          )}
         />
       </div>
 

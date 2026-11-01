@@ -1,5 +1,11 @@
 "use client";
-import React, { useContext, useEffect, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import PeopleHeader from "../../../../../_components/people-nav";
 import ProfileSidebar from "../../../../../_components/profile-sidebar";
 import ChatConnection from "~/components/layout/centrifugo/chat-connection";
@@ -22,6 +28,7 @@ import ConversationSearchSidebar, {
   CONVERSATION_SEARCH_PANEL_TRANSITION,
   getConversationSearchSidebarWidth,
 } from "~/app/(client)/[org]/_components/conversation-search/conversation-search-sidebar";
+import { loadOrganisationThreadsPage } from "~/utils/org-threads";
 
 // Global `participant` is whoever was opened last, so only trust it when it is
 // the person this DM is with.
@@ -44,6 +51,30 @@ const DmPage = () => {
   const activeParticipant = isParticipantOf(previewParticipant, id2)
     ? previewParticipant
     : participant;
+  const refreshRequestId = useRef(0);
+  const unseenThreadCountRevisionRef = useRef(
+    state?.unseenThreadCountRevision ?? 0
+  );
+  unseenThreadCountRevisionRef.current = state?.unseenThreadCountRevision ?? 0;
+
+  const refreshUnseenThreadCount = useCallback(async () => {
+    const currentOrgId = state?.orgId || localStorage.getItem("orgId") || "";
+    if (!currentOrgId) return;
+
+    const requestId = ++refreshRequestId.current;
+    const expectedRevision = unseenThreadCountRevisionRef.current;
+    const { success, unseenThreadCount } = await loadOrganisationThreadsPage(
+      currentOrgId,
+      1
+    );
+
+    if (success && requestId === refreshRequestId.current) {
+      dispatch({
+        type: ACTIONS.SYNC_UNSEEN_THREAD_COUNT,
+        payload: { unseenThreadCount, expectedRevision },
+      });
+    }
+  }, [dispatch, state?.orgId]);
 
   // get the participant infor
   useEffect(() => {
@@ -196,6 +227,7 @@ const DmPage = () => {
 
         <PeopleMessage
           participant={activeParticipant}
+          onRead={refreshUnseenThreadCount}
           setShowProfile={setShowProfile}
           showProfile={showProfile}
         />

@@ -38,7 +38,7 @@ export const FeatureSection = () => {
           </p>
           <div>
             <ArrowBtn
-              text="Get started for free"
+              text="Create your free workspace"
               linkToHome
               className={cn(celebration && celebration.heroButtonClass)}
             />
@@ -141,7 +141,7 @@ export const FeatureSection = () => {
               </div>
               <div className="mt-1">
                 <ArrowBtn
-                  text="Get started for free"
+                  text="Bring your class to Zedu"
                   linkToHome
                   className={cn(celebration && celebration.heroButtonClass)}
                 />
