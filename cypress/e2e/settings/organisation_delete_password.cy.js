@@ -56,6 +56,7 @@ describe("organisation deletion password verification", () => {
         win.localStorage.setItem("orgSlug", "test-org");
       },
     });
+    cy.contains("button", "Decline", { timeout: 20000 }).click();
     cy.contains("button", "Delete this organisation", {
       timeout: 20000,
     }).should("be.visible");
