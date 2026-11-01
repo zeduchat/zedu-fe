@@ -67,21 +67,22 @@ const supportLinks: FooterLink[] = [
 const resourcesLinks: FooterLink[] = [
   { id: 0, label: "Resource Library", href: "/resources" },
   { id: 1, label: "Templates", href: "/templates" },
+  { id: 2, label: "Discover cohorts", href: "/cohorts" },
   {
-    id: 2,
+    id: 3,
     label: "Google Classroom Alternative",
     href: "/alternatives/google-classroom",
   },
-  { id: 3, label: "Compare Zedu", href: "/compare" },
-  { id: 4, label: "Zedu vs Discord", href: "/compare/zedu-vs-discord" },
-  { id: 5, label: "Zedu vs Slack", href: "/compare/zedu-vs-slack" },
+  { id: 4, label: "Compare Zedu", href: "/compare" },
+  { id: 5, label: "Zedu vs Discord", href: "/compare/zedu-vs-discord" },
+  { id: 6, label: "Zedu vs Slack", href: "/compare/zedu-vs-slack" },
   {
-    id: 6,
+    id: 7,
     label: "Zedu vs WhatsApp & Telegram",
     href: "/resources?guide=zedu-vs-whatsapp-telegram-for-bootcamps",
   },
-  { id: 7, label: "Privacy Policy", href: "/policy" },
-  { id: 8, label: "Terms of Service", href: "/terms-of-service" },
+  { id: 8, label: "Privacy Policy", href: "/policy" },
+  { id: 9, label: "Terms of Service", href: "/terms-of-service" },
 ];
 
 const footerSections = [
