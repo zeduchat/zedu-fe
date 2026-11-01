@@ -67,7 +67,7 @@ function Login() {
         })
       );
     }
-    router.push("/demo/home?assessment=true");
+    router.push("/demo?assessment=true");
   }, [router]);
 
   useEffect(() => {

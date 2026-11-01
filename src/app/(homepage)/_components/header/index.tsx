@@ -103,7 +103,7 @@ const Header: React.FC = () => {
     if (typeof window !== "undefined") {
       const search = window.location.search;
       if (search.includes("assessment=true") || search.includes("demo=true")) {
-        router.push("/demo/home?assessment=true");
+        router.push("/demo?assessment=true");
       }
     }
   }, [router]);
