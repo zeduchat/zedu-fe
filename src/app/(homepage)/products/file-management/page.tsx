@@ -3,6 +3,10 @@ import { siteUrl } from "~/lib/env-urls";
 import Image from "next/image";
 import { ArrowBtn } from "../../_components/ui/Button";
 import { FeaturedCard } from "../../_components/ui/FeaturedCard";
+import {
+  RelatedProductCard,
+  type RelatedProductCardProps,
+} from "../../_components/ui/RelatedProductCard";
 import { DynamicFooter } from "../../_components/footer/dynamic-footer";
 import { FAQSection } from "../../_components/home/FAQSection";
 import type { HomeFAQ } from "../../_lib/faqData";
@@ -81,21 +85,24 @@ const securedFilesCards = [
   },
 ];
 
-const otherFeatures = [
+const otherFeatures: RelatedProductCardProps[] = [
   {
     title: "Buzz",
     description: "Discuss documents live with voice conversations.",
     icon: "/images/homepage/icons/buzz.png",
+    href: "/products/buzz",
   },
   {
     title: "Channels",
     description: "Share course files directly inside class discussions.",
     icon: "/images/homepage/icons/messaging-system.png",
+    href: "/products/channels",
   },
   {
     icon: "/images/homepage/icons/AI-class-note.png",
-    title: "Ai Agents",
+    title: "AI Assistant",
     description: "Summarize documents and highlight key information.",
+    href: "/products/ai",
   },
   {
     icon: "/images/homepage/icons/whiteboard.png",
@@ -253,24 +260,7 @@ const FileManagementProductsPage = () => {
 
         <div className="grid max-w-7xl mx-auto gap-3 grid-cols-2 sm:gap-4 lg:grid-cols-4 lg:gap-6">
           {otherFeatures.map((feature) => (
-            <div
-              key={feature.title}
-              className="flex h-full flex-col justify-center gap-3 rounded-2xl bg-white p-4 sm:gap-4 sm:rounded-3xl sm:p-6"
-            >
-              <Image
-                src={feature.icon}
-                alt={`${feature.title} icon`}
-                height={40}
-                width={40}
-                className="h-8 w-8 sm:h-10 sm:w-10"
-              />
-              <h3 className="text-base font-semibold text-neutral-900 sm:text-lg">
-                {feature.title}
-              </h3>
-              <p className="text-xs leading-relaxed text-neutral-600 sm:text-sm">
-                {feature.description}
-              </p>
-            </div>
+            <RelatedProductCard key={feature.title} {...feature} />
           ))}
         </div>
       </section>
