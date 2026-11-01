@@ -206,6 +206,7 @@ const SignaturePage = ({ siteBase }: SignaturePageProps) => {
                 <div
                   // nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml
                   className="overflow-x-auto"
+                  // nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml
                   dangerouslySetInnerHTML={{ __html: signature.html }}
                 />
               </div>

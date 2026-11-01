@@ -9,6 +9,14 @@ import { WebinarResourceCard } from "./webinar-resource-card";
 import { tabs, resources } from "../../_lib/resources";
 import { DynamicFooter } from "../../_components/footer/dynamic-footer";
 
+// Templates has its own page (linked after the tabs). Other tabs are listed
+// only once they have a resource, so visitors never open an empty tab.
+const visibleTabs = tabs.filter(
+  (tab) =>
+    tab.id !== "templates" &&
+    resources.some((resource) => resource.tab === tab.id)
+);
+
 /** Resources directory page showcasing guides, webinars, and learning materials. */
 export const ResourcesHub = () => {
   const [activeTab, setActiveTab] = useState("guides");
@@ -82,23 +90,21 @@ export const ResourcesHub = () => {
                 aria-label="Resource tabs"
                 className="inline-flex items-center gap-2 md:gap-3"
               >
-                {tabs
-                  .filter((tab) => tab.id !== "templates")
-                  .map((tab) => (
-                    <button
-                      key={tab.id}
-                      role="tab"
-                      aria-selected={activeTab === tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`min-h-11 shrink-0 rounded-full px-5 text-sm font-medium transition-colors md:px-6 ${
-                        activeTab === tab.id
-                          ? "bg-white text-primary-500 shadow-sm"
-                          : "text-neutral-600 hover:text-neutral-900"
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
+                {visibleTabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    role="tab"
+                    aria-selected={activeTab === tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`min-h-11 shrink-0 rounded-full px-5 text-sm font-medium transition-colors md:px-6 ${
+                      activeTab === tab.id
+                        ? "bg-white text-primary-500 shadow-sm"
+                        : "text-neutral-600 hover:text-neutral-900"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
               </div>
               <Link
                 href="/templates"

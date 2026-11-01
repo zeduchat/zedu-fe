@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Star } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { ArrowBtn, OutlineBtn } from "../ui/Button";
+import { storeRatings } from "~/lib/store-ratings";
 import { useCelebration } from "./CelebrationThemeContext";
 import { cn } from "~/lib/utils";
 import {
@@ -246,7 +247,9 @@ const HeroSection = () => {
                 <Star key={i} color="gold" fill="gold" size={16} />
               ))}
           </div>
-          <span className="font-semibold text-neutral-700">4.9</span>
+          <span className="font-medium text-neutral-600">
+            {storeRatings.play.rating} on {storeRatings.play.name}
+          </span>
         </div>
         <span className="hidden sm:inline" aria-hidden="true">
           |

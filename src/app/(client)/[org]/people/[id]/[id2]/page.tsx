@@ -19,6 +19,7 @@ const PeoplePage = () => {
   const { orgId, reply } = state;
   const [participant, setParticipant] = useState<any>(null);
   const [showProfile, setShowProfile] = useState(false);
+  const [isFavourite, setIsFavourite] = useState<boolean>();
   const params = useParams();
   const id = params.id as string;
   const id2 = params.id2 as string;
@@ -32,6 +33,7 @@ const PeoplePage = () => {
       );
       if (res?.status === 200 || res?.status === 201) {
         setParticipant(res?.data?.data?.participants[0]);
+        setIsFavourite(Boolean(res?.data?.data?.is_favourite));
       }
     };
 
@@ -105,7 +107,11 @@ const PeoplePage = () => {
         <div
           className={`fixed right-0 top-[60px] bottom-0 w-full sm:w-[408px] bg-white border-l border-[#E6EAEF] shadow-[-3px_0px_27px_0px_#DFDFDF] transition-transform duration-300 ease-in-out ${state?.showProfile ? "translate-x-0" : "translate-x-full"}`}
         >
-          <ProfileSidebar user={participant} />
+          <ProfileSidebar
+            user={participant}
+            channelId={id}
+            isFavourite={isFavourite}
+          />
         </div>
       )}
 

@@ -53,11 +53,31 @@ async function showMessagePreviews() {
   }
 }
 
+// The Firebase SDK keeps the push it showed itself under this data key.
+const FCM_MSG_KEY = "FCM_MSG";
+
 messaging.onBackgroundMessage(async (payload) => {
   const title = payload.notification?.title || payload.data?.title || "Zedu";
   const rawBody = payload.notification?.body || payload.data?.body || "";
-  const body =
-    rawBody && !(await showMessagePreviews()) ? HIDDEN_PREVIEW_TEXT : rawBody;
+  const showPreviews = await showMessagePreviews();
+
+  // When the push has a "notification" part, the SDK has already shown it,
+  // with the full message text, before calling this handler.
+  if (payload.notification) {
+    // Showing our own copy as well would give two notifications per message.
+    if (showPreviews || !rawBody) return;
+
+    // Previews are off: replace the SDK's notification with one that hides the text.
+    const shown = await self.registration.getNotifications();
+    shown
+      .filter(
+        (notification) =>
+          notification.data?.[FCM_MSG_KEY]?.fcmMessageId === payload.messageId
+      )
+      .forEach((notification) => notification.close());
+  }
+
+  const body = rawBody && !showPreviews ? HIDDEN_PREVIEW_TEXT : rawBody;
 
   return self.registration.showNotification(title, {
     body,
