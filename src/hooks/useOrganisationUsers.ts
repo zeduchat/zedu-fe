@@ -123,6 +123,8 @@ export const useOrganisationUsers = (
   const [searchTotalItems, setSearchTotalItems] = useState(0);
   const searchPageRef = useRef(0);
   const searchInflightRef = useRef<Set<number>>(new Set());
+  // Monotonically increasing counter; invalidates in-flight responses when a newer search starts.
+  const searchVersionRef = useRef(0);
 
   const orgMembersRef = useRef(state.orgMembers);
   const prevOrgIdRef = useRef(orgId);
@@ -209,6 +211,7 @@ export const useOrganisationUsers = (
       if (!orgId || !query.trim()) return;
       if (searchInflightRef.current.has(pageNumber)) return;
 
+      const requestVersion = ++searchVersionRef.current;
       searchInflightRef.current.add(pageNumber);
       setSearchLoading(true);
 
@@ -216,6 +219,10 @@ export const useOrganisationUsers = (
         const response = await GetRequest(
           buildUsersUrl(orgId, pageNumber, query)
         );
+
+        // Ignore stale responses — a newer search may have started while this
+        // request was in flight. Only the latest query's results may update state.
+        if (requestVersion !== searchVersionRef.current) return;
 
         if (response?.status === 200 || response?.status === 201) {
           const newUsers = response?.data?.data || [];
@@ -288,6 +295,9 @@ export const useOrganisationUsers = (
       return;
     }
 
+    // Invalidate any in-flight response from the previous query so a slow
+    // earlier request cannot overwrite the newer search's results.
+    searchVersionRef.current++;
     searchPageRef.current = 0;
     searchInflightRef.current.clear();
     setSearchUsers([]);
