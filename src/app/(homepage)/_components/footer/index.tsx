@@ -31,9 +31,26 @@ const productLinks: FooterLink[] = [
   { id: 3, label: "AI Assistant", href: "/products/ai" },
 ];
 const solutionLinks: FooterLink[] = [
-  { id: 0, label: "Bootcamps", href: "/solutions/bootcamps" },
-  { id: 1, label: "Schools", href: "/solutions/schools" },
-  { id: 2, label: "Universities", href: "/solutions/universities" },
+  {
+    id: 0,
+    label: "Bootcamps",
+    href: "/solutions/bootcamps",
+  },
+  {
+    id: 1,
+    label: "Schools",
+    href: "/solutions/schools",
+  },
+  {
+    id: 2,
+    label: "Universities",
+    href: "/solutions/universities",
+  },
+  {
+    id: 3,
+    label: "Tutors",
+    href: "/solutions/tutors",
+  },
 ];
 
 const supportLinks: FooterLink[] = [
