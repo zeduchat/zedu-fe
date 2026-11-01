@@ -90,7 +90,7 @@ const otherFeatures = [
   {
     title: "Channels",
     description: "Share course files directly inside class discussions.",
-    icon: "/images/homepage/icons/file-management.png",
+    icon: "/images/homepage/icons/messaging-system.png",
   },
   {
     icon: "/images/homepage/icons/AI-class-note.png",
@@ -262,7 +262,6 @@ const FileManagementProductsPage = () => {
                 alt={`${feature.title} icon`}
                 height={40}
                 width={40}
-                preload
                 className="h-8 w-8 sm:h-10 sm:w-10"
               />
               <h3 className="text-base font-semibold text-neutral-900 sm:text-lg">

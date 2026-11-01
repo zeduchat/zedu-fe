@@ -112,49 +112,55 @@ const PricingPage = () => {
 
       <div
         id="compare-plans"
-        className="mx-auto w-full max-w-7xl scroll-mt-24 px-4 sm:px-8 lg:px-12 space-y-6 relative"
+        className="relative mx-auto w-full max-w-7xl scroll-mt-24 px-4 sm:px-8 lg:px-12"
       >
-        <div className="no-scrollbar">
-          <Table className="min-w-[680px] table-fixed sm:min-w-[760px] no-scrollbar">
-            <colgroup>
-              <col className="w-[40%]" />
-              {pricingComparisonPlans.map((plan) => (
-                <col
-                  key={plan.key}
-                  style={{ width: `${60 / pricingComparisonPlans.length}%` }}
-                />
-              ))}
-            </colgroup>
-
-            <TableHeader>
-              <TableRow className="border-b border-neutral-200 hover:bg-transparent no-scrollbar">
-                <TableHead className="border-r border-neutral-200 px-4 py-3 text-left text-sm font-semibold text-neutral-700">
-                  Plan Features
-                </TableHead>
+        <div className="w-full overflow-x-auto no-scrollbar">
+          <div className="min-w-[680px] space-y-6 sm:min-w-[760px]">
+            <Table
+              className="min-w-[680px] table-fixed sm:min-w-[760px]"
+              containerClassName="overflow-visible"
+            >
+              <colgroup>
+                <col className="w-[40%]" />
                 {pricingComparisonPlans.map((plan) => (
-                  <TableHead
+                  <col
                     key={plan.key}
-                    className="border-r border-neutral-200 px-4 py-3 text-center text-sm font-semibold text-neutral-900 last:border-r-0"
-                  >
-                    {plan.label}
-                  </TableHead>
+                    style={{ width: `${60 / pricingComparisonPlans.length}%` }}
+                  />
                 ))}
-              </TableRow>
-            </TableHeader>
-          </Table>
-        </div>
+              </colgroup>
 
-        {pricingComparisonDemoSections.map((section) => (
-          <PricingComparisonTable
-            key={section.key}
-            plans={pricingComparisonPlans}
-            section={section}
-            rowInfoIcon={
-              <CircleHelp className="h-3.5 w-3.5 text-neutral-400" />
-            }
-            className="mb-8 last:mb-0"
-          />
-        ))}
+              <TableHeader>
+                <TableRow className="border-b border-neutral-200 hover:bg-transparent">
+                  <TableHead className="border-r border-neutral-200 px-4 py-3 text-left text-sm font-semibold text-neutral-700">
+                    Plan Features
+                  </TableHead>
+                  {pricingComparisonPlans.map((plan) => (
+                    <TableHead
+                      key={plan.key}
+                      className="border-r border-neutral-200 px-4 py-3 text-center text-sm font-semibold text-neutral-900 last:border-r-0"
+                    >
+                      {plan.label}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+            </Table>
+
+            {pricingComparisonDemoSections.map((section) => (
+              <PricingComparisonTable
+                key={section.key}
+                plans={pricingComparisonPlans}
+                section={section}
+                rowInfoIcon={
+                  <CircleHelp className="h-3.5 w-3.5 text-neutral-400" />
+                }
+                containerClassName="overflow-visible"
+                className="mb-8 last:mb-0"
+              />
+            ))}
+          </div>
+        </div>
       </div>
 
       <div id="help-center">

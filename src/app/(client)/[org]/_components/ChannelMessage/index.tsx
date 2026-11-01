@@ -33,6 +33,7 @@ const ChannelsMessage = () => {
   const { fetchMoreData, hasMore, loading } = UseChannel();
   const { state, dispatch } = useContext(DataContext);
   const { messages, user, isEdit, thread, notify, bookmarks, dataId } = state;
+  const channelUnreadCount = state?.channelUnreadCount ?? 0;
   const groupedMessages = groupMessagesByDate(messages);
   const params = useParams();
   const id = params.id as string;
@@ -45,12 +46,18 @@ const ChannelsMessage = () => {
   const hasDispatchedRef = useRef(false);
   const unreadCountRef = useRef<number>(0);
   const threadCountRef = useRef<number>(0);
+  const channelUnreadCountRef = useRef<number>(0);
   const capturedRef = useRef(false);
 
   // Keep threadCount in a ref so getData's identity stays stable
   useEffect(() => {
     threadCountRef.current = state?.threadCount || 0;
   }, [state?.threadCount]);
+
+  // Keep the per-channel unread count in a ref for the same reason.
+  useEffect(() => {
+    channelUnreadCountRef.current = channelUnreadCount;
+  }, [channelUnreadCount]);
 
   const clearChannelUnread = useCallback(() => {
     dispatch({
@@ -69,7 +76,10 @@ const ChannelsMessage = () => {
     // Capture unread count once per channel opening (before clearing)
     if (!capturedRef.current) {
       capturedRef.current = true;
-      unreadCountRef.current = threadCountRef.current;
+      // Prefer the per-channel count captured when the channel was opened;
+      // fall back to the live notification count.
+      unreadCountRef.current =
+        channelUnreadCountRef.current || threadCountRef.current;
     }
     await GetRequest(`/threads/channels/${id}?page=1&limit=1`);
     clearChannelUnread();

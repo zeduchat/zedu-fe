@@ -174,7 +174,12 @@ const BuzzProductsPage = () => {
           ))}
         </div>
       </section>
-      <FAQSection faqs={buzzFAQs} />
+      <FAQSection
+        faqs={buzzFAQs}
+        answerFragments={{
+          "buzz-item-3": "how-to-start-a-buzz",
+        }}
+      />
       <DynamicFooter
         text="Start a Buzz with Your Class Today"
         description="Quick voice discussions designed for learning communities."

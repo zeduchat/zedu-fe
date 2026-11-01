@@ -31,6 +31,8 @@ import {
 import { DataContext } from "~/store/GlobalState";
 import { searchUsers } from "~/lib/search/api";
 import type { UserSearchResult } from "~/lib/search/types";
+import { PostRequest } from "~/utils/new-request";
+import { showError, showSuccess, showWarning } from "~/components/toast/sonner";
 import { FileDetails } from "./FileInfo";
 
 interface CreateShareModalProps {
@@ -49,8 +51,18 @@ type Recipient = {
   email?: string;
 };
 
+// One entry per recipient in the POST /files/:id/share response.
+type ShareRecipientResult = {
+  user_id: string;
+  username?: string;
+  success: boolean;
+  error?: string;
+};
+
 const emailSchema = z.string().email();
 const MAX_SUGGESTIONS = 5;
+// The share endpoint rejects longer notes (validate:"max=500").
+const MAX_NOTE_LENGTH = 500;
 const INVALID_RECIPIENT_MESSAGE =
   "Enter a valid email address or choose a workspace member.";
 
@@ -80,6 +92,7 @@ const CreateShareModal: React.FC<CreateShareModalProps> = ({
   const [accessType, setAccessType] = useState<AccessType>("Restricted");
   const [isCopied, setIsCopied] = useState(false);
   const [showSelectCanView, setShowSelectCanView] = useState(false);
+  const [isSending, setIsSending] = useState(false);
 
   const availableSuggestions = suggestions
     .filter((user) => !recipients.some((r) => r.key === `user:${user.id}`))
@@ -221,6 +234,96 @@ const CreateShareModal: React.FC<CreateShareModalProps> = ({
       setAccessType("Restricted");
       setShowSelectCanView(false);
       onClose();
+    }
+  };
+
+  // The API shares only with workspace members, by user id. Members picked
+  // from the suggestions carry one; a typed address is matched to a member
+  // by exact email.
+  const resolveRecipients = async () => {
+    const ids = new Map<string, string>();
+    const outsiders: string[] = [];
+
+    for (const recipient of recipients) {
+      let userId = recipient.userId;
+      const email = recipient.email?.toLowerCase();
+      if (!userId && email && state?.orgId) {
+        const matches = await searchUsers(state.orgId, email).catch(
+          () => [] as UserSearchResult[]
+        );
+        userId = matches.find((u) => u.email?.toLowerCase() === email)?.id;
+      }
+      if (userId) {
+        ids.set(userId, recipient.label);
+      } else {
+        outsiders.push(recipient.label);
+      }
+    }
+
+    return { ids, outsiders };
+  };
+
+  const handleSend = async () => {
+    // An address still in the input becomes a recipient first, or shows why
+    // it can't.
+    if (emailInput.trim()) {
+      addTypedEmail();
+      return;
+    }
+    if (!fileToShare || recipients.length === 0 || isSending) return;
+
+    setIsSending(true);
+    try {
+      const { ids, outsiders } = await resolveRecipients();
+      if (outsiders.length > 0) {
+        setRecipientError(
+          `${outsiders.join(", ")} ${
+            outsiders.length === 1 ? "isn't" : "aren't"
+          } in this workspace. Only workspace members can receive shared files.`
+        );
+        return;
+      }
+
+      const res = await PostRequest(`/files/${fileToShare.id}/share`, {
+        file_id: fileToShare.id,
+        access_type: accessType === "public" ? "public" : "private",
+        permission_type: restrict,
+        note: message.trim(),
+        share_via_dm: true,
+        recipient_ids: Array.from(ids.keys()),
+      });
+      // On failure PostRequest has already shown the API's error message.
+      if (res?.status !== 200 && res?.status !== 201) return;
+
+      const data = res.data?.data;
+      const sent: number = data?.dms_sent?.length ?? 0;
+      const failed = ((data?.recipients_info ?? []) as ShareRecipientResult[])
+        .filter((result) => !result.success)
+        .map(
+          (result) =>
+            `${ids.get(result.user_id) || result.username || "A recipient"}: ${
+              result.error || "not sent"
+            }`
+        );
+
+      if (sent === 0) {
+        showError(`${fileToShare.file_name} wasn't sent`, failed.join("; "));
+        return;
+      }
+      if (failed.length > 0) {
+        showWarning(
+          `Shared with ${sent} of ${sent + failed.length} people`,
+          failed.join("; ")
+        );
+      } else {
+        showSuccess(
+          `Shared ${fileToShare.file_name}`,
+          `Sent to ${sent} ${sent === 1 ? "person" : "people"} by direct message.`
+        );
+      }
+      handleOpenChange(false);
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -393,6 +496,7 @@ const CreateShareModal: React.FC<CreateShareModalProps> = ({
             // className="w-full text-[#344054] placeholder:text-[#344054] min-h-[82px] rounded-[6px] px-4 py-2 focus:border-[#7141f8] border"
             className="w-full text-[#344054] placeholder:text-gray-400 min-h-[82px] rounded-[6px] px-4 py-2 border focus:border-[#7141f8] focus:ring-2 focus:ring-[#7141f8]/20 outline-none transition-all"
             id="share-note"
+            maxLength={MAX_NOTE_LENGTH}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Add additional notes"
@@ -469,10 +573,13 @@ const CreateShareModal: React.FC<CreateShareModalProps> = ({
             </Button>
           </DialogClose>
           <Button
-            disabled={recipients.length === 0}
+            onClick={handleSend}
+            disabled={
+              isSending || (recipients.length === 0 && !emailInput.trim())
+            }
             className="bg-[#7141f8] text-white px-6 py-3 hover:bg-[#7141f8]/90"
           >
-            Send
+            {isSending ? "Sending..." : "Send"}
           </Button>
         </DialogFooter>
 
