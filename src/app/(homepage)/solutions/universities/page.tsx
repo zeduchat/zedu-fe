@@ -9,7 +9,7 @@ import { ComparisonShowcase } from "~/app/(homepage)/_components/ui/ComparisonSh
 import { DynamicFooter } from "../../_components/footer/dynamic-footer";
 
 export const metadata: Metadata = {
-  title: "Universities Solutions",
+  title: "Academic Collaboration & Communication for Universities",
   description:
     "Power higher education communication with Zedu. Connect departments, professors, and students with structured channels, searchable discussions, and AI-assisted learning workflows.",
   keywords: [

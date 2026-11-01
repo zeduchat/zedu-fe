@@ -3,6 +3,8 @@ name: PR pre-commit checks
 on:
   pull_request:
     branches:
+      - dev
+      - central-staging
       - staging
       - main
     types:

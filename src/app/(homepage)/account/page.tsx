@@ -8,7 +8,7 @@ import DeletionRequestForm from "../_components/account/DeletionRequestForm";
 import DeletionFAQ from "../_components/account/DeletionFAQ";
 
 export const metadata: Metadata = {
-  title: "Account Deletion - Zedu",
+  title: "Account Deletion",
   description:
     "Request deletion of your Zedu account and associated data. Learn about our data deletion process, retention policies, and GDPR-compliant privacy practices. Full transparency and control over your information.",
   keywords: [
