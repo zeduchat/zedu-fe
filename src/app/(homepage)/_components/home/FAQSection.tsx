@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { homeFAQs, type HomeFAQ } from "../../_lib/faqData";
 import { Accordion } from "~/components/ui/accordion";
 import { FAQAccordionItem } from "./faq/FAQAccordionItem";
@@ -9,6 +9,7 @@ type FAQSectionProps = {
   faqs?: HomeFAQ[];
   title?: React.ReactNode;
   subtitle?: string;
+  answerFragments?: Record<string, string>;
   headingLevel?: "h1" | "h2";
 };
 
@@ -16,10 +17,60 @@ export const FAQSection = ({
   faqs = homeFAQs,
   title,
   subtitle = "Need clarity? We have clear, practical answers to help you move forward with confidence.",
-  headingLevel,
+  answerFragments,
+  headingLevel = "h2",
 }: FAQSectionProps) => {
   const [openItem, setOpenItem] = useState<string | null>(null);
-  const Heading = headingLevel ?? "h1";
+  const Heading = headingLevel;
+
+  useEffect(() => {
+    if (!answerFragments) return;
+
+    let scrollFrame: number | undefined;
+
+    const openLinkedAnswer = () => {
+      if (scrollFrame !== undefined) {
+        cancelAnimationFrame(scrollFrame);
+        scrollFrame = undefined;
+      }
+
+      let fragment: string;
+
+      try {
+        fragment = decodeURIComponent(window.location.hash.slice(1));
+      } catch {
+        return;
+      }
+
+      const faq = faqs.find(
+        (item) => answerFragments[item.id] === fragment && fragment !== ""
+      );
+
+      if (!faq) return;
+
+      setOpenItem(faq.id);
+
+      scrollFrame = requestAnimationFrame(() => {
+        scrollFrame = requestAnimationFrame(() => {
+          document.getElementById(fragment)?.scrollIntoView({
+            behavior: "auto",
+            block: "start",
+          });
+        });
+      });
+    };
+
+    openLinkedAnswer();
+    window.addEventListener("hashchange", openLinkedAnswer);
+
+    return () => {
+      window.removeEventListener("hashchange", openLinkedAnswer);
+
+      if (scrollFrame !== undefined) {
+        cancelAnimationFrame(scrollFrame);
+      }
+    };
+  }, [answerFragments, faqs]);
 
   const handleToggle = (value: string) => {
     setOpenItem(value || null);
@@ -38,6 +89,7 @@ export const FAQSection = ({
         </Heading>
         <p className="text-base text-[#475467] sm:text-lg">{subtitle}</p>
       </div>
+
       <div className="w-full max-w-5xl text-left">
         <Accordion
           type="single"
@@ -51,6 +103,7 @@ export const FAQSection = ({
               key={faq.id}
               faq={faq}
               isOpen={openItem === faq.id}
+              answerFragment={answerFragments?.[faq.id]}
             />
           ))}
         </Accordion>
