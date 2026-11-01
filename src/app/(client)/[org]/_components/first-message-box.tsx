@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Bold,
   Italic,
@@ -43,9 +43,36 @@ import { AttachmentList } from "./message-box/attachment-list";
 import { useAttachments } from "./message-box/use-attachments";
 import { CHAT_FILE_ACCEPT } from "~/utils/document-files";
 import { localGifToFile, type LocalGif } from "~/lib/gifs/local-pack";
+import type { User } from "./new-chat-header";
 
-const FirstMessageBox = ({ sendMessage }: any) => {
-  const { editor, isEmpty } = UseTextEditor();
+const FirstMessageBox = ({
+  sendMessage,
+  selectedUsers,
+}: {
+  sendMessage: (...args: any[]) => void;
+  selectedUsers: User[];
+}) => {
+  const selectedUsersRef = useRef(selectedUsers);
+  selectedUsersRef.current = selectedUsers;
+  const getPlaceholder = useCallback(() => {
+    const recipients = selectedUsersRef.current;
+    if (recipients.length === 0) {
+      return "Select a recipient to start messaging...";
+    }
+    if (recipients.length > 1) return "Message group";
+
+    const recipient = recipients[0];
+    if (recipient.username) {
+      return `Message @${recipient.username.replace(/^@/, "")}`;
+    }
+    return `Message ${recipient.name}`;
+  }, []);
+  const { editor, isEmpty } = UseTextEditor(
+    undefined,
+    undefined,
+    undefined,
+    getPlaceholder
+  );
   const params = useParams();
   const id = params.id as string;
   const uuid = uuidv7();
@@ -58,6 +85,11 @@ const FirstMessageBox = ({ sendMessage }: any) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { attachments, uploaded, readyToSend, add, remove, retry, clear } =
     useAttachments();
+
+  useEffect(() => {
+    if (!editor) return;
+    editor.view.dispatch(editor.state.tr.setSelection(editor.state.selection));
+  }, [editor, selectedUsers]);
 
   const handleSave = () => {
     if (!text || !url) return;
@@ -94,6 +126,7 @@ const FirstMessageBox = ({ sendMessage }: any) => {
 
     const strippedContent = content?.replace(/<[^>]+>/g, "").trim();
 
+    if (selectedUsers.length === 0) return;
     if (!strippedContent && attachments.length === 0) return;
     if (!readyToSend()) return;
 
@@ -456,7 +489,10 @@ const FirstMessageBox = ({ sendMessage }: any) => {
               type="submit"
               className="p-1.5 hover:bg-gray-100 rounded size-8 flex items-center justify-center"
               onClick={handleSubmit}
-              disabled={isEmpty && attachments.length === 0}
+              disabled={
+                selectedUsers.length === 0 ||
+                (isEmpty && attachments.length === 0)
+              }
             >
               <SendHorizonal
                 className={
