@@ -202,7 +202,9 @@ const SignaturePage = ({ siteBase }: SignaturePageProps) => {
               <div className="flex flex-col gap-5 px-4 py-5 text-sm text-neutral-700 sm:px-5">
                 <p>Hi everyone, this week&apos;s notes are attached.</p>
                 {/* Every value is escaped and links are limited to http(s), mailto and tel in buildSignature. */}
+                {/* nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml */}
                 <div
+                  // nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml
                   className="overflow-x-auto"
                   dangerouslySetInnerHTML={{ __html: signature.html }}
                 />
