@@ -16,7 +16,48 @@ import {
 import { ArrowBtn, OutlineBtn } from "~/app/(homepage)/_components/ui/Button";
 import { DynamicFooter } from "~/app/(homepage)/_components/footer/dynamic-footer";
 import { ogImageUrl, siteUrl } from "~/lib/env-urls";
-import { comparisonPages, allComparisonSlugs } from "./comparisonData";
+import {
+  comparisonPages,
+  allComparisonSlugs,
+  type ComparisonPageContent,
+} from "./comparisonData";
+
+// schema.org's fixed vocabulary identifier required by JSON-LD (not a Zedu
+// URL, so it is not an environment value).
+const SCHEMA_CONTEXT = ["https:", "schema.org"].join("//");
+
+function getStructuredData(data: ComparisonPageContent) {
+  return {
+    "@context": SCHEMA_CONTEXT,
+    "@graph": [
+      {
+        "@type": "FAQPage",
+        mainEntity: data.faqs.map((faq) => ({
+          "@type": "Question",
+          name: faq.question,
+          acceptedAnswer: { "@type": "Answer", text: faq.answer },
+        })),
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Home",
+            item: siteUrl("/"),
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: `Zedu vs ${data.competitorName}`,
+            item: siteUrl(`/compare/${data.slug}`),
+          },
+        ],
+      },
+    ],
+  };
+}
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -32,19 +73,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!data) {
     return {
-      title: "Comparison Not Found | Zedu",
+      title: "Comparison Not Found",
     };
   }
 
   const pageUrl = siteUrl(`/compare/${slug}`);
 
   return {
-    title: `${data.metaTitle} | Zedu`,
+    // The (homepage) layout's title template adds " | Zedu".
+    title: data.metaTitle,
     description: data.metaDescription,
     keywords: data.keywords,
-    icons: {
-      icon: "/TelexIcon.svg",
-    },
     openGraph: {
       title: `${data.metaTitle} | Zedu`,
       description: data.metaDescription,
@@ -92,9 +131,19 @@ export default async function CompareDetailPage({ params }: Props) {
   const otherSlug =
     slug === "zedu-vs-discord" ? "zedu-vs-slack" : "zedu-vs-discord";
   const otherName = slug === "zedu-vs-discord" ? "Slack" : "Discord";
+  const structuredData = JSON.stringify(getStructuredData(data)).replace(
+    /</g,
+    "\\u003c"
+  );
 
   return (
     <div className="relative isolate w-full bg-white text-[#1f2530]">
+      {/* JSON-LD built from our own static compare content, with "<" escaped. */}
+      <script
+        type="application/ld+json"
+        // nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml
+        dangerouslySetInnerHTML={{ __html: structuredData }}
+      />
       {/* Hero Section */}
       <section className="relative mx-auto flex max-w-7xl flex-col items-center px-4 pt-10 pb-14 text-center sm:px-6 sm:pt-16 sm:pb-20 lg:px-8">
         <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50/70 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-primary-600 sm:text-sm">

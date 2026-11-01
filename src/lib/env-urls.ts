@@ -22,8 +22,9 @@ export function ogImageUrl(fileName: string): string {
   return `${readEnv("NEXT_PUBLIC_MEDIA_URL")}/telexprodbucket/public/og-images/${fileName}`;
 }
 
+// Called from the client-side Contact Sales form, so it reads the variable in full.
 export function contactSalesUrl(): string {
-  return `${readEnv("NEXT_PUBLIC_BASE_URL")}/contact`;
+  return `${clean(process.env.NEXT_PUBLIC_BASE_URL)}/contact`;
 }
 
 type Store = "app" | "play";
@@ -193,8 +194,9 @@ export function officeEmbedUrl(fileUrl: string): string | null {
   return `${base}?src=${encodeURIComponent(fileUrl)}`;
 }
 
+// Called from client components (the Files page owner avatars), so it reads the variable in full.
 export function uiAvatarUrl(name: string): string {
-  return `${readEnv("NEXT_PUBLIC_UI_AVATARS_URL")}?name=${encodeURIComponent(name)}`;
+  return `${clean(process.env.NEXT_PUBLIC_UI_AVATARS_URL)}?name=${encodeURIComponent(name)}`;
 }
 
 export function instagramUrl(): string {
