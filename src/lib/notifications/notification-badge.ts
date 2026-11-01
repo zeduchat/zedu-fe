@@ -81,9 +81,9 @@ export const shouldIncrementNotificationBadge = (
     getString(nested.event);
   const section = getString(payload.section) || getString(nested.section);
 
-  // Non-production test events
+  // Test events (enabled in non-production, assessment mode, or test mode)
   if (
-    process.env.NODE_ENV !== "production" &&
+    (process.env.NODE_ENV !== "production" || isTestNotificationEnabled()) &&
     Boolean(payload.isTest || payload.test || nested.isTest)
   ) {
     return true;
@@ -112,7 +112,12 @@ export const isTestNotificationEnabled = (): boolean => {
   try {
     const params = new URLSearchParams(window.location.search);
     if (params.get("testNotification") === "true") return true;
+    if (params.get("assessment") === "true") return true;
+    if (params.get("demo") === "true") return true;
     if (window.localStorage.getItem("enableTestNotifications") === "true") {
+      return true;
+    }
+    if (window.localStorage.getItem("isAssessmentMode") === "true") {
       return true;
     }
   } catch {}
@@ -145,7 +150,7 @@ declare global {
   }
 }
 
-if (typeof window !== "undefined" && process.env.NODE_ENV !== "production") {
+if (typeof window !== "undefined") {
   window.triggerTestNotification = triggerLocalTestNotification;
 }
 

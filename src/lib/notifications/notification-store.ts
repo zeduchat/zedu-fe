@@ -180,6 +180,13 @@ export const fetchAndSyncUnreadBadge = async (
   customGetRequest?: (url: string) => Promise<any>
 ): Promise<number> => {
   if (!orgId || !dispatch) return 0;
+  if (
+    typeof window !== "undefined" &&
+    window.localStorage &&
+    window.localStorage.getItem("isAssessmentMode") === "true"
+  ) {
+    return 0;
+  }
   try {
     let seenAt = getSeenAt(userId, orgId);
     if (seenAt === null) {

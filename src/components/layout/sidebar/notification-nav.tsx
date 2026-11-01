@@ -63,6 +63,37 @@ export default function NotificationNav() {
         return;
       }
 
+      if (
+        typeof window !== "undefined" &&
+        (localStorage.getItem("isAssessmentMode") === "true" ||
+          localStorage.getItem("enableTestNotifications") === "true")
+      ) {
+        setNotifications((prev) => {
+          if (prev.length > 0) return prev;
+          return [
+            {
+              id: "demo-notif-1",
+              title: "Welcome to Zedu Workspace",
+              message: "Your organization workspace is ready for evaluation.",
+              sender_name: "Zedu Team",
+              sent_at: new Date(Date.now() - 3600000).toISOString(),
+              created_at: new Date(Date.now() - 3600000).toISOString(),
+            },
+            {
+              id: "demo-notif-2",
+              title: "Cohort Announcement",
+              message: "Desktop notifications and badge sync are active.",
+              sender_name: "Cohort Lead",
+              sent_at: new Date(Date.now() - 7200000).toISOString(),
+              created_at: new Date(Date.now() - 7200000).toISOString(),
+            },
+          ];
+        });
+        setLoading(false);
+        setHasMore(false);
+        return;
+      }
+
       setLoading(true);
       const res = await GetRequest(
         `/organisations/${resolvedOrgId}/users/onesignal?page=${pageNumber}&limit=${LIMIT}`
