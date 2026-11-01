@@ -88,16 +88,18 @@ const BuzzChat = () => {
     id: string,
     uuid: string,
     content: string,
-    medias: any
+    medias: any,
+    mentions: any = state?.mentions
   ) => {
     const payload = {
       content: content,
       thread_id: uuid,
       media: medias,
-      mentions: state?.mentions,
+      mentions: mentions,
     };
 
-    await PostRequest(`/threads/${id}`, payload);
+    const res = await PostRequest(`/threads/${id}`, payload);
+    return res?.status === 200 || res?.status === 201;
   };
 
   const handleEditMessage = async (content: any) => {
