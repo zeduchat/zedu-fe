@@ -10,7 +10,7 @@ import {
 } from "react";
 import { DataContext } from "~/store/GlobalState";
 import { ACTIONS } from "~/store/Actions";
-import { Loader2, PlusIcon, Search, X } from "lucide-react";
+import { Loader2, PlusIcon, Search, Star, X } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import moment from "moment";
 import { useParams, useRouter } from "next/navigation";
@@ -37,10 +37,22 @@ const dedupeDmList = (dms: any[] | undefined) => {
   return list;
 };
 
+/** Returns the DM list with favourited entries first, stable order within each group. */
+const sortFavouritesFirst = (dms: any[]) => {
+  const favourites: any[] = [];
+  const rest: any[] = [];
+
+  for (const dm of dms) {
+    (dm?.is_favourite ? favourites : rest).push(dm);
+  }
+
+  return [...favourites, ...rest];
+};
+
 const filterDmList = (dms: any[] | undefined, rawQuery: string) => {
   const list = dedupeDmList(dms);
   const query = rawQuery.trim().toLowerCase();
-  if (!query) return list;
+  if (!query) return sortFavouritesFirst(list);
 
   const words = query.split(/\s+/).filter(Boolean);
 
@@ -307,9 +319,18 @@ export default function DMNav({
                       </div>
                       <div className="flex-1">
                         <div className="relative flex justify-between items-start mb-1">
-                          <span className="text-[15px] font-semibold text-white break-words max-w-[200px] line-clamp-2">
-                            {dm.username}
-                          </span>
+                          <div className="flex items-center gap-1 min-w-0">
+                            <span className="text-[15px] font-semibold text-white break-words max-w-[200px] line-clamp-2">
+                              {dm.username}
+                            </span>
+                            {dm?.is_favourite && (
+                              <Star
+                                size={12}
+                                aria-label="Favourited"
+                                className="shrink-0 fill-[#F59E0B] text-[#F59E0B]"
+                              />
+                            )}
+                          </div>
 
                           <div className="">
                             {dm.thread_count > 0 && (

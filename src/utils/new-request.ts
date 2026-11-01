@@ -24,7 +24,7 @@ export const GetRequest = async (url: string) => {
     return res;
   } catch (error: any) {
     handleUnauthorizedIfNeeded(error);
-    // showError(error?.response?.data?.message);
+    showError(error?.response?.data?.message);
     return error;
   }
 };

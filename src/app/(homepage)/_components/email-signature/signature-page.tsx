@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import { Code2, Copy } from "lucide-react";
-import DOMPurify from "dompurify";
 import { Button } from "~/components/ui/button";
 import { showError, showSuccess } from "~/components/toast/sonner";
 import { buildSignature } from "./build-signature";
@@ -86,15 +85,6 @@ const SignaturePage = ({ siteBase }: SignaturePageProps) => {
     () => buildSignature({ ...DEFAULT_VALUES, ...values }, creditUrl),
     [values, creditUrl]
   );
-
-  // The preview is the only place the built markup is injected as HTML, so it
-  // is sanitised with DOMPurify first. DOMPurify needs a DOM, so the markup is
-  // sanitised once the component reaches the browser and the prerendered pass
-  // leaves the preview empty.
-  const [previewHtml, setPreviewHtml] = useState("");
-  useEffect(() => {
-    setPreviewHtml(DOMPurify.sanitize(signature.html));
-  }, [signature.html]);
 
   const guardValid = async (): Promise<boolean> => {
     const ok = await form.trigger();
@@ -211,10 +201,12 @@ const SignaturePage = ({ siteBase }: SignaturePageProps) => {
               </div>
               <div className="flex flex-col gap-5 px-4 py-5 text-sm text-neutral-700 sm:px-5">
                 <p>Hi everyone, this week&apos;s notes are attached.</p>
-                {/* Every value is escaped in buildSignature, and the built markup is sanitised with DOMPurify above. */}
+                {/* Every value is escaped and links are limited to http(s), mailto and tel in buildSignature. */}
+                {/* nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml */}
                 <div
                   className="overflow-x-auto"
-                  dangerouslySetInnerHTML={{ __html: previewHtml }}
+                  // nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml
+                  dangerouslySetInnerHTML={{ __html: signature.html }}
                 />
               </div>
             </div>

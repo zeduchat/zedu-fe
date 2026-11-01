@@ -24,6 +24,16 @@ export const tabs: ResourceTab[] = [
 
 export const resources: ResourceItem[] = [
   {
+    id: 10,
+    tab: "guides",
+    category: "Guides",
+    title: "Zedu vs WhatsApp and Telegram for Bootcamps",
+    description:
+      "A fair comparison for bootcamps running cohorts in WhatsApp or Telegram groups.",
+    image: "/images/homepage/resources/zedu-vs-whatsapp-telegram.png",
+    link: "/resources?guide=zedu-vs-whatsapp-telegram-for-bootcamps",
+  },
+  {
     id: 1,
     tab: "guides",
     category: "Guides",
