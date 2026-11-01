@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import React from "react";
-import { ogImageUrl, siteUrl } from "~/lib/env-urls";
+import { appStoreAppId, ogImageUrl, siteUrl } from "~/lib/env-urls";
 import { Toaster } from "~/components/ui/toaster";
 import { DataProvider } from "~/store/GlobalState";
 import Footer from "./_components/footer";
@@ -35,7 +35,6 @@ export const metadata: Metadata = {
     title: "Zedu - Learning Platform for Bootcamps, Schools, and Cohorts",
     description:
       "Built for modern learning: structured channels, AI-powered support, flexible education pricing, and tools that help educators run better cohorts.",
-    url: "/",
     siteName: "Zedu",
     images: [
       {
@@ -54,13 +53,13 @@ export const metadata: Metadata = {
       "Run modern learning programs with one AI-powered workspace for communication, collaboration, pricing flexibility, and cohort success.",
     images: [ogImageUrl("og-image-5.png")],
   },
-  alternates: {
-    canonical: "/",
-  },
   robots: {
     index: true,
     follow: true,
   },
+  // iOS Smart App Banner: Safari offers the Zedu app on every marketing page.
+  // Left out when the App Store link is not configured.
+  ...(appStoreAppId() ? { itunes: { appId: appStoreAppId() } } : {}),
 };
 
 export default function RootLayout({
@@ -70,8 +69,20 @@ export default function RootLayout({
     <ForceLightTheme>
       <DataProvider>
         <div className="zedu-marketing w-full">
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[1100] focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-neutral-900 focus:shadow-lg"
+          >
+            Skip to main content
+          </a>
           <Header />
-          <div className="pt-12 min-w-screen overflow-x-hidden">{children}</div>
+          <div
+            id="main-content"
+            tabIndex={-1}
+            className="pt-12 min-w-screen overflow-x-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+          >
+            {children}
+          </div>
           <Footer />
         </div>
 

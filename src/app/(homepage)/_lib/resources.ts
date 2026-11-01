@@ -64,6 +64,16 @@ export const resources: ResourceItem[] = [
     link: "#",
   },
   {
+    id: 5,
+    tab: "guides",
+    category: "Guides",
+    title: "Moving Your Class from WhatsApp/Telegram to Zedu",
+    description:
+      "Lost messages, buried files and no structure? Here is how to move your class from a chat group to organised channels, step by step.",
+    image: "/images/homepage/resources/image-5.jfif",
+    link: "/resources/moving-your-class-from-whatsapp-telegram-to-zedu",
+  },
+  {
     id: 6,
     tab: "webinars",
     category: "Webinar",
