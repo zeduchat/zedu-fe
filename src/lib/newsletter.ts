@@ -46,3 +46,38 @@ export async function subscribeToNewsletter(
     return { ok: false, error: GENERIC_ERROR };
   }
 }
+
+export const INVALID_UNSUBSCRIBE_LINK_MESSAGE =
+  "This unsubscribe link is invalid or has expired. Use the link in your most recent newsletter email.";
+
+// Removes an email from the public newsletter. The token comes from the link in
+// the newsletter email, so only the owner of the inbox can unsubscribe it.
+export async function unsubscribeFromNewsletter(
+  email: string,
+  token: string
+): Promise<NewsletterResult> {
+  try {
+    const res = await newsletterClient.post("/newsletter/unsubscribe", {
+      email,
+      token,
+    });
+
+    if (res.status === 200) {
+      return { ok: true };
+    }
+
+    return { ok: false, error: GENERIC_ERROR };
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      const status = err.response?.status;
+
+      if (status === 400 || status === 422) {
+        return { ok: false, error: INVALID_UNSUBSCRIBE_LINK_MESSAGE };
+      }
+
+      return { ok: false, error: err.response?.data?.message || GENERIC_ERROR };
+    }
+
+    return { ok: false, error: GENERIC_ERROR };
+  }
+}
