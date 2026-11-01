@@ -7,8 +7,8 @@ const DESCRIPTION =
   "Assess how effectively your bootcamp or community coordinates communications, resource delivery, and student feedback support.";
 
 export const metadata: Metadata = {
-  // The (homepage) layout's title template adds " | Zedu".
-  title: TITLE,
+  // Absolute, so " | Zedu" appears once whether or not a layout adds a title template.
+  title: { absolute: `${TITLE} | Zedu` },
   description: DESCRIPTION,
   // Without its own openGraph and twitter, a shared link showed the homepage's preview.
   openGraph: {
