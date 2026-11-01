@@ -1,16 +1,14 @@
+/**
+ * Direct Messages product page, rendered by app/(homepage)/products/direct-messages/page.ts.
+ */
 import { Metadata } from "next";
 import Link from "next/link";
 import { ogImageUrl, siteUrl } from "~/lib/env-urls";
 import Image from "next/image";
-import { ArrowBtn } from "../../_components/ui/Button";
-import {
-  CommunitiesIcon,
-  FilesIcon,
-  MessagesIcon,
-  ShareIcon,
-} from "../../_components/svgs";
-import { FAQSection } from "../../_components/home/FAQSection";
-import { DynamicFooter } from "../../_components/footer/dynamic-footer";
+import { ArrowBtn } from "../ui/Button";
+import { CommunitiesIcon, FilesIcon, MessagesIcon, ShareIcon } from "../svgs";
+import { FAQSection } from "../home/FAQSection";
+import { DynamicFooter } from "../footer/dynamic-footer";
 import type { HomeFAQ } from "../../_lib/faqData";
 
 export const metadata: Metadata = {
