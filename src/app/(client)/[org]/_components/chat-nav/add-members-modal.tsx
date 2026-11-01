@@ -165,6 +165,12 @@ export const AddMembersModal: React.FC<AddMembersModalProps> = ({
   const handleAddMembers = async () => {
     if (!orgId || !channelId || selected.length === 0) return;
 
+    if (existingParticipants.length + selected.length > 9) {
+      showError("Cannot add more than 9 members total");
+      setSubmitLoading(false);
+      return;
+    }
+
     setSubmitLoading(true);
     try {
       const user_ids = selected.map((u) => u.id);
