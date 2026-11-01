@@ -219,7 +219,7 @@ const GoogleClassroomAlternativePage = () => {
           <div className="relative w-full overflow-hidden rounded-3xl">
             <div className="relative aspect-[16/11] w-full sm:aspect-[4/3] lg:aspect-[16/10]">
               <Image
-                src="/images/homepage/solutions/schools-hero.png"
+                src="/images/homepage/solutions/schools-hero.jpg"
                 alt="A student wearing a backpack and holding a binder outside a school building"
                 fill
                 priority

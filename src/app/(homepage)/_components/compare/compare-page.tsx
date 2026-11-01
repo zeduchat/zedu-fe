@@ -16,7 +16,8 @@ import { DynamicFooter } from "~/app/(homepage)/_components/footer/dynamic-foote
 import { ogImageUrl, siteUrl } from "~/lib/env-urls";
 
 export const metadata: Metadata = {
-  title: "Platform Comparisons: Zedu vs. Discord & Slack | Zedu",
+  // The (homepage) layout's title template adds " | Zedu".
+  title: "Platform Comparisons: Zedu vs. Discord & Slack",
   description:
     "Compare Zedu with Discord and Slack for bootcamps, schools, and cohort learning. See how structured channels, built-in Buzz calling, and cohort-friendly pricing compare.",
   keywords: [
@@ -27,9 +28,6 @@ export const metadata: Metadata = {
     "education chat software",
     "cohort management platform",
   ],
-  icons: {
-    icon: "/TelexIcon.svg",
-  },
   openGraph: {
     title: "Platform Comparisons: Zedu vs. Discord & Slack | Zedu",
     description:
