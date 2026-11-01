@@ -105,10 +105,24 @@ export const shouldIncrementNotificationBadge = (
 
 export const TRIGGER_NOTIFICATION_EVENT = "zedu:trigger-notification";
 
+export const isTestNotificationEnabled = (): boolean => {
+  if (typeof window === "undefined") return false;
+  if (process.env.NODE_ENV !== "production") return true;
+  if (process.env.NEXT_PUBLIC_ENABLE_TEST_NOTIFICATIONS === "true") return true;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("testNotification") === "true") return true;
+    if (window.localStorage.getItem("enableTestNotifications") === "true") {
+      return true;
+    }
+  } catch {}
+  return false;
+};
+
 export const triggerLocalTestNotification = (
   payload?: NotificationLike
 ): void => {
-  if (typeof window === "undefined" || process.env.NODE_ENV === "production") {
+  if (!isTestNotificationEnabled()) {
     return;
   }
   const data = {

@@ -13,6 +13,7 @@ import {
   shouldIncrementNotificationBadge,
   isNotificationsRoute,
   TRIGGER_NOTIFICATION_EVENT,
+  isTestNotificationEnabled,
 } from "~/lib/notifications/notification-badge";
 import { fetchAndSyncUnreadBadge } from "~/lib/notifications/notification-store";
 import {
@@ -61,10 +62,7 @@ export default function GeneralNotificationConnection() {
   }, []);
 
   useEffect(() => {
-    if (
-      typeof window === "undefined" ||
-      process.env.NODE_ENV === "production"
-    ) {
+    if (!isTestNotificationEnabled()) {
       return;
     }
 

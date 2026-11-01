@@ -1,31 +1,23 @@
 "use client";
 
 import React, { useContext, useState } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Bell } from "lucide-react";
 import { DataContext } from "~/store/GlobalState";
-import { ACTIONS } from "~/store/Actions";
 import {
-  TRIGGER_NOTIFICATION_EVENT,
+  triggerLocalTestNotification,
+  isTestNotificationEnabled,
   isNotificationsRoute,
 } from "~/lib/notifications/notification-badge";
 import { showSuccess, showInfo } from "~/components/toast/sonner";
 
 export default function FloatingTestNotificationButton() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const { state, dispatch } = useContext(DataContext);
+  const { state } = useContext(DataContext);
   const badgeCount = state?.notificationBadgeState?.count ?? 0;
   const [pulsing, setPulsing] = useState(false);
 
-  const isEnabled =
-    process.env.NODE_ENV !== "production" ||
-    process.env.NEXT_PUBLIC_ENABLE_TEST_NOTIFICATIONS === "true" ||
-    searchParams?.get("testNotification") === "true" ||
-    (typeof window !== "undefined" &&
-      window.localStorage.getItem("enableTestNotifications") === "true");
-
-  if (!isEnabled) {
+  if (!isTestNotificationEnabled()) {
     return null;
   }
 
@@ -45,24 +37,15 @@ export default function FloatingTestNotificationButton() {
       created_at: now,
     };
 
-    // 1. Dispatch custom event for Centrifugo listener
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(
-        new CustomEvent(TRIGGER_NOTIFICATION_EVENT, {
-          detail: notificationData,
-        })
-      );
-    }
-
-    // 2. Direct dispatch to DataContext so badge immediately updates
-    dispatch({ type: ACTIONS.NOTIFICATIONS, payload: notificationData });
+    // Trigger test notification through the single centralized event dispatcher.
+    // GeneralNotificationConnection handles the event, adds to notifications, and increments badge by exactly 1.
+    triggerLocalTestNotification(notificationData);
 
     const onNotificationsPage = isNotificationsRoute(pathname);
     if (!onNotificationsPage) {
-      dispatch({ type: ACTIONS.INCREMENT_NOTIFICATION_BADGE });
       showSuccess(
         "Test notification triggered!",
-        `Badge count increased to ${badgeCount + 1}. Check the sidebar bell icon.`
+        `Badge count increased by 1 (Total: ${badgeCount + 1}). Check the sidebar bell icon.`
       );
     } else {
       showInfo(
