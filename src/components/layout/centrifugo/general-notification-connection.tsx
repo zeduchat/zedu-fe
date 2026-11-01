@@ -86,8 +86,9 @@ export default function GeneralNotificationConnection() {
     };
   }, [dispatch]);
 
-  // Sync unread notification count on load/reload
+  // Sync unread notification count on load/reload (skip if on notifications route)
   useEffect(() => {
+    if (isNotificationsRoute(pathnameRef.current)) return;
     let user: { id?: string; user_id?: string } | null = null;
     try {
       user = JSON.parse(localStorage.getItem("user") || "{}");

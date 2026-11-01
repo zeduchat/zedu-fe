@@ -20,7 +20,6 @@ import { getShowMessagePreviews } from "~/lib/notification-preview";
 import {
   isNotificationRead,
   markNotificationAsRead,
-  fetchAndSyncUnreadBadge,
 } from "~/lib/notifications/notification-store";
 import { shouldIncrementNotificationBadge } from "~/lib/notifications/notification-badge";
 
@@ -99,15 +98,7 @@ export default function NotificationNav() {
     setPage(1);
     setHasMore(true);
     fetchNotifications(1);
-    if (resolvedOrgId) {
-      fetchAndSyncUnreadBadge(
-        resolvedOrgId,
-        currentUserId,
-        dispatch,
-        GetRequest
-      );
-    }
-  }, [fetchNotifications, resolvedOrgId, currentUserId, dispatch]);
+  }, [fetchNotifications]);
 
   useEffect(() => {
     if (!state.notifications?.length) return;

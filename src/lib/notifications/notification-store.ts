@@ -16,6 +16,47 @@ export const getStorageKey = (
   return `zedu_read_notifications_${u}_${o}`;
 };
 
+export const getSeenAtStorageKey = (
+  userId?: string | null,
+  orgId?: string | null
+): string => {
+  const u = userId || "default";
+  const o = orgId || "default";
+  return `zedu_notifications_seen_at_${u}_${o}`;
+};
+
+export const getSeenAt = (
+  userId?: string | null,
+  orgId?: string | null
+): number | null => {
+  if (typeof window === "undefined" || !window.localStorage) return null;
+  try {
+    const raw = window.localStorage.getItem(getSeenAtStorageKey(userId, orgId));
+    if (!raw) return null;
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+export const markNotificationsSeen = (
+  userId?: string | null,
+  orgId?: string | null
+): number => {
+  const now = Date.now();
+  if (typeof window === "undefined" || !window.localStorage) return now;
+  try {
+    window.localStorage.setItem(
+      getSeenAtStorageKey(userId, orgId),
+      String(now)
+    );
+  } catch (error) {
+    console.error("Failed to persist notifications seen_at", error);
+  }
+  return now;
+};
+
 export const getReadNotificationIds = (
   userId?: string | null,
   orgId?: string | null
@@ -101,6 +142,37 @@ export const markAllNotificationsAsRead = (
   }
 };
 
+export const getNotificationTimestamp = (item: any): number | null => {
+  if (!item || typeof item !== "object") return null;
+  const raw =
+    item.sent_at ||
+    item.created_at ||
+    item.createdAt ||
+    item.timestamp ||
+    item.data?.sent_at ||
+    item.data?.created_at;
+  if (!raw) return null;
+  if (typeof raw === "number") {
+    // If between 1 billion and 100 billion, it's Unix seconds (e.g. 1730473000)
+    if (raw >= 1e9 && raw < 1e11) {
+      return raw * 1000;
+    }
+    return raw;
+  }
+  if (typeof raw === "string") {
+    const numeric = Number(raw);
+    if (Number.isFinite(numeric) && numeric > 0) {
+      if (numeric >= 1e9 && numeric < 1e11) {
+        return numeric * 1000;
+      }
+      return numeric;
+    }
+    const parsed = Date.parse(raw);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
+
 export const fetchAndSyncUnreadBadge = async (
   orgId: string,
   userId?: string | null,
@@ -109,6 +181,16 @@ export const fetchAndSyncUnreadBadge = async (
 ): Promise<number> => {
   if (!orgId || !dispatch) return 0;
   try {
+    let seenAt = getSeenAt(userId, orgId);
+    if (seenAt === null) {
+      seenAt = markNotificationsSeen(userId, orgId);
+      dispatch({
+        type: ACTIONS.SET_NOTIFICATION_BADGE,
+        payload: 0,
+      });
+      return 0;
+    }
+
     let fetcher = customGetRequest;
     if (!fetcher) {
       const { GetRequest } = await import("~/utils/new-request");
@@ -119,9 +201,15 @@ export const fetchAndSyncUnreadBadge = async (
     );
     if (res?.status === 200 || res?.status === 201) {
       const items = res?.data?.data?.notifications || [];
-      const unreadCount = items.filter(
-        (item: any) => !isNotificationRead(item, userId, orgId)
-      ).length;
+      const unreadCount = items.filter((item: any) => {
+        if (isNotificationRead(item, userId, orgId)) {
+          return false;
+        }
+        const itemTime = getNotificationTimestamp(item);
+        if (itemTime === null) return false;
+        return itemTime > seenAt!;
+      }).length;
+
       dispatch({
         type: ACTIONS.SET_NOTIFICATION_BADGE,
         payload: unreadCount,

@@ -14,6 +14,9 @@ import {
   getReadNotificationIds,
   saveReadNotificationIds,
   getStorageKey,
+  getSeenAt,
+  markNotificationsSeen,
+  fetchAndSyncUnreadBadge,
 } from "../src/lib/notifications/notification-store.ts";
 
 test("isNotificationsRoute correctly identifies notification paths", () => {
@@ -150,6 +153,132 @@ test("unread tracking store correctly identifies and marks read notifications", 
 
   // notif2 is still unread
   assert.equal(isNotificationRead(notif2, userId, orgId), false);
+
+  delete globalThis.window;
+});
+
+test("fetchAndSyncUnreadBadge respects seenAt and unread status", async () => {
+  const mockStorage = new Map();
+  globalThis.window = {
+    localStorage: {
+      getItem: (key) => mockStorage.get(key) || null,
+      setItem: (key, val) => mockStorage.set(key, String(val)),
+      removeItem: (key) => mockStorage.delete(key),
+      clear: () => mockStorage.clear(),
+    },
+  };
+
+  const userId = "test-user-sync";
+  const orgId = "test-org-sync";
+
+  const baselineTime = 1000000;
+  const mockNotifications = [
+    { id: "notif-old", created_at: baselineTime - 10000, is_read: false },
+    {
+      id: "notif-new-unread",
+      created_at: baselineTime + 10000,
+      is_read: false,
+    },
+    { id: "notif-new-read", created_at: baselineTime + 20000, is_read: false },
+  ];
+
+  const mockFetcher = async () => ({
+    status: 200,
+    data: { data: { notifications: mockNotifications } },
+  });
+
+  const dispatched = [];
+  const mockDispatch = (action) => dispatched.push(action);
+
+  // 1. With no seenAt, the sync stores one and reports 0
+  assert.equal(getSeenAt(userId, orgId), null);
+  const initialCount = await fetchAndSyncUnreadBadge(
+    orgId,
+    userId,
+    mockDispatch,
+    mockFetcher
+  );
+  assert.equal(initialCount, 0);
+  assert.ok(getSeenAt(userId, orgId) !== null);
+  assert.equal(
+    dispatched[dispatched.length - 1].type,
+    "SET_NOTIFICATION_BADGE"
+  );
+  assert.equal(dispatched[dispatched.length - 1].payload, 0);
+
+  // Set seenAt to baselineTime for explicit testing
+  mockStorage.set(
+    `zedu_notifications_seen_at_${userId}_${orgId}`,
+    String(baselineTime)
+  );
+  assert.equal(getSeenAt(userId, orgId), baselineTime);
+
+  // 2. Items older than seenAt don't count, even if unread
+  // 3. A newer unread item counts, and a newer read item doesn't
+  markNotificationAsRead("notif-new-read", userId, orgId);
+
+  dispatched.length = 0;
+  const countWithNewer = await fetchAndSyncUnreadBadge(
+    orgId,
+    userId,
+    mockDispatch,
+    mockFetcher
+  );
+  assert.equal(countWithNewer, 1);
+  assert.equal(
+    dispatched[dispatched.length - 1].type,
+    "SET_NOTIFICATION_BADGE"
+  );
+  assert.equal(dispatched[dispatched.length - 1].payload, 1);
+
+  // 4. After markNotificationsSeen, the count is 0
+  markNotificationsSeen(userId, orgId);
+  dispatched.length = 0;
+  const countAfterSeen = await fetchAndSyncUnreadBadge(
+    orgId,
+    userId,
+    mockDispatch,
+    mockFetcher
+  );
+  assert.equal(countAfterSeen, 0);
+  assert.equal(
+    dispatched[dispatched.length - 1].type,
+    "SET_NOTIFICATION_BADGE"
+  );
+  assert.equal(dispatched[dispatched.length - 1].payload, 0);
+
+  // 5. Handles ISO strings and sent_at field
+  const now = Date.now();
+  mockStorage.set(`zedu_notifications_seen_at_${userId}_${orgId}`, String(now));
+  const isoFetcher = async () => ({
+    status: 200,
+    data: {
+      data: {
+        notifications: [
+          {
+            id: "notif-iso-old",
+            sent_at: new Date(now - 60000).toISOString(),
+            is_read: false,
+          },
+          {
+            id: "notif-iso-new",
+            sent_at: new Date(now + 60000).toISOString(),
+            is_read: false,
+          },
+        ],
+      },
+    },
+  });
+
+  dispatched.length = 0;
+  const countIso = await fetchAndSyncUnreadBadge(
+    orgId,
+    userId,
+    mockDispatch,
+    isoFetcher
+  );
+  assert.equal(countIso, 1);
+  assert.equal(dispatched[dispatched.length - 1].payload, 1);
 
   delete globalThis.window;
 });
