@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { campaignPayload } from "~/lib/campaign-attribution";
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { Button } from "~/components/ui/button";
@@ -21,6 +22,7 @@ import {
 } from "~/lib/password";
 
 import { isAutoCreatedOrg } from "~/utils/organisation";
+import { getSafeRedirect } from "~/utils/safe-redirect";
 
 /**
  * User registration page supporting email/password, Google, Apple auth, and template onboarding.
@@ -63,10 +65,13 @@ function SignUp() {
     try {
       const id_token = response?.authorization?.id_token;
       if (!id_token) throw new Error("No id_token from Apple");
-      const res = await PostRequest("/auth/apple", { id_token });
+      const res = await PostRequest("/auth/apple", {
+        id_token,
+        ...campaignPayload(),
+      });
       if (res?.status === 200 || res?.status === 201) {
         const user = res?.data?.data?.user;
-        const redirectUrl = searchParams.get("redirect") || "";
+        const redirectUrl = getSafeRedirect(searchParams.get("redirect"));
         localStorage.setItem("token", res?.data?.data?.access_token);
         localStorage.setItem("useremail", user?.email);
         localStorage.setItem("user", JSON.stringify(user));
@@ -196,11 +201,12 @@ function SignUp() {
     if (validateForm()) {
       setLoading(true);
       const payload = {
+        ...campaignPayload(),
         email: trimmedEmail,
         password,
       };
 
-      const redirectUrl = searchParams.get("redirect") || "";
+      const redirectUrl = getSafeRedirect(searchParams.get("redirect"));
       const res = await PostRequest("/auth/register", payload);
 
       if (res?.status === 200 || res?.status === 201) {
@@ -259,11 +265,12 @@ function SignUp() {
       try {
         const res = await PostRequest("/auth/google", {
           grant_code: code,
+          ...campaignPayload(),
         });
 
         if (res?.status === 200 || res?.status === 201) {
           const user = res?.data?.data?.user;
-          const redirectUrl = searchParams.get("redirect") || "";
+          const redirectUrl = getSafeRedirect(searchParams.get("redirect"));
 
           localStorage.setItem("token", res?.data?.data?.access_token);
           localStorage.setItem("useremail", user?.email);

@@ -71,13 +71,19 @@ jobs:
               --output review-report.json
           fi
 
-      # Pull requests opened from a fork receive a read-only token, so this
-      # action gets "Resource not accessible by integration" when it tries to
-      # post the report. The review itself still runs and the report is kept as
-      # an artifact, so a missing comment must not fail the check.
+      - name: Publish review summary
+        if: always()
+        run: |
+          if [ -f review-report.md ]; then
+            cat review-report.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Post PR comment
         uses: marocchino/sticky-pull-request-comment@v2
-        if: github.event_name == 'pull_request' && always()
+        # Fork PR tokens are read-only. Keep the review and its failure gate,
+        # and publish fork results in the job summary without requesting write access.
+        # continue-on-error keeps a token refusal from failing an otherwise green check.
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && always()
         continue-on-error: true
         with:
           header: pr-review-bot

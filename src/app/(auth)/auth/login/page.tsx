@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { campaignPayload } from "~/lib/campaign-attribution";
 import { Checkbox } from "~/components/ui/checkbox";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
@@ -11,6 +12,7 @@ import { showError } from "~/components/toast/sonner";
 import { PostRequest } from "~/utils/request";
 import Loading from "~/components/ui/loading";
 import { LoginWebhookRequest } from "~/utils/webhook-request";
+import { getSafeRedirect } from "~/utils/safe-redirect";
 import { useGoogleLogin } from "@react-oauth/google";
 import AppleSignin from "react-apple-signin-auth";
 import { Separator } from "~/components/ui/separator";
@@ -63,10 +65,13 @@ function Login() {
     try {
       const id_token = response?.authorization?.id_token;
       if (!id_token) throw new Error("No id_token from Apple");
-      const res = await PostRequest("/auth/apple", { id_token });
+      const res = await PostRequest("/auth/apple", {
+        id_token,
+        ...campaignPayload(),
+      });
       if (res?.status === 200 || res?.status === 201) {
         const user = res?.data?.data?.user;
-        const redirectUrl = searchParams.get("redirect") || "";
+        const redirectUrl = getSafeRedirect(searchParams.get("redirect"));
         localStorage.setItem("token", res?.data?.data?.access_token);
         localStorage.setItem("useremail", user?.email);
         localStorage.setItem("user", JSON.stringify(user));
@@ -140,7 +145,7 @@ function Login() {
         password,
       };
 
-      const redirectUrl = searchParams.get("redirect") || "";
+      const redirectUrl = getSafeRedirect(searchParams.get("redirect"));
       const coworkerId = searchParams.get("coworkerId") || "";
 
       const res = await PostRequest("/auth/login", payload);
@@ -227,11 +232,12 @@ function Login() {
       try {
         const res = await PostRequest("/auth/google", {
           grant_code: code,
+          ...campaignPayload(),
         });
 
         if (res?.status === 200 || res?.status === 201) {
           const user = res?.data?.data?.user;
-          const redirectUrl = searchParams.get("redirect") || "";
+          const redirectUrl = getSafeRedirect(searchParams.get("redirect"));
 
           localStorage.setItem("token", res?.data?.data?.access_token);
           localStorage.setItem("useremail", user?.email);

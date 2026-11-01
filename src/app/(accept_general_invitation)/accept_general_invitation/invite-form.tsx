@@ -4,11 +4,17 @@ import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { AlertCircle } from "lucide-react";
-import { GetRequest, InviteRequest } from "~/utils/new-request";
+import {
+  GetRequest,
+  InviteRequest,
+  SaveMessage as PostOptInRequest,
+} from "~/utils/new-request";
+import { showWarning } from "~/components/toast/sonner";
 import Loading from "~/components/ui/loading";
 import { Button } from "~/components/ui/button";
 import { useRouter, useSearchParams } from "next/navigation";
 import { DataContext } from "~/store/GlobalState";
+import PoweredByZedu from "~/components/powered-by-zedu";
 
 const REDIRECT_SECONDS = 10;
 
@@ -75,14 +81,39 @@ const InviteForm = () => {
         localStorage.setItem("orgSlug", orgSlug);
       }
 
-      router.push(`/${orgSlug}/invited`);
+      // Unchecked preserves existing consent; explicit opt-outs need API support.
+      if (marketingOptIn) {
+        try {
+          const user = res.data.data.user;
+          // Use the silent POST helper so an existing opt-in shows no error toast.
+          const optInRes = await PostOptInRequest("/optin", {
+            first_name: user.first_name,
+            last_name: user.last_name,
+            email: user.email,
+          });
+          const status = optInRes?.response?.status ?? optInRes?.status;
+
+          if (status !== 200 && status !== 201 && status !== 409) {
+            throw new Error("Marketing opt-in was not saved");
+          }
+        } catch {
+          showWarning(
+            "Invitation accepted, but your marketing preference could not be saved."
+          );
+        }
+      }
+
+      // The welcome page reads org_id to load the organisation's name.
+      router.push(
+        `/${orgSlug}/invited?org_id=${encodeURIComponent(res.data.data.user.current_org)}`
+      );
       return true;
     }
 
     setButtonLoading(false);
     setLoading(false);
     return false;
-  }, [invitation_token, router]);
+  }, [invitation_token, marketingOptIn, router]);
 
   useEffect(() => {
     if (linkInvalid) {
@@ -263,6 +294,7 @@ const InviteForm = () => {
                   id="marketing"
                   type="checkbox"
                   checked={marketingOptIn}
+                  disabled={buttonLoading}
                   onChange={(e) => setMarketingOptIn(e.target.checked)}
                   className="mt-1"
                 />
@@ -293,6 +325,10 @@ const InviteForm = () => {
               .
             </p>
           </form>
+
+          <div className="mt-6 flex justify-center px-8 sm:justify-end">
+            <PoweredByZedu />
+          </div>
         </div>
       )}
     </div>

@@ -12,10 +12,10 @@ type FAQSectionProps = {
 
 export const FAQSection = ({
   faqs = homeFAQs,
-  headingLevel,
+  headingLevel = "h2",
 }: FAQSectionProps) => {
   const [openItem, setOpenItem] = useState<string | null>(null);
-  const Heading = headingLevel ?? "h1";
+  const Heading = headingLevel ?? "h2";
 
   const handleToggle = (value: string) => {
     setOpenItem(value || null);
