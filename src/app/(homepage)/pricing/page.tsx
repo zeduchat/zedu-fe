@@ -65,7 +65,10 @@ const PricingPage = () => {
     <div className="space-y-10">
       <PricingSection showSubtitle />
 
-      <div className="mx-auto w-full max-w-7xl px-4 sm:px-8 lg:px-12 space-y-6 relative">
+      <div
+        id="compare-plans"
+        className="mx-auto w-full max-w-7xl px-4 sm:px-8 lg:px-12 space-y-6 relative scroll-mt-24"
+      >
         <div className="no-scrollbar">
           <Table className="min-w-[680px] table-fixed sm:min-w-[760px] no-scrollbar">
             <colgroup>
@@ -73,7 +76,7 @@ const PricingPage = () => {
               {pricingComparisonPlans.map((plan) => (
                 <col
                   key={plan.key}
-                  style={{ width: `${60 / pricingComparisonPlans.length}%` }}
+                  style={{ width: ${60 / pricingComparisonPlans.length}% }}
                 />
               ))}
             </colgroup>
