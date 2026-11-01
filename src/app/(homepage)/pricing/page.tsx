@@ -1,4 +1,4 @@
-﻿import { Metadata } from "next";
+import { Metadata } from "next";
 import { ogImageUrl, siteUrl } from "~/lib/env-urls";
 import { DynamicFooter } from "../_components/footer/dynamic-footer";
 import { FAQSection } from "../_components/home/FAQSection";
