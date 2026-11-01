@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+﻿import { Metadata } from "next";
 import { ogImageUrl, siteUrl } from "~/lib/env-urls";
 import { DynamicFooter } from "../_components/footer/dynamic-footer";
 import { FAQSection } from "../_components/home/FAQSection";
@@ -76,7 +76,7 @@ const PricingPage = () => {
               {pricingComparisonPlans.map((plan) => (
                 <col
                   key={plan.key}
-                  style={{ width: ${60 / pricingComparisonPlans.length}% }}
+                  style={{ width: `${60 / pricingComparisonPlans.length}%` }}
                 />
               ))}
             </colgroup>
