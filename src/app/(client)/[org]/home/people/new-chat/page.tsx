@@ -26,6 +26,8 @@ const NewChat = () => {
     content: string,
     medias: any
   ) => {
+    if (selectedUsers.length === 0) return;
+
     const orgId = localStorage.getItem("orgId") || "";
 
     // if the selected users is more than one, that means its a group chat
@@ -99,7 +101,10 @@ const NewChat = () => {
       <NewChatHeader onUsersSelected={setSelectedUsers} />
 
       <FirstPeopleMessage selectedUsers={selectedUsers} />
-      <FirstMessageBox sendMessage={handleSendMessage} />
+      <FirstMessageBox
+        sendMessage={handleSendMessage}
+        selectedUsers={selectedUsers}
+      />
     </div>
   );
 };
