@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { pricingCardsByCycle } from "../../_lib/pricingData";
@@ -21,7 +21,9 @@ export const PricingSection = ({
   return (
     <section className="relative isolate flex w-full flex-col items-center gap-6 overflow-hidden px-4 py-12 text-center sm:gap-6 sm:px-8 sm:py-16  lg:gap-8 lg:px-12">
       <div
-        className={lex flex-col items-center }
+        className={`flex flex-col items-center ${
+          showSubtitle ? "gap-6" : "gap-3"
+        }`}
       >
         <h1 className=" text-2xl font-semibold leading-tight text-neutral-900 sm:text-3xl md:text-4xl text-center">
           Simple, Flexible Pricing for Education
@@ -32,6 +34,34 @@ export const PricingSection = ({
             structured learning environments with collaboration and AI support.
           </p>
         ) : null}
+
+        {/* <div className="inline-flex items-center rounded-full bg-neutral-100 p-1">
+          <button
+            type="button"
+            onClick={() => setBillingCycle("monthly")}
+            aria-pressed={billingCycle === "monthly"}
+            className={`rounded-full px-4 py-1.5 text-sm transition-colors ${
+              billingCycle === "monthly"
+                ? "bg-white text-neutral-900"
+                : "text-neutral-600"
+            }`}
+          >
+            Monthly
+          </button>
+          <button
+            type="button"
+            onClick={() => setBillingCycle("yearly")}
+            aria-pressed={billingCycle === "yearly"}
+            className={`rounded-full px-4 py-1.5 text-sm transition-colors ${
+              billingCycle === "yearly"
+                ? "bg-white text-neutral-900"
+                : "text-neutral-600"
+            }`}
+          >
+            <span>Yearly</span>
+            <span className="ml-1 text-xs text-primary-500">SAVE 16.6%</span>
+          </button>
+        </div> */}
       </div>
 
       {/* cards */}
