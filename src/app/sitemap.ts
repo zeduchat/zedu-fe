@@ -13,7 +13,10 @@ const PAGES: { path: string; priority: number }[] = [
   { path: "/solutions/bootcamps", priority: 0.8 },
   { path: "/solutions/schools", priority: 0.8 },
   { path: "/solutions/universities", priority: 0.8 },
+  { path: "/alternatives", priority: 0.8 },
   { path: "/alternatives/google-classroom", priority: 0.8 },
+  { path: "/alternatives/discord-for-schools", priority: 0.8 },
+  { path: "/alternatives/slack-for-education", priority: 0.8 },
   { path: "/compare", priority: 0.7 },
   ...allComparisonSlugs.map((slug) => ({
     path: `/compare/${slug}`,
@@ -28,7 +31,6 @@ const PAGES: { path: string; priority: number }[] = [
   { path: "/contact-sales", priority: 0.6 },
   { path: "/ambassadors", priority: 0.6 },
   { path: "/resources", priority: 0.6 },
-  { path: "/templates", priority: 0.5 },
   ...TEMPLATES.map(({ slug }) => ({
     path: `/templates/${slug}`,
     priority: 0.5,
