@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import { Code2, Copy } from "lucide-react";
+import DOMPurify from "dompurify";
 import { Button } from "~/components/ui/button";
 import { showError, showSuccess } from "~/components/toast/sonner";
 import { buildSignature } from "./build-signature";
@@ -84,6 +85,18 @@ const SignaturePage = ({ siteBase }: SignaturePageProps) => {
   const signature = useMemo(
     () => buildSignature({ ...DEFAULT_VALUES, ...values }, creditUrl),
     [values, creditUrl]
+  );
+
+  // The preview is the only place the built markup is injected as HTML, so it
+  // is sanitised with DOMPurify first. DOMPurify needs a DOM, so the
+  // server-rendered pass keeps the builder's already-escaped markup and the
+  // browser sanitises it before rendering the preview.
+  const previewHtml = useMemo(
+    () =>
+      typeof window === "undefined"
+        ? signature.html
+        : DOMPurify.sanitize(signature.html),
+    [signature.html]
   );
 
   const guardValid = async (): Promise<boolean> => {
@@ -201,10 +214,10 @@ const SignaturePage = ({ siteBase }: SignaturePageProps) => {
               </div>
               <div className="flex flex-col gap-5 px-4 py-5 text-sm text-neutral-700 sm:px-5">
                 <p>Hi everyone, this week&apos;s notes are attached.</p>
-                {/* Every value is escaped and links are limited to http(s), mailto and tel in buildSignature. */}
+                {/* Every value is escaped in buildSignature, and the markup is sanitised again here. */}
                 <div
                   className="overflow-x-auto"
-                  dangerouslySetInnerHTML={{ __html: signature.html }}
+                  dangerouslySetInnerHTML={{ __html: previewHtml }}
                 />
               </div>
             </div>
