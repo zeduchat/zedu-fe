@@ -1,5 +1,6 @@
 "use client";
 import React, { useContext, useState } from "react";
+import { useRouter } from "next/navigation";
 import SettingsLabel from "../../../components/settings-label";
 import {
   Breadcrumb,
@@ -25,6 +26,7 @@ import { useSubscriptionPlans } from "~/hooks/useSubscriptionPlans";
 import { useRBAC } from "~/hooks/useRBAC";
 
 const Page = () => {
+  const router = useRouter();
   const { subscriptionPlans, isLoading: plansLoading } = useSubscriptionPlans();
   const [loadingPlan, setLoadingPlan] = useState<string>("");
   const [isBillingCancellationModalOpen, setIsBillingCancellationModalOpen] =
@@ -49,71 +51,121 @@ const Page = () => {
     Enterprise: "bg-[#2D9CDB]",
   };
 
+  const isValidCheckoutUrl = (url?: unknown): url is string => {
+    if (typeof url !== "string" || !url.trim()) return false;
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === "http:" || parsed.protocol === "https:";
+    } catch {
+      return false;
+    }
+  };
+
   const handleUpgrade = async (planName: string) => {
+    if (isLoading || loadingPlan !== "") return;
+    setIsLoading(true);
+    setLoadingPlan(planName);
+
     try {
       if (orgData?.subscription_plan_id === "free") {
-        await PostRequest(`/subscriptions/create`, {
+        const res = await PostRequest(`/subscriptions/create`, {
           plan_name: planName,
           org_id: orgId || "",
           email,
-        })
-          .then((res) => {
-            if (res?.data?.data?.checkout_session_url) {
-              window.location.href = res?.data?.data?.checkout_session_url;
-            }
-          })
-          .catch((err) => {
-            showError(
-              `${
-                err.response?.data?.message ||
-                "An error occurred during upgrade."
-              } Please try again.`
-            );
-            throw err;
-          });
+        });
+
+        const checkoutUrl = res?.data?.data?.checkout_session_url;
+        if (
+          (res?.status === 200 || res?.status === 201) &&
+          isValidCheckoutUrl(checkoutUrl)
+        ) {
+          window.location.href = checkoutUrl;
+          return;
+        }
+
+        showError(
+          res?.response?.data?.message ||
+            res?.data?.message ||
+            "Failed to initiate upgrade. Please try again."
+        );
       } else {
-        await PutRequest(`/subscriptions/modify`, {
+        const res = await PutRequest(`/subscriptions/modify`, {
           plan_name: planName,
           org_id: orgId || "",
-        })
-          .then((res) => {
-            if (res?.data?.data?.checkout_session_url) {
-              window.location.href = res?.data?.data?.checkout_session_url;
-            }
-          })
-          .catch((err) => {
-            showError(
-              `${
-                err.response?.data?.message ||
-                "An error occurred during upgrade."
-              } Please try again.`
-            );
-            throw err;
-          });
+        });
+
+        const checkoutUrl = res?.data?.data?.checkout_session_url;
+        if (isValidCheckoutUrl(checkoutUrl)) {
+          window.location.href = checkoutUrl;
+          return;
+        }
+
+        if (res?.status === 200 || res?.status === 201) {
+          showSuccess(
+            res?.data?.message ||
+              `Successfully updated subscription to ${planName}.`
+          );
+          router.push(`/${orgSlug}/settings/organisation/billing`);
+          return;
+        }
+
+        showError(
+          res?.response?.data?.message ||
+            res?.data?.message ||
+            "Failed to modify subscription. Please try again."
+        );
       }
-    } catch (error) {
-      showError("An error occurred during upgrade. Please try again.");
+    } catch (err: any) {
+      showError(
+        `${
+          err?.response?.data?.message ||
+          "An error occurred during subscription update."
+        } Please try again.`
+      );
     } finally {
+      setIsLoading(false);
       setLoadingPlan("");
     }
   };
 
   const handleSubscription = async (id: string) => {
+    if (isLoading || loadingPlan !== "") return;
     setIsLoading(true);
     setLoadingPlan(id);
 
-    const payload = {
-      plan_id: id,
-      org_id: orgData?.id,
-      email: user?.email,
-    };
+    try {
+      const payload = {
+        plan_id: id,
+        org_id: orgData?.id,
+        email: user?.email,
+      };
 
-    const res = await PostRequest("/subscriptions/create", payload);
-    if (res?.status === 200 || res?.status === 201) {
-      window.location.href = res?.data?.data?.checkout_session_url;
+      const res = await PostRequest("/subscriptions/create", payload);
+      const checkoutUrl = res?.data?.data?.checkout_session_url;
+
+      if (
+        (res?.status === 200 || res?.status === 201) &&
+        isValidCheckoutUrl(checkoutUrl)
+      ) {
+        window.location.href = checkoutUrl;
+        return;
+      }
+
+      showError(
+        res?.response?.data?.message ||
+          res?.data?.message ||
+          "Failed to initiate checkout. Please try again."
+      );
+    } catch (err: any) {
+      showError(
+        `${
+          err?.response?.data?.message || "An error occurred during upgrade."
+        } Please try again.`
+      );
+    } finally {
+      setIsLoading(false);
+      setLoadingPlan("");
     }
-
-    setIsLoading(false);
   };
 
   // Show loading state while plans are being fetched
@@ -193,13 +245,29 @@ const Page = () => {
         isOpen={isBillingCancellationModalOpen}
         onClose={() => setIsBillingCancellationModalOpen(false)}
         onCancel={async (password, isAdmin) => {
-          setIsUnSubscribing(true);
-          await DeleteRequest(`/subscriptions/${orgId}`).then((res) => {
+          try {
+            setIsUnSubscribing(true);
+            const res = await DeleteRequest(`/subscriptions/${orgId}`);
             if (res?.status === 200 || res?.status === 201) {
-              showSuccess(res?.data?.message);
-              window.location.href = `/${orgSlug}/settings/organisation/billing`;
+              showSuccess(
+                res?.data?.message || "Subscription cancelled successfully."
+              );
+              router.push(`/${orgSlug}/settings/organisation/billing`);
+            } else {
+              showError(
+                res?.response?.data?.message ||
+                  res?.data?.message ||
+                  "Failed to cancel subscription. Please try again."
+              );
             }
-          });
+          } catch (err: any) {
+            showError(
+              err?.response?.data?.message ||
+                "Failed to cancel subscription. Please try again."
+            );
+          } finally {
+            setIsUnSubscribing(false);
+          }
         }}
         isUnSubscribing={isUnSubscribing}
       />
@@ -327,9 +395,11 @@ const Page = () => {
                             onClick={() => {
                               setIsBillingCancellationModalOpen(true);
                             }}
-                            disabled={isLoading || loadingPlan !== ""}
+                            disabled={
+                              isLoading || loadingPlan !== "" || isUnSubscribing
+                            }
                           >
-                            {isLoading ? (
+                            {isUnSubscribing ? (
                               <div className="flex items-center gap-2">
                                 <Loading />
                                 <span>Cancelling...</span>
@@ -350,9 +420,13 @@ const Page = () => {
                               onClick={() => {
                                 handleUpgrade(plan.name);
                               }}
-                              disabled={isLoading || loadingPlan !== ""}
+                              disabled={
+                                isLoading ||
+                                loadingPlan !== "" ||
+                                isUnSubscribing
+                              }
                             >
-                              {isLoading ? (
+                              {loadingPlan === plan.name ? (
                                 <div className="flex items-center gap-2">
                                   <Loading />
                                   <span>Downgrading...</span>
@@ -368,9 +442,11 @@ const Page = () => {
                           <Button
                             className="w-full rounded-xl bg-gradient-to-b from-[#7A5AF8] to-[#6938EF] px-6 py-6 text-center font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
                             onClick={() => handleSubscription(plan.id)}
-                            disabled={isLoading || loadingPlan !== ""}
+                            disabled={
+                              isLoading || loadingPlan !== "" || isUnSubscribing
+                            }
                           >
-                            {isLoading ? (
+                            {loadingPlan === plan.id ? (
                               <div className="flex items-center gap-2">
                                 <Loading />
                                 <span>Upgrading...</span>
