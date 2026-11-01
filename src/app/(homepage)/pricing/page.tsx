@@ -118,7 +118,10 @@ const PricingPage = () => {
             the plan columns cannot drift apart on mobile (issue #1107). */}
         <div className="min-w-[680px] space-y-6 sm:min-w-[760px]">
           <div className="no-scrollbar">
-            <Table className="min-w-[680px] table-fixed sm:min-w-[760px] no-scrollbar">
+            <Table
+              className="min-w-[680px] table-fixed sm:min-w-[760px] no-scrollbar"
+              containerClassName="overflow-visible"
+            >
               <colgroup>
                 <col className="w-[40%]" />
                 {pricingComparisonPlans.map((plan) => (
@@ -155,6 +158,7 @@ const PricingPage = () => {
               rowInfoIcon={
                 <CircleHelp className="h-3.5 w-3.5 text-neutral-400" />
               }
+              containerClassName="overflow-visible"
               className="mb-8 last:mb-0"
             />
           ))}

@@ -1,3 +1,4 @@
+import { SolutionResources } from "~/app/(homepage)/_components/ui/SolutionResources";
 import type { Metadata } from "next";
 import { siteUrl } from "~/lib/env-urls";
 import Image from "next/image";
@@ -10,11 +11,9 @@ import { DynamicFooter } from "../../_components/footer/dynamic-footer";
 import { BehaviorPersonalization } from "~/app/(homepage)/_components/bootcamps/BehaviorPersonalization";
 
 export const metadata: Metadata = {
-  title: {
-    absolute: "Zedu for Bootcamps - Structured Cohort Management",
-  },
+  title: "Cohort Management Software for Bootcamps",
   description:
-    "Streamline bootcamp management with Zedu. Give instructors, mentors, and students one cohort management platform for structured learning, collaboration, and community building.",
+    "Run bootcamp cohorts in one place: structured channels, live calls, files and AI recaps for instructors, mentors and students.",
   keywords: [
     "bootcamp platform",
     "cohort management software",
@@ -260,9 +259,9 @@ const BootCampsSolutionsPage = () => {
                   index > 0 ? "border-neutral-300 border-l" : ""
                 }`}
               >
-                <h3 className="text-2xl font-bold text-neutral-900 sm:text-5xl">
+                <div className="text-2xl font-bold text-neutral-900 sm:text-5xl">
                   {metric.title}
-                </h3>
+                </div>
                 <p className="text-[12px] leading-tight text-neutral-600 sm:text-sm">
                   {metric.description}
                 </p>
@@ -298,6 +297,8 @@ const BootCampsSolutionsPage = () => {
           </div>
         </div>
       </section>
+
+      <SolutionResources audience="bootcamps" />
 
       <div data-personalize="final-cta">
         <DynamicFooter

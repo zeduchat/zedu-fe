@@ -1,3 +1,4 @@
+import { SolutionResources } from "~/app/(homepage)/_components/ui/SolutionResources";
 import type { Metadata } from "next";
 import { siteUrl } from "~/lib/env-urls";
 import Image from "next/image";
@@ -304,6 +305,8 @@ const SchoolsSolutionsPage = () => {
           </div>
         </div>
       </section>
+
+      <SolutionResources audience="schools" />
 
       <DynamicFooter
         text="Transform Communication in Your School"

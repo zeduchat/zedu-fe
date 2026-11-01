@@ -43,6 +43,7 @@ const DmPage = () => {
   const [participant, setParticipant] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showProfile, setShowProfile] = useState(false);
+  const [isFavourite, setIsFavourite] = useState<boolean>();
   const isSmUp = useIsSmUp();
   const params = useParams();
   const id = params.id as string;
@@ -100,6 +101,7 @@ const DmPage = () => {
           ) ||
           people[0];
         setParticipant(match);
+        setIsFavourite(Boolean(res?.data?.data?.is_favourite));
       }
     };
 
@@ -262,7 +264,11 @@ const DmPage = () => {
         {/* Profile Sidebar */}
         {state?.showProfile && isSmUp && (
           <div className="w-[408px] h-full bg-white border-l border-[#E6EAEF]">
-            <ProfileSidebar user={activeParticipant} />
+            <ProfileSidebar
+              user={activeParticipant}
+              channelId={id}
+              isFavourite={isFavourite}
+            />
           </div>
         )}
 
