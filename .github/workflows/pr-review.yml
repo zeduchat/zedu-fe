@@ -82,21 +82,10 @@ jobs:
         uses: marocchino/sticky-pull-request-comment@v2
         # Fork PR tokens are read-only. Keep the review and its failure gate,
         # and publish fork results in the job summary without requesting write access.
-        # continue-on-error keeps a token refusal from failing an otherwise green check.
         if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && always()
-        continue-on-error: true
         with:
           header: pr-review-bot
           path: review-report.md
-
-      - name: Upload review report
-        if: github.event_name == 'pull_request' && always()
-        continue-on-error: true
-        uses: actions/upload-artifact@v4
-        with:
-          name: pr-review-report
-          path: review-report.json
-          if-no-files-found: ignore
 
       - name: Fail on review errors
         if: steps.review.outcome == 'failure'

@@ -425,6 +425,12 @@ const SchoolsSolutionsPage = () => {
               </p>
             </article>
           </div>
+
+          <p className="mx-auto max-w-2xl text-center text-xs leading-relaxed text-neutral-500">
+            The figures above are illustrative examples of the kind of change
+            Zedu is designed to deliver, not measured results. Actual outcomes
+            vary by school.
+          </p>
         </div>
       </section>
 
