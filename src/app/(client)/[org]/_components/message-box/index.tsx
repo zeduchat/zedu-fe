@@ -817,7 +817,6 @@ const MessageBox = ({
               <button
                 aria-label="Send message"
                 type="submit"
-                aria-label="Send message"
                 className="p-1.5 hover:bg-gray-100 rounded size-8 flex items-center justify-center"
                 onClick={handleSubmit}
                 disabled={
