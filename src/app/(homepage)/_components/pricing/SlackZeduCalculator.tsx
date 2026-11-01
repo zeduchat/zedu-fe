@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { X } from "lucide-react";
 import Link from "next/link";
 import { cn } from "~/lib/utils";
@@ -9,6 +9,8 @@ import {
   DialogContent,
   DialogTitle,
 } from "~/components/ui/dialog";
+
+import { CalculatorResultActions } from "./calculator-result-actions";
 
 // ---------------------------------------------------------------------------
 // Pricing constants — illustrative rates inferred from the reference screenshot
@@ -401,7 +403,14 @@ export function SlackZeduCalculator({
     }
   };
 
-  const pricing = calcPricing(learnerCount, durationMonths);
+  const pricing = useMemo(
+    () => calcPricing(learnerCount, durationMonths),
+    [learnerCount, durationMonths]
+  );
+  const shareResult = useMemo(
+    () => ({ learnerCount, durationMonths, ...pricing }),
+    [learnerCount, durationMonths, pricing]
+  );
 
   const selectedDuration = DURATION_OPTIONS.find(
     (d) => d.months === durationMonths
@@ -563,6 +572,8 @@ export function SlackZeduCalculator({
                 monthlySavings={pricing.monthlySavings}
                 savingsPercentage={pricing.savingsPercentage}
               />
+
+              <CalculatorResultActions result={shareResult} />
 
               {/* CTA — reuses exact Pro plan href from PricingCard */}
               <div className="flex flex-col items-center gap-1.5">
