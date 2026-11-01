@@ -114,17 +114,21 @@ const socialLinks = [
 
 const appStoreLinks = [
   {
-  id: 0,
-  store: "app" as const,
-  icon: "/images/app-download/app-store-badge-2.png",
-  label: "App Store",
-},
-{
-  id: 1,
-  store: "play" as const,
-  icon: "/images/app-download/google-play-badge-2.png",
-  label: "Google Play",
-},
+    id: 0,
+    store: "app" as const,
+    icon: "/images/app-download/app-store-badge-2.png",
+    label: "App Store",
+    rating: "4.9",
+    starKey: "app",
+  },
+  {
+    id: 1,
+    store: "play" as const,
+    icon: "/images/app-download/google-play-badge-2.png",
+    label: "Google Play",
+    rating: "4.7",
+    starKey: "play",
+  },
 ];
 
 const plusJakartaSans = Plus_Jakarta_Sans({ subsets: ["latin"] });
