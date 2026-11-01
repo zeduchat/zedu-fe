@@ -1,5 +1,9 @@
-import { ACTIONS } from "~/store/Actions";
-import { GetRequest } from "~/utils/new-request";
+const ACTIONS = {
+  INCREMENT_NOTIFICATION_BADGE: "INCREMENT_NOTIFICATION_BADGE",
+  DECREMENT_NOTIFICATION_BADGE: "DECREMENT_NOTIFICATION_BADGE",
+  SET_NOTIFICATION_BADGE: "SET_NOTIFICATION_BADGE",
+  CLEAR_NOTIFICATION_BADGE: "CLEAR_NOTIFICATION_BADGE",
+} as const;
 
 const MAX_STORED_IDS = 500;
 
@@ -16,9 +20,9 @@ export const getReadNotificationIds = (
   userId?: string | null,
   orgId?: string | null
 ): Set<string> => {
-  if (typeof window === "undefined") return new Set();
+  if (typeof window === "undefined" || !window.localStorage) return new Set();
   try {
-    const raw = localStorage.getItem(getStorageKey(userId, orgId));
+    const raw = window.localStorage.getItem(getStorageKey(userId, orgId));
     if (!raw) return new Set();
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? new Set(parsed) : new Set();
@@ -32,10 +36,13 @@ export const saveReadNotificationIds = (
   userId?: string | null,
   orgId?: string | null
 ): void => {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || !window.localStorage) return;
   try {
     const array = Array.from(ids).slice(-MAX_STORED_IDS);
-    localStorage.setItem(getStorageKey(userId, orgId), JSON.stringify(array));
+    window.localStorage.setItem(
+      getStorageKey(userId, orgId),
+      JSON.stringify(array)
+    );
   } catch (error) {
     console.error("Failed to persist read notification ids", error);
   }
@@ -47,6 +54,9 @@ export const isNotificationRead = (
   orgId?: string | null
 ): boolean => {
   if (!item) return true;
+  if (typeof item === "string" || typeof item === "number") {
+    return getReadNotificationIds(userId, orgId).has(String(item));
+  }
   if (item.is_read === true || item.read === true || item.status === "read") {
     return true;
   }
@@ -60,8 +70,8 @@ export const markNotificationAsRead = (
   userId?: string | null,
   orgId?: string | null,
   dispatch?: (action: { type: string; payload?: any }) => void
-): void => {
-  if (!id) return;
+): boolean => {
+  if (!id) return false;
   const strId = String(id);
   const readIds = getReadNotificationIds(userId, orgId);
   if (!readIds.has(strId)) {
@@ -70,7 +80,9 @@ export const markNotificationAsRead = (
     if (dispatch) {
       dispatch({ type: ACTIONS.DECREMENT_NOTIFICATION_BADGE, payload: 1 });
     }
+    return true;
   }
+  return false;
 };
 
 export const markAllNotificationsAsRead = (
@@ -92,11 +104,17 @@ export const markAllNotificationsAsRead = (
 export const fetchAndSyncUnreadBadge = async (
   orgId: string,
   userId?: string | null,
-  dispatch?: (action: { type: string; payload?: any }) => void
+  dispatch?: (action: { type: string; payload?: any }) => void,
+  customGetRequest?: (url: string) => Promise<any>
 ): Promise<number> => {
   if (!orgId || !dispatch) return 0;
   try {
-    const res = await GetRequest(
+    let fetcher = customGetRequest;
+    if (!fetcher) {
+      const { GetRequest } = await import("~/utils/new-request");
+      fetcher = GetRequest;
+    }
+    const res = await fetcher(
       `/organisations/${orgId}/users/onesignal?page=1&limit=20`
     );
     if (res?.status === 200 || res?.status === 201) {
