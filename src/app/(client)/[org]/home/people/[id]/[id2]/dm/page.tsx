@@ -81,7 +81,9 @@ const DmPage = () => {
     id: string,
     uuid: string,
     content: string,
-    medias: any
+    medias: any,
+    _mentions: unknown,
+    isRetry = false
   ) => {
     // send client side update
     const optimisticMessage = {
@@ -93,16 +95,18 @@ const DmPage = () => {
       created_at: new Date().toISOString(),
       status: "pending",
       type: "message",
-      media: state.media,
+      media: medias,
       user_id: user?.user_id,
       reactions: null,
       isOptimistic: true,
     };
 
-    dispatch({
-      type: ACTIONS.CHATS,
-      payload: { newMessage: optimisticMessage },
-    });
+    if (!isRetry) {
+      dispatch({
+        type: ACTIONS.CHATS,
+        payload: { newMessage: optimisticMessage },
+      });
+    }
     dispatch({
       type: ACTIONS.UPDATE_DM_PREVIEW,
       payload: { channelId: id, message: content },
@@ -123,7 +127,9 @@ const DmPage = () => {
     id: string,
     uuid: string,
     content: string,
-    medias: any
+    medias: any,
+    _mentions: unknown,
+    isRetry = false
   ) => {
     const optimisticMessage = {
       id: uuid,
@@ -135,16 +141,18 @@ const DmPage = () => {
       created_at: new Date().toISOString(),
       status: "pending",
       type: "message",
-      media: state.media,
+      media: medias,
       user_id: user?.user_id,
       reactions: null,
       isOptimistic: true,
     };
 
-    dispatch({
-      type: ACTIONS.REPLIES,
-      payload: { newMessage: optimisticMessage },
-    });
+    if (!isRetry) {
+      dispatch({
+        type: ACTIONS.REPLIES,
+        payload: { newMessage: optimisticMessage },
+      });
+    }
 
     const payload = {
       content: content,
@@ -152,7 +160,8 @@ const DmPage = () => {
       media: medias,
     };
 
-    await PostRequest(`/dms/messages/${id}`, payload);
+    const res = await PostRequest(`/dms/messages/${id}`, payload);
+    return res?.status === 200 || res?.status === 201;
   };
 
   // Calculate combined width of open side panels

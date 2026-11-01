@@ -373,11 +373,48 @@ const reducers = (state: any, action: any) => {
           count: (state.notificationBadgeState?.count ?? 0) + 1,
         },
       };
+    case ACTIONS.DECREMENT_NOTIFICATION_BADGE:
+      return {
+        ...state,
+        notificationBadgeState: {
+          count: Math.max(
+            0,
+            (state.notificationBadgeState?.count ?? 0) -
+              (typeof payload === "number" ? payload : 1)
+          ),
+        },
+      };
+    case ACTIONS.SET_NOTIFICATION_BADGE:
+      return {
+        ...state,
+        notificationBadgeState: {
+          count: Math.max(
+            0,
+            typeof payload === "number" ? payload : (payload?.count ?? 0)
+          ),
+        },
+      };
     case ACTIONS.CLEAR_NOTIFICATION_BADGE:
       return {
         ...state,
         notificationBadgeState: { count: 0 },
       };
+    case ACTIONS.MESSAGE_DELIVERY: {
+      const update = (messages: any[] = []) =>
+        messages.map((message) =>
+          message.isOptimistic &&
+          (message.id === action.payload.id ||
+            message.thread_id === action.payload.id)
+            ? { ...message, status: action.payload.status }
+            : message
+        );
+      return {
+        ...state,
+        messages: update(state.messages),
+        chats: update(state.chats),
+        replies: update(state.replies),
+      };
+    }
     case ACTIONS.MESSAGES:
       if (action.payload?.newMessage?.isOptimistic) {
         return {

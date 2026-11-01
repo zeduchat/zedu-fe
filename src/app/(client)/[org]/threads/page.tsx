@@ -24,7 +24,8 @@ const Threads = () => {
     id: string,
     _uuid: string,
     content: string,
-    medias: unknown
+    medias: unknown,
+    mentions: any = state?.mentions
   ) => {
     const channelId = state?.thread?.channels_id || id;
     const payload = {
@@ -33,17 +34,21 @@ const Threads = () => {
       user_id: state?.user?.id,
       thread_id: state?.thread?.thread_id,
       media: medias,
-      mentions: state?.mentions,
+      mentions: mentions,
     };
 
+    let res;
     if (thread?.channel_type === "DM") {
-      await PostRequest(`/dms/messages/${channelId}`, payload);
+      res = await PostRequest(`/dms/messages/${channelId}`, payload);
     } else if (thread?.channel_type === "GroupDm") {
-      await PostRequest(`/group-dms/messages/${channelId}`, payload);
+      res = await PostRequest(`/group-dms/messages/${channelId}`, payload);
     } else {
-      await PostRequest(`/channels/${channelId}/messages`, payload);
+      res = await PostRequest(`/channels/${channelId}/messages`, payload);
     }
-    dispatch({ type: ACTIONS.LOAD_THREAD, payload: !loadThread });
+    if (res?.status === 200 || res?.status === 201) {
+      dispatch({ type: ACTIONS.LOAD_THREAD, payload: !loadThread });
+    }
+    return res?.status === 200 || res?.status === 201;
   };
 
   let sidePanelWidth = 0;

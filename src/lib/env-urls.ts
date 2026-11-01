@@ -22,8 +22,9 @@ export function ogImageUrl(fileName: string): string {
   return `${readEnv("NEXT_PUBLIC_MEDIA_URL")}/telexprodbucket/public/og-images/${fileName}`;
 }
 
+// Called from the client-side Contact Sales form, so it reads the variable in full.
 export function contactSalesUrl(): string {
-  return `${readEnv("NEXT_PUBLIC_BASE_URL")}/contact`;
+  return `${clean(process.env.NEXT_PUBLIC_BASE_URL)}/contact`;
 }
 
 type Store = "app" | "play";

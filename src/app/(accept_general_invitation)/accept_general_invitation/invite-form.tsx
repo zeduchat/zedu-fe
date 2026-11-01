@@ -9,6 +9,7 @@ import Loading from "~/components/ui/loading";
 import { Button } from "~/components/ui/button";
 import { useRouter, useSearchParams } from "next/navigation";
 import { DataContext } from "~/store/GlobalState";
+import PoweredByZedu from "~/components/powered-by-zedu";
 
 const REDIRECT_SECONDS = 10;
 
@@ -75,7 +76,10 @@ const InviteForm = () => {
         localStorage.setItem("orgSlug", orgSlug);
       }
 
-      router.push(`/${orgSlug}/invited`);
+      // The welcome page reads org_id to load the organisation's name.
+      router.push(
+        `/${orgSlug}/invited?org_id=${encodeURIComponent(res.data.data.user.current_org)}`
+      );
       return true;
     }
 
@@ -293,6 +297,10 @@ const InviteForm = () => {
               .
             </p>
           </form>
+
+          <div className="mt-6 flex justify-center px-8 sm:justify-end">
+            <PoweredByZedu />
+          </div>
         </div>
       )}
     </div>

@@ -32,19 +32,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!data) {
     return {
-      title: "Comparison Not Found | Zedu",
+      title: "Comparison Not Found",
     };
   }
 
   const pageUrl = siteUrl(`/compare/${slug}`);
 
   return {
-    title: `${data.metaTitle} | Zedu`,
+    // The (homepage) layout's title template adds " | Zedu".
+    title: data.metaTitle,
     description: data.metaDescription,
     keywords: data.keywords,
-    icons: {
-      icon: "/TelexIcon.svg",
-    },
     openGraph: {
       title: `${data.metaTitle} | Zedu`,
       description: data.metaDescription,

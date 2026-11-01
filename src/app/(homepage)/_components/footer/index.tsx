@@ -4,8 +4,8 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Plus_Jakarta_Sans } from "next/font/google";
-import axios from "axios";
 import { showSuccess } from "~/components/toast/sonner";
+import { subscribeToNewsletter } from "~/lib/newsletter";
 import { usePathname } from "next/navigation";
 import {
   facebookUrl,
@@ -56,6 +56,11 @@ const supportLinks: FooterLink[] = [
     id: 3,
     label: "Contact Us",
     href: "/contact-sales",
+  },
+  {
+    id: 4,
+    label: "Ambassadors",
+    href: "/ambassadors",
   },
 ];
 
@@ -122,13 +127,6 @@ const appStoreLinks = [
 
 const plusJakartaSans = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
-// Isolated Axios client for public newsletter subscription.
-// Kept separate from the global HTTP client to avoid global interceptor side effects
-// (such as authentication-expiry redirects or token attachment) and global toast dismissals.
-const newsletterClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_BASE_URL,
-});
-
 const Footer = () => {
   // The footer is shared by every marketing page, so the store links name the
   // page they were clicked on.
@@ -153,38 +151,18 @@ const Footer = () => {
     }
 
     setLoading(true);
+    const result = await subscribeToNewsletter(email);
+    setLoading(false);
 
-    try {
-      const res = await newsletterClient.post("/newsletter", { email });
-
-      if (res.status === 200 || res.status === 201) {
-        setEmail("");
-        setError("");
-        showSuccess(
-          "You're subscribed!",
-          "Thanks for joining us. Stay tuned for the latest updates from Zedu."
-        );
-      }
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        const status = err.response?.status;
-        const body = err.response?.data;
-        const isAlreadySubscribed = status === 409 || body?.status_code === 409;
-
-        if (isAlreadySubscribed) {
-          setError("This email is already subscribed to our newsletter.");
-        } else {
-          setError(
-            body?.message ||
-              err.message ||
-              "Something went wrong. Please try again."
-          );
-        }
-      } else {
-        setError("Something went wrong. Please try again.");
-      }
-    } finally {
-      setLoading(false);
+    if (result.ok) {
+      setEmail("");
+      setError("");
+      showSuccess(
+        "You're subscribed!",
+        "Thanks for joining us. Stay tuned for the latest updates from Zedu."
+      );
+    } else {
+      setError(result.error);
     }
   };
 
