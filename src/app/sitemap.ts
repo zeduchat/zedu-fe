@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { resources } from "~/app/(homepage)/_lib/resources";
 import { siteUrl } from "~/lib/env-urls";
 import { allComparisonSlugs } from "~/app/(homepage)/_components/compare/comparisonData";
+import { TEMPLATES } from "~/data/templates";
 
 // The public marketing pages in (homepage). Workspace pages (/[org]/...) need a sign-in, so they are left out.
 const PAGES: { path: string; priority: number }[] = [
@@ -33,11 +34,22 @@ const RESOURCE_PAGES = resources
   .filter(({ link }) => link.startsWith("/resources/"))
   .map(({ link }) => ({ path: link, priority: 0.5 }));
 
+// Template directory pages, which also have their own metadata.
+const TEMPLATE_PAGES = [
+  { path: "/templates", priority: 0.7 },
+  ...TEMPLATES.map((template) => ({
+    path: `/templates/${template.slug}`,
+    priority: 0.5,
+  })),
+];
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = siteUrl();
-  return [...PAGES, ...RESOURCE_PAGES].map(({ path, priority }) => ({
-    url: path === "/" ? base : `${base}${path}`,
-    changeFrequency: "weekly",
-    priority,
-  }));
+  return [...PAGES, ...TEMPLATE_PAGES, ...RESOURCE_PAGES].map(
+    ({ path, priority }) => ({
+      url: path === "/" ? base : `${base}${path}`,
+      changeFrequency: "weekly",
+      priority,
+    })
+  );
 }
