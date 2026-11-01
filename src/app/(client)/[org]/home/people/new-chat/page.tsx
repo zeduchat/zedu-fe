@@ -6,6 +6,7 @@ import { PostRequest } from "~/utils/new-request";
 import FirstPeopleMessage from "../../../_components/first-people-message";
 import { useRouter } from "next/navigation";
 import FirstMessageBox from "../../../_components/first-message-box";
+import { showError } from "~/components/toast/sonner";
 import { ACTIONS } from "~/store/Actions";
 import { DataContext } from "~/store/GlobalState";
 
@@ -61,6 +62,12 @@ const NewChat = () => {
         );
       }
     } else {
+      if (selectedUsers.length > 8) {
+        showError("Group chats cannot have more than 9 members");
+        setSubmitLoading(false);
+        return;
+      }
+
       const payload = {
         chat_type: "user",
         participants: selectedUsers?.map((user) => user.id),
