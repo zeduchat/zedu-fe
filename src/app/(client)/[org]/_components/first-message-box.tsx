@@ -45,7 +45,12 @@ import { CHAT_FILE_ACCEPT } from "~/utils/document-files";
 import { localGifToFile, type LocalGif } from "~/lib/gifs/local-pack";
 
 interface FirstMessageBoxProps {
-  sendMessage: (id: string, uuid: string, content: string, medias: any) => void;
+  sendMessage: (
+    id: string,
+    uuid: string,
+    content: string,
+    medias: any
+  ) => void | Promise<any>;
   placeholder?: string;
   disabled?: boolean;
 }

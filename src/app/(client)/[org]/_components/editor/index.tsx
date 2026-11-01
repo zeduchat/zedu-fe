@@ -287,7 +287,6 @@ const UseTextEditor = (
   customPlaceholder?: string
 ) => {
   const { state, dispatch } = useContext(DataContext);
-  const name = localStorage.getItem("channelName") || "";
   const [isEmpty, setIsEmpty] = useState(true);
   const placeholderRef = useRef(customPlaceholder);
   placeholderRef.current = customPlaceholder;
