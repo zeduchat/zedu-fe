@@ -15,8 +15,7 @@ import {
   tiktokUrl,
   xUrl,
 } from "~/lib/env-urls";
-import { Loader2, Star } from "lucide-react";
-import { ratingSummary, storeRatings } from "~/lib/store-ratings";
+import { Loader2 } from "lucide-react";
 import { ZeduRoundedWhiteLogo, ZeduWhiteLogo } from "../svgs";
 
 type FooterLink = {
@@ -140,13 +139,13 @@ const appStoreLinks = [
     id: 0,
     store: "app" as const,
     icon: "/images/app-download/app-store-badge-2.png",
-    starKey: "app",
+    label: "App Store",
   },
   {
     id: 1,
     store: "play" as const,
     icon: "/images/app-download/google-play-badge-2.png",
-    starKey: "play",
+    label: "Google Play",
   },
 ];
 
@@ -316,27 +315,10 @@ const Footer = () => {
                         src={store.icon}
                         width={24}
                         height={24}
-                        alt={storeRatings[store.store].name}
+                        alt={store.label}
                         className="h-6 w-6 rounded-md object-cover"
                       />
-                      <span className="font-medium">
-                        {storeRatings[store.store].name}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {Array(5)
-                        .fill(0)
-                        .map((_, i) => (
-                          <Star
-                            key={`${store.starKey}-star-${i}`}
-                            color="gold"
-                            fill="gold"
-                            size={12}
-                          />
-                        ))}
-                      <span className="ml-1 text-sm text-white/85">
-                        {ratingSummary(storeRatings[store.store])}
-                      </span>
+                      <span className="font-medium">{store.label}</span>
                     </div>
                   </Link>
                 ))}
