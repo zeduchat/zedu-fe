@@ -28,7 +28,6 @@ import CentrifugoWakeSync from "~/components/layout/centrifugo/centrifugo-wake-s
 import ChatAgoraConnection from "~/components/layout/centrifugo/chat-agora-connection";
 import ChannelAgoraConnection from "~/components/layout/centrifugo/channel-agora-connection";
 import useFirstChannel from "./home/channels/hooks/first-channel";
-import FloatingTestNotificationButton from "~/components/notifications/floating-test-notification-button";
 import {
   redirectAfterOrgSwitch,
   resolveChannelIdForOrgSwitch,
@@ -403,7 +402,6 @@ const ClientLayout = ({
         </ChannelBuzzProvider>
         <UploadProgressPopover />
         <IncomingCallPopupContainer />
-        <FloatingTestNotificationButton />
       </TooltipProvider>
     </UploadProvider>
   );

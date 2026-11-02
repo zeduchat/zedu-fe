@@ -19,6 +19,7 @@ import { GetRequest } from "~/utils/new-request";
 import { getShowMessagePreviews } from "~/lib/notification-preview";
 import {
   isNotificationRead,
+  isNotificationUnread,
   markNotificationAsRead,
 } from "~/lib/notifications/notification-store";
 import { shouldIncrementNotificationBadge } from "~/lib/notifications/notification-badge";
@@ -208,7 +209,7 @@ export default function NotificationNav() {
             )}
 
             {notifications.map((item, index) => {
-              const isUnread = !isNotificationRead(
+              const isUnread = isNotificationUnread(
                 item,
                 currentUserId,
                 resolvedOrgId
@@ -225,7 +226,7 @@ export default function NotificationNav() {
                       });
                       if (isUnread) {
                         markNotificationAsRead(
-                          item.id,
+                          item,
                           currentUserId,
                           resolvedOrgId,
                           dispatch

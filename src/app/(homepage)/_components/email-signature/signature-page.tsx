@@ -204,7 +204,6 @@ const SignaturePage = ({ siteBase }: SignaturePageProps) => {
                 {/* Every value is escaped and links are limited to http(s), mailto and tel in buildSignature. */}
                 {/* nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml */}
                 <div
-                  // nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml
                   className="overflow-x-auto"
                   // nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml
                   dangerouslySetInnerHTML={{ __html: signature.html }}

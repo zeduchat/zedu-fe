@@ -106,19 +106,48 @@ export const isNotificationRead = (
   return getReadNotificationIds(userId, orgId).has(String(id));
 };
 
+export const isNotificationUnread = (
+  item: any,
+  userId?: string | null,
+  orgId?: string | null
+): boolean => {
+  if (!item) return false;
+  if (isNotificationRead(item, userId, orgId)) {
+    return false;
+  }
+  const seenAt = getSeenAt(userId, orgId);
+  if (seenAt !== null) {
+    const itemTime = getNotificationTimestamp(item);
+    if (itemTime !== null && itemTime <= seenAt) {
+      return false;
+    }
+  }
+  return true;
+};
+
 export const markNotificationAsRead = (
-  id: string | number,
+  itemOrId: any,
   userId?: string | null,
   orgId?: string | null,
   dispatch?: (action: { type: string; payload?: any }) => void
 ): boolean => {
+  if (!itemOrId) return false;
+  const id =
+    typeof itemOrId === "object" && itemOrId !== null
+      ? itemOrId.id || itemOrId.message_id || itemOrId.messages_id
+      : itemOrId;
   if (!id) return false;
   const strId = String(id);
   const readIds = getReadNotificationIds(userId, orgId);
   if (!readIds.has(strId)) {
+    const wasUnread =
+      typeof itemOrId === "object" && itemOrId !== null
+        ? isNotificationUnread(itemOrId, userId, orgId)
+        : true;
+
     readIds.add(strId);
     saveReadNotificationIds(readIds, userId, orgId);
-    if (dispatch) {
+    if (dispatch && wasUnread) {
       dispatch({ type: ACTIONS.DECREMENT_NOTIFICATION_BADGE, payload: 1 });
     }
     return true;
@@ -180,13 +209,6 @@ export const fetchAndSyncUnreadBadge = async (
   customGetRequest?: (url: string) => Promise<any>
 ): Promise<number> => {
   if (!orgId || !dispatch) return 0;
-  if (
-    typeof window !== "undefined" &&
-    window.localStorage &&
-    window.localStorage.getItem("isAssessmentMode") === "true"
-  ) {
-    return 0;
-  }
   try {
     let seenAt = getSeenAt(userId, orgId);
     if (seenAt === null) {
@@ -208,14 +230,9 @@ export const fetchAndSyncUnreadBadge = async (
     );
     if (res?.status === 200 || res?.status === 201) {
       const items = res?.data?.data?.notifications || [];
-      const unreadCount = items.filter((item: any) => {
-        if (isNotificationRead(item, userId, orgId)) {
-          return false;
-        }
-        const itemTime = getNotificationTimestamp(item);
-        if (itemTime === null) return false;
-        return itemTime > seenAt!;
-      }).length;
+      const unreadCount = items.filter((item: any) =>
+        isNotificationUnread(item, userId, orgId)
+      ).length;
 
       dispatch({
         type: ACTIONS.SET_NOTIFICATION_BADGE,

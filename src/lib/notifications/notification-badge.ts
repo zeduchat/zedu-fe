@@ -81,9 +81,9 @@ export const shouldIncrementNotificationBadge = (
     getString(nested.event);
   const section = getString(payload.section) || getString(nested.section);
 
-  // Test events (enabled in non-production, assessment mode, or test mode)
+  // Non-production test events
   if (
-    (process.env.NODE_ENV !== "production" || isTestNotificationEnabled()) &&
+    process.env.NODE_ENV !== "production" &&
     Boolean(payload.isTest || payload.test || nested.isTest)
   ) {
     return true;
@@ -106,28 +106,13 @@ export const shouldIncrementNotificationBadge = (
 export const TRIGGER_NOTIFICATION_EVENT = "zedu:trigger-notification";
 
 export const isTestNotificationEnabled = (): boolean => {
-  if (typeof window === "undefined") return false;
-  if (process.env.NODE_ENV !== "production") return true;
-  if (process.env.NEXT_PUBLIC_ENABLE_TEST_NOTIFICATIONS === "true") return true;
-  try {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("testNotification") === "true") return true;
-    if (params.get("assessment") === "true") return true;
-    if (params.get("demo") === "true") return true;
-    if (window.localStorage.getItem("enableTestNotifications") === "true") {
-      return true;
-    }
-    if (window.localStorage.getItem("isAssessmentMode") === "true") {
-      return true;
-    }
-  } catch {}
-  return false;
+  return process.env.NODE_ENV !== "production";
 };
 
 export const triggerLocalTestNotification = (
   payload?: NotificationLike
 ): void => {
-  if (!isTestNotificationEnabled()) {
+  if (process.env.NODE_ENV === "production") {
     return;
   }
   const data = {
@@ -150,7 +135,7 @@ declare global {
   }
 }
 
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && process.env.NODE_ENV !== "production") {
   window.triggerTestNotification = triggerLocalTestNotification;
 }
 

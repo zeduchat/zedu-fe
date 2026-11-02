@@ -10,6 +10,7 @@ import {
 } from "../src/lib/notifications/notification-badge.ts";
 import {
   isNotificationRead,
+  isNotificationUnread,
   markNotificationAsRead,
   getReadNotificationIds,
   saveReadNotificationIds,
@@ -279,6 +280,74 @@ test("fetchAndSyncUnreadBadge respects seenAt and unread status", async () => {
   );
   assert.equal(countIso, 1);
   assert.equal(dispatched[dispatched.length - 1].payload, 1);
+
+  delete globalThis.window;
+});
+
+test("unified unread definition: items older than seenAt do not show unread indicator or decrement badge", () => {
+  const mockStorage = new Map();
+  globalThis.window = {
+    localStorage: {
+      getItem: (key) => mockStorage.get(key) || null,
+      setItem: (key, val) => mockStorage.set(key, String(val)),
+      removeItem: (key) => mockStorage.delete(key),
+      clear: () => mockStorage.clear(),
+    },
+  };
+
+  const userId = "test-user-unified";
+  const orgId = "test-org-unified";
+  const seenTime = 1700000000000;
+
+  // Set seenAt
+  mockStorage.set(
+    `zedu_notifications_seen_at_${userId}_${orgId}`,
+    String(seenTime)
+  );
+
+  const oldItem = {
+    id: "notif-old-1",
+    created_at: new Date(seenTime - 60000).toISOString(),
+    is_read: false,
+  };
+  const newItem = {
+    id: "notif-new-1",
+    created_at: new Date(seenTime + 60000).toISOString(),
+    is_read: false,
+  };
+
+  // 1. isNotificationUnread treats old item as NOT unread, and new item as unread
+  assert.equal(isNotificationUnread(oldItem, userId, orgId), false);
+  assert.equal(isNotificationUnread(newItem, userId, orgId), true);
+
+  const dispatched = [];
+  const mockDispatch = (action) => dispatched.push(action);
+
+  // 2. Clicking an older item (already seen) does NOT dispatch DECREMENT_NOTIFICATION_BADGE
+  const oldResult = markNotificationAsRead(
+    oldItem,
+    userId,
+    orgId,
+    mockDispatch
+  );
+  assert.equal(oldResult, true); // marks id in read set
+  assert.equal(dispatched.length, 0); // did NOT decrement badge!
+
+  // 3. Clicking the newer unread item DOES dispatch DECREMENT_NOTIFICATION_BADGE
+  const newResult = markNotificationAsRead(
+    newItem,
+    userId,
+    orgId,
+    mockDispatch
+  );
+  assert.equal(newResult, true);
+  assert.equal(dispatched.length, 1);
+  assert.equal(dispatched[0].type, "DECREMENT_NOTIFICATION_BADGE");
+  assert.equal(dispatched[0].payload, 1);
+
+  // 4. Now both are marked read
+  assert.equal(isNotificationUnread(oldItem, userId, orgId), false);
+  assert.equal(isNotificationUnread(newItem, userId, orgId), false);
 
   delete globalThis.window;
 });

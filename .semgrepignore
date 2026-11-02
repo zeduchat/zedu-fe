@@ -11,4 +11,3 @@ pnpm-lock.yaml
 # Use ** globs — literal [org] in paths is parsed as a character class by gitignore syntax
 **/ChannelMessage/formatMessage.tsx
 **/colleagues/avatars.tsx
-**/email-signature/signature-page.tsx
