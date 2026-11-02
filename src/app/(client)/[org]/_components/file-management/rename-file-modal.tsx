@@ -48,6 +48,9 @@ const RenameFileModal: React.FC<RenameFileModalProps> = ({
 
   const handleRename = (data: RenameFileFormData) => {
     const newName = data.rename.trim();
+    if (!newName) {
+      return;
+    }
     if (newName === oldName) {
       onClose();
       return;
@@ -73,6 +76,7 @@ const RenameFileModal: React.FC<RenameFileModalProps> = ({
             >
               <input
                 {...register("rename", {
+                  required: true,
                   validate: (value) => value.trim().length > 0,
                 })}
                 type="text"
@@ -92,7 +96,7 @@ const RenameFileModal: React.FC<RenameFileModalProps> = ({
                 </button>
                 <input
                   type="submit"
-                  disabled={!watch("rename")?.trim()}
+                  disabled={!watch("rename")}
                   value="Rename"
                   className="disabled:opacity-50 px-4 py-2 text-sm bg-[#7141F8] text-white rounded-lg"
                 />
