@@ -7,10 +7,12 @@ import { FAQSection } from "../../_components/home/FAQSection";
 import type { HomeFAQ } from "../../_lib/faqData";
 import { DynamicFooter } from "../../_components/footer/dynamic-footer";
 
+const description =
+  "Use Zedu Buzz to start instant voice conversations inside learning channels. Collaborate in real time, clarify lessons faster, and review AI-generated session summaries.";
+
 export const metadata: Metadata = {
   title: "Buzz - Instant Voice Conversations for Learning Teams",
-  description:
-    "Use Zedu Buzz to start instant voice conversations inside learning channels. Collaborate in real time, clarify lessons faster, and review AI-generated session summaries.",
+  description,
   keywords: [
     "Zedu Buzz",
     "education voice chat",
@@ -24,8 +26,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "Zedu Buzz - Instant Voice Conversations for Learning Teams",
-    description:
-      "Launch live voice discussions directly in channels and keep every session useful with AI-powered recap summaries.",
+    description,
     url: siteUrl("/products/buzz"),
     siteName: "Zedu",
     type: "website",
@@ -33,8 +34,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Zedu Buzz - Real-Time Voice Collaboration",
-    description:
-      "Start instant voice sessions in your learning channels and keep everyone aligned with AI-generated summaries.",
+    description,
   },
   alternates: {
     canonical: siteUrl("/products/buzz"),
