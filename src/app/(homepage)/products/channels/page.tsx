@@ -12,10 +12,12 @@ import { FAQSection } from "../../_components/home/FAQSection";
 import { DynamicFooter } from "../../_components/footer/dynamic-footer";
 import type { HomeFAQ } from "../../_lib/faqData";
 
+const description =
+  "Explore Zedu Channels for structured classroom and cohort communication. Organize discussions by subject, share updates clearly, and scale collaboration across learning teams.";
+
 export const metadata: Metadata = {
   title: "Channels - Organized Communication for Learning Teams",
-  description:
-    "Explore Zedu Channels for structured classroom and cohort communication. Organize discussions by subject, share updates clearly, and scale collaboration across learning teams.",
+  description,
   keywords: [
     "Zedu channels",
     "education communication channels",
@@ -28,8 +30,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "Zedu Channels - Organized Communication for Learning Teams",
-    description:
-      "Keep learning conversations structured with channels built for schools, universities, and cohort-based programs.",
+    description,
     url: siteUrl("/products/channels"),
     siteName: "Zedu",
     type: "website",
@@ -37,8 +38,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Zedu Channels - Structured Class Communication",
-    description:
-      "Create focused discussions, announcements, and threaded conversations with channels designed for modern education teams.",
+    description,
   },
   alternates: {
     canonical: siteUrl("/products/channels"),
