@@ -89,9 +89,9 @@ const UserSidebar = () => {
                   Edit
                 </button>
               </div>
-              <p className="text-[#344054] text-lg">
-                {user?.title || "Product Manager"}
-              </p>
+              {user?.title && (
+                <p className="text-[#344054] text-lg">{user.title}</p>
+              )}
 
               <ProfileStatus user={user} />
 
