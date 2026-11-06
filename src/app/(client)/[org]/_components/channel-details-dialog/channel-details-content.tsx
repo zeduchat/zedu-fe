@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { DialogHeader, DialogTitle } from "~/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
@@ -11,6 +11,8 @@ import {
 import FilesTabContainer from "./files-tab-container";
 import { cn } from "~/lib/utils";
 import { DataContext } from "~/store/GlobalState";
+import { ACTIONS } from "~/store/Actions";
+import { PostRequest } from "~/utils/new-request";
 
 function formatTabCount(count: number) {
   if (count > 1000) {
@@ -20,10 +22,17 @@ function formatTabCount(count: number) {
 }
 
 export const ChannelDetailsContent = ({ setIsOpen }: any) => {
-  const { state } = useContext(DataContext);
+  const { state, dispatch } = useContext(DataContext);
   const [muted, setMuted] = useState(false);
   const [starred, setStarred] = useState(false);
+  const [starring, setStarring] = useState(false);
   const [activeTab, setActiveTab] = useState(state?.activeTab);
+  const channelDetails = state?.channelDetails;
+  const channelId = channelDetails?.id || channelDetails?.channels_id;
+
+  useEffect(() => {
+    setStarred(Boolean(channelDetails?.is_starred));
+  }, [channelDetails?.is_starred]);
 
   const TABS_LIST = useMemo(() => {
     const tabs = [
@@ -53,10 +62,29 @@ export const ChannelDetailsContent = ({ setIsOpen }: any) => {
   };
 
   const handleStarred = async () => {
-    setStarred(!starred);
-    // const res = await PostRequest("/");
-    // if (res.status === 200 || res.status === 201) {
-    // }
+    if (!channelId || starring) return;
+
+    const previousStarred = starred;
+    const nextStarred = !previousStarred;
+    setStarred(nextStarred);
+    setStarring(true);
+
+    const res = await PostRequest(`/channels/${channelId}/star`, {});
+    if (res?.status === 200 || res?.status === 201) {
+      const persistedStarred = Boolean(
+        res?.data?.data?.is_starred ?? nextStarred
+      );
+
+      setStarred(persistedStarred);
+      dispatch({
+        type: ACTIONS.CHANNEL_DETAILS,
+        payload: { ...channelDetails, is_starred: persistedStarred },
+      });
+    } else {
+      setStarred(previousStarred);
+    }
+
+    setStarring(false);
   };
 
   return (
@@ -71,6 +99,10 @@ export const ChannelDetailsContent = ({ setIsOpen }: any) => {
             variant={"outline"}
             className={`h-fit p-[0.435rem] font-semibold text-[0.8125rem] text-[#344054] gap-1 ${starred ? "border-primary-500" : ""}`}
             onClick={handleStarred}
+            disabled={!channelId || starring}
+            aria-label={
+              starred ? "Remove channel from favorites" : "Favorite channel"
+            }
           >
             <StarIcon color={starred ? "rgb(113, 65, 248)" : ""} />
           </Button>
