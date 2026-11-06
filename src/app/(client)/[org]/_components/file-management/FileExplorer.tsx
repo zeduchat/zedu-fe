@@ -17,10 +17,22 @@ import FileList from "./FileList";
 import FileInfo, { FileDetails } from "./FileInfo";
 import CreateShareModal from "./CreateShareModal";
 import MoveFileModal, { FolderInfo } from "./MoveFile";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogOverlay,
+  DialogTitle,
+} from "~/components/ui/dialog";
 import { FilterOption } from "../sorting/sorting";
 import FilterSection from "../../filter/filterSection";
 import { useParams } from "next/navigation";
-import { GetRequest, PostRequest, PutRequest } from "~/utils/new-request";
+import {
+  GetRequest,
+  PostRequest,
+  PutRequest,
+  DeleteRequest,
+} from "~/utils/new-request";
 import FilePreview from "./FilePreview";
 import Loading from "~/components/ui/loading";
 import DeleteFolderModal from "./DeleteFolderModal";
@@ -64,6 +76,7 @@ interface ModalState {
     | "rename-folder"
     | "delete-folder"
     | "bulk-delete"
+    | "empty-trash"
     | null;
   data?: any;
 }
@@ -599,6 +612,80 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
     setModalState({ type: null });
   };
 
+  const handleBulkRestore = async () => {
+    const fileIds = Array.from(selectedFileIds);
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const fileId of fileIds) {
+      try {
+        const response = await PutRequest(`/files/file/${fileId}/restore`, {});
+        if (response?.status === 200 || response?.status === 201) {
+          successCount++;
+        } else {
+          failCount++;
+        }
+      } catch {
+        failCount++;
+      }
+    }
+
+    setSelectedFileIds(new Set());
+    setIsBulkMode(false);
+    fetchFiles();
+
+    if (successCount > 0) {
+      showSuccess(
+        `${successCount} file${successCount > 1 ? "s" : ""} restored successfully`
+      );
+    }
+    if (failCount > 0) {
+      showError(
+        `Failed to restore ${failCount} file${failCount > 1 ? "s" : ""}`
+      );
+    }
+  };
+
+  const handleEmptyTrash = async () => {
+    const trashedFiles = viewType === "Deleted Files" ? [...files] : [];
+    if (trashedFiles.length === 0) {
+      showWarning("No files in trash to empty.");
+      return;
+    }
+
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const file of trashedFiles) {
+      try {
+        const response = await DeleteRequest(
+          `/files/file/${file.id}?permanent=true`
+        );
+        if (response?.status === 200 || response?.status === 201) {
+          successCount++;
+        } else {
+          failCount++;
+        }
+      } catch {
+        failCount++;
+      }
+    }
+
+    setModalState({ type: null });
+    fetchFiles();
+
+    if (successCount > 0) {
+      showSuccess(
+        `${successCount} file${successCount > 1 ? "s" : ""} permanently deleted`
+      );
+    }
+    if (failCount > 0) {
+      showError(
+        `Failed to delete ${failCount} file${failCount > 1 ? "s" : ""}`
+      );
+    }
+  };
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -991,6 +1078,8 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
             isBulkMode={isBulkMode}
             selectedCount={selectedFileIds.size}
             onBulkDelete={handleBulkDeleteClick}
+            onBulkRestore={handleBulkRestore}
+            onEmptyTrash={handleEmptyTrash}
             onClearSelection={handleClearSelection}
           />
           {/* Breadcrumb Navigation */}
@@ -1497,6 +1586,41 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
           isLoading={isDeletingFiles}
           viewType={viewType}
         />
+      )}
+      {modalState.type === "empty-trash" && (
+        <Dialog open={true} onOpenChange={() => setModalState({ type: null })}>
+          <DialogOverlay />
+          <DialogContent className="w-fit px-0">
+            <DialogHeader className="">
+              <DialogTitle className="px-6 pb-4 tracking-wide border-b-2 border-[#5F5FE1] ">
+                Empty Trash?
+              </DialogTitle>
+            </DialogHeader>
+            <div className="px-6 mt-2 w-full">
+              <span className="text-sm text-[#1D2939]">
+                This action will{" "}
+                <span className="font-extrabold">permanently delete</span> all
+                files in the Trash. This cannot be undone.
+              </span>
+              <div className="place-self-end mt-5 ">
+                <button
+                  className="px-4 py-2 text-sm bg-transparent border border-[#D0D5DD] text-[#344054] rounded-lg mr-2"
+                  onClick={() => setModalState({ type: null })}
+                  disabled={isDeletingFiles}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleEmptyTrash}
+                  className="px-4 py-2 text-sm bg-[#D31103] text-white rounded-lg"
+                  disabled={isDeletingFiles}
+                >
+                  Empty Trash
+                </button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
       {isLoadingFileDetails && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/30">

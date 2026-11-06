@@ -1,4 +1,4 @@
-import { Upload, FileIcon, FolderUp, Plus } from "lucide-react";
+import { Upload, FileIcon, FolderUp, Plus, Trash2 } from "lucide-react";
 import React, { useRef, ChangeEvent, useState } from "react";
 import { Button } from "~/components/ui/button";
 import {
@@ -37,6 +37,8 @@ interface HeaderProps {
   isBulkMode?: boolean;
   selectedCount?: number;
   onBulkDelete?: () => void;
+  onBulkRestore?: () => void;
+  onEmptyTrash?: () => void;
   onClearSelection?: () => void;
 }
 
@@ -47,6 +49,8 @@ const Header = ({
   isBulkMode,
   selectedCount = 0,
   onBulkDelete,
+  onBulkRestore,
+  onEmptyTrash,
   onClearSelection,
 }: HeaderProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -206,12 +210,29 @@ const Header = ({
               <span className="text-sm text-gray-600">
                 {selectedCount} file{selectedCount > 1 ? "s" : ""} selected
               </span>
-              <Button
-                onClick={onBulkDelete}
-                className="px-3 md:px-4 py-2 text-sm bg-[#D31103] text-white hover:bg-[#B20E02]"
-              >
-                Delete
-              </Button>
+              {title === "Deleted Files" ? (
+                <>
+                  <Button
+                    onClick={onBulkRestore}
+                    className="px-3 md:px-4 py-2 text-sm bg-[#5F5FE1] text-white hover:bg-[#4E42D8]"
+                  >
+                    Restore Selected
+                  </Button>
+                  <Button
+                    onClick={onBulkDelete}
+                    className="px-3 md:px-4 py-2 text-sm bg-[#D31103] text-white hover:bg-[#B20E02]"
+                  >
+                    Delete
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  onClick={onBulkDelete}
+                  className="px-3 md:px-4 py-2 text-sm bg-[#D31103] text-white hover:bg-[#B20E02]"
+                >
+                  Delete
+                </Button>
+              )}
               <Button
                 onClick={onClearSelection}
                 variant="outline"
@@ -230,9 +251,17 @@ const Header = ({
             </Button>
           ) : (
             <>
-              {/* Upload and New Folder Buttons */}
-              {title !== "Shared with me" && title !== "Deleted Files" && (
+              {title === "Deleted Files" ? (
+                <Button
+                  onClick={onEmptyTrash}
+                  className="px-3 md:px-4 py-2 text-sm bg-[#D31103] text-white hover:bg-[#B20E02]"
+                >
+                  <Trash2 className="mr-2 size-4" />
+                  Empty Trash
+                </Button>
+              ) : title !== "Shared with me" ? (
                 <>
+                  {/* Upload and New Folder Buttons */}
                   {/* Mobile: Single plus icon with combined menu */}
                   <div className="md:hidden">
                     <Popover
@@ -327,7 +356,7 @@ const Header = ({
                     />
                   </div>
                 </>
-              )}
+              ) : null}
             </>
           )}
         </div>
