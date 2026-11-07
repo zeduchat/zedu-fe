@@ -74,6 +74,10 @@ jobs:
       - name: Post PR comment
         uses: marocchino/sticky-pull-request-comment@v2
         if: github.event_name == 'pull_request' && always()
+        # Fork PRs get a read-only GITHUB_TOKEN, so commenting is not permitted.
+        # The comment is best-effort; a real finding still fails the job through
+        # "Fail on review errors" below.
+        continue-on-error: true
         with:
           header: pr-review-bot
           path: review-report.md

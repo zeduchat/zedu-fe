@@ -4,6 +4,7 @@ import HeroSection from "./_components/home/Herosection";
 import { ArticlesSection } from "./_components/home/ArticlesSection";
 import { PricingSection } from "./_components/home/PricingSection";
 import { WhySection } from "./_components/home/WhySection";
+import { ZeduCoinSection } from "./_components/home/ZeduCoinSection";
 import { FAQSection } from "./_components/home/FAQSection";
 import { DynamicFooter } from "./_components/footer/dynamic-footer";
 import { getHomeStructuredData } from "./_lib/homeStructuredData";
@@ -42,6 +43,7 @@ const HomePage = () => {
       <ArticlesSection />
       <PricingSection />
       <WhySection />
+      <ZeduCoinSection />
       <FAQSection />
       <DynamicFooter
         text="Run Your Next Cohort Without Limits"
