@@ -36,9 +36,10 @@ const solutionLinks: FooterLink[] = [
   { id: 0, label: "Bootcamps", href: "/solutions/bootcamps" },
   { id: 1, label: "Schools", href: "/solutions/schools" },
   { id: 2, label: "Universities", href: "/solutions/universities" },
-  { id: 3, label: "Study Groups", href: "/solutions/study-groups" },
-  { id: 4, label: "Tutors", href: "/solutions/tutors" },
-  { id: 5, label: "Internships", href: "/solutions/internships" },
+  { id: 3, label: "Parents & Guardians", href: "/for/parents" },
+  { id: 4, label: "Study Groups", href: "/solutions/study-groups" },
+  { id: 5, label: "Tutors", href: "/solutions/tutors" },
+  { id: 6, label: "Internships", href: "/solutions/internships" },
 ];
 
 const supportLinks: FooterLink[] = [

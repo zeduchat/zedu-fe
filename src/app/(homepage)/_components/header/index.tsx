@@ -57,6 +57,7 @@ const dropdownSections: DropdownSection[] = [
       { label: "Bootcamps", href: "/solutions/bootcamps" },
       { label: "Schools", href: "/solutions/schools" },
       { label: "Universities", href: "/solutions/universities" },
+      { label: "Parents & Guardians", href: "/for/parents" },
       { label: "Study Groups", href: "/solutions/study-groups" },
       { label: "Tutors", href: "/solutions/tutors" },
     ],
