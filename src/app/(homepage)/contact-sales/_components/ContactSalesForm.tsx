@@ -283,7 +283,7 @@ export const ContactSalesForm = ({
         ) : (
           <Loader2 className="h-4 w-4 animate-spin" />
         )}
-        {!sending ? "Send" : "Sending"}
+        {!sending ? "Contact Sales" : "Sending"}
       </Button>
 
       <p className="mt-3 text-[10px] leading-relaxed text-[#7a7a7a] sm:text-[11px]">

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { ArrowBtn, OutlineBtn } from "../ui/Button";
 import { useCelebration } from "../home/CelebrationThemeContext";
 import { CelebrationThemeIcon } from "../home/CelebrationBanner";
@@ -46,11 +47,17 @@ export const DynamicFooter = ({
         <OutlineBtn
           text="Contact Sales"
           className={cn(
-            "w-full sm:w-auto",
+            "hidden sm:inline-flex sm:w-auto",
             celebration && celebration.heroOutlineBtnClass
           )}
           href="/contact-sales"
         />
+        <Link
+          href="/contact-sales"
+          className="block text-center text-sm font-medium text-primary-500 hover:underline sm:hidden"
+        >
+          Contact Sales
+        </Link>
       </div>
     </div>
   );
