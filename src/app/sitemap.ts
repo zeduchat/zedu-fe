@@ -66,7 +66,9 @@ const PAGES: { path: string; priority: number }[] = [
 
 // Resource articles with their own page. Read from the Resources list, so a new article is listed once its card links to it.
 const RESOURCE_PAGES = resources
-  .filter(({ link }) => link.startsWith("/resources/"))
+  .filter((resource): resource is typeof resource & { link: string } =>
+    Boolean(resource.link && resource.link.startsWith("/resources/"))
+  )
   .map(({ link }) => ({ path: link, priority: 0.5 }));
 
 // Guide articles render at /resources?guide=<slug>, the canonical URL their pages declare.
