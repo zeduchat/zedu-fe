@@ -38,6 +38,15 @@ export type UserSearchResult = {
 
 export type SearchSortBy = "relevance" | "newest" | "oldest" | string;
 
+/** Sort keys the search API accepts; anything else is rejected with a 400. */
+export type SearchSortKey = "relevance" | "newest" | "oldest";
+
+export type MessageSearchPage = {
+  results: MessageSearchResult[];
+  currentPage: number;
+  totalPages: number;
+};
+
 export type SearchDateFilter = {
   type: string;
   value: string;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useEffect, useState, useCallback } from "react";
+import { useContext, useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { SearchCards } from "~/components/search/search-cards";
 import { SearchCardsSkeleton } from "~/components/search/search-cards-skeleton";
@@ -15,7 +15,7 @@ import {
   PaginationLink,
 } from "~/components/ui/pagination";
 import { cn } from "~/lib/utils";
-import { searchMessages, searchUsers } from "~/lib/search/api";
+import { searchMessagesPage, searchUsers } from "~/lib/search/api";
 import { buildMessageSearchQuery } from "~/lib/search/query";
 import type { MessageSearchResult, UserSearchResult } from "~/lib/search/types";
 
@@ -96,11 +96,10 @@ export default function Search() {
   const { state } = useContext(DataContext);
   const { orgData, channels, orgMembers } = state;
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
   const cardsPerPage = 8;
-  const lastCardIndex = currentPage * cardsPerPage;
-  const firstCardIndex = lastCardIndex - cardsPerPage;
-  const currentCards = results.slice(firstCardIndex, lastCardIndex);
-  const totalPages = Math.ceil(results.length / cardsPerPage);
+  const requestIdRef = useRef(0);
+  const currentCards = results;
 
   const filterUsers = (orgMembers || []).map((member: any) => ({
     id: member.id || member.user_id || member.email || member.username || "",
@@ -108,52 +107,87 @@ export default function Search() {
     avatar_url: member.avatar_url || member.profile_url,
   }));
 
-  const fetchAllResults = useCallback(async () => {
-    if (!baseQuery?.trim() || !orgData?.id) {
-      setResults([]);
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const searchType = filters.type || "messages";
-
-      if (searchType === "messages") {
-        const messages = await searchMessages(orgData.id, baseQuery, {
-          from: filters.from,
-          channel: filters.channel,
-          date: filters.date,
-          sortBy: filters.sortBy,
-        });
-        setResults(messages);
-      } else {
-        const userResults = await searchUsers(orgData.id, baseQuery);
-        setResults(userResults);
+  const fetchResultsPage = useCallback(
+    async (page: number) => {
+      if (!baseQuery?.trim() || !orgData?.id) {
+        setResults([]);
+        setTotalPages(0);
+        return;
       }
-    } catch (error) {
-      console.error("Search failed:", error);
-      showError("An error occurred while searching");
-      setResults([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [
-    baseQuery,
-    orgData?.id,
-    filters.type,
-    filters.from,
-    filters.channel,
-    filters.date,
-    filters.sortBy,
-  ]);
+
+      const requestId = ++requestIdRef.current;
+      setLoading(true);
+
+      try {
+        const searchType = filters.type || "messages";
+
+        if (searchType === "messages") {
+          // Every page comes from the API, so matches past the first page are
+          // reachable instead of being sliced out of a single response.
+          const pageData = await searchMessagesPage(
+            orgData.id,
+            baseQuery,
+            {
+              from: filters.from,
+              channel: filters.channel,
+              date: filters.date,
+              sortBy: filters.sortBy,
+            },
+            { page, limit: cardsPerPage }
+          );
+
+          if (requestId !== requestIdRef.current) return;
+
+          setResults(pageData.results);
+          setTotalPages(pageData.totalPages);
+        } else {
+          const userResults = await searchUsers(orgData.id, baseQuery);
+
+          if (requestId !== requestIdRef.current) return;
+
+          setResults(userResults);
+          setTotalPages(1);
+        }
+      } catch (error) {
+        if (requestId !== requestIdRef.current) return;
+
+        console.error("Search failed:", error);
+        showError("An error occurred while searching");
+        setResults([]);
+        setTotalPages(0);
+      } finally {
+        if (requestId === requestIdRef.current) {
+          setLoading(false);
+        }
+      }
+    },
+    [
+      baseQuery,
+      orgData?.id,
+      filters.type,
+      filters.from,
+      filters.channel,
+      filters.date,
+      filters.sortBy,
+      cardsPerPage,
+    ]
+  );
+
+  // A new query or organisation always starts at the first page.
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [baseQuery, orgData?.id]);
 
   useEffect(() => {
-    if (baseQuery && orgData?.id) {
-      setCurrentPage(1);
-      void fetchAllResults();
+    void fetchResultsPage(currentPage);
+  }, [fetchResultsPage, currentPage]);
+
+  // Keep the pager in range when a filter narrows the result set.
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages);
     }
-  }, [baseQuery, orgData?.id, fetchAllResults]);
+  }, [currentPage, totalPages]);
 
   const handleFilterChange = (newFilters: {
     type?: "messages" | "people";
@@ -252,7 +286,11 @@ export default function Search() {
           <>
             <div className="mb-4">
               <p className="text-sm text-gray-600 dark:text-zinc-400">
-                {results.length} result{results.length !== 1 ? "s" : ""}
+                {results.length} result{results.length !== 1 ? "s" : ""} on this
+                page
+                {totalPages > 1
+                  ? ` · page ${currentPage} of ${totalPages}`
+                  : null}
               </p>
             </div>
             <SearchCards cardData={currentCards} query={baseQuery} />
