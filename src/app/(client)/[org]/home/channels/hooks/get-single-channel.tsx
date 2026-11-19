@@ -4,7 +4,12 @@ import { ACTIONS } from "~/store/Actions";
 import { DataContext } from "~/store/GlobalState";
 import { GetRequest } from "~/utils/new-request";
 
-const UseGetSingleChannel = () => {
+interface Props {
+  /** Failed status (undefined when there was no response), or null on success. */
+  onError?: (status: number | undefined | null) => void;
+}
+
+const UseGetSingleChannel = ({ onError }: Props = {}) => {
   const params = useParams();
   const id = params.id as string;
   const { state, dispatch } = useContext(DataContext);
@@ -17,9 +22,15 @@ const UseGetSingleChannel = () => {
     });
 
     if (id) {
+      // A response for a channel the user has since left or navigated away
+      // from must not overwrite the current channel's state.
+      let ignore = false;
       const fetchChannelById = async () => {
         const res = await GetRequest(`/channels/${id}`);
-        if (res?.status === 200 || res?.status === 201) {
+        if (ignore) return;
+        const status = res?.response?.status ?? res?.status;
+        if (status === 200 || status === 201) {
+          onError?.(null);
           const channel = res?.data?.data;
           dispatch({
             type: ACTIONS.CHANNEL_DETAILS,
@@ -32,6 +43,14 @@ const UseGetSingleChannel = () => {
               payload: channel.name,
             });
           }
+        } else if (status !== 401) {
+          // 401 is handled by the session-expiry flow. Otherwise drop the
+          // previous channel's details and name so nothing (composer label,
+          // search chip, header) keeps pointing at it.
+          localStorage.removeItem("channelName");
+          dispatch({ type: ACTIONS.CHANNEL_DETAILS, payload: null });
+          dispatch({ type: ACTIONS.CHANNEL_NAME, payload: "" });
+          onError?.(status);
         }
         dispatch({
           type: ACTIONS.CHANNEL_READY,
@@ -39,10 +58,25 @@ const UseGetSingleChannel = () => {
         });
       };
       fetchChannelById();
+      return () => {
+        ignore = true;
+        dispatch({
+          type: ACTIONS.CHANNEL_READY,
+          payload: false,
+        });
+      };
     }
+
+    return () => {
+      dispatch({
+        type: ACTIONS.CHANNEL_READY,
+        payload: false,
+      });
+    };
   }, [
     dispatch,
     id,
+    onError,
     // state?.channelCallback,
     state?.leaveCallback,
     state?.joinCallback,

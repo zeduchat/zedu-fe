@@ -7,7 +7,8 @@ import { searchMessages, searchUsers } from "~/lib/search/api";
 import { openSearchMessageResult } from "~/lib/search/navigate";
 import type { MessageSearchResult, UserSearchResult } from "~/lib/search/types";
 import { formatSearchTimestamp, stripHtmlAndDecode } from "~/lib/search/format";
-import { PostRequest } from "~/utils/new-request";
+import { GetRequest } from "~/utils/new-request";
+import { openDmWithUser } from "~/lib/dm/open-dm-with-user";
 import UserAvatar from "~/components/layout/user-avatar";
 import { DeactivationBadge } from "~/components/layout/deactivation-badge";
 
@@ -34,6 +35,9 @@ export const SearchInput = ({ name, orgId }: SearchInputProps) => {
   );
   const [peoplePreview, setPeoplePreview] = useState<UserSearchResult[]>([]);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  // Query whose preview has finished loading, so an empty result still
+  // opens the panel and shows "No matches found".
+  const [previewQuery, setPreviewQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(-1);
 
   const searchRef = useRef<HTMLDivElement>(null);
@@ -67,6 +71,8 @@ export const SearchInput = ({ name, orgId }: SearchInputProps) => {
   useEffect(() => {
     if (recentSearches.length > 0) {
       localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(recentSearches));
+    } else {
+      localStorage.removeItem(RECENT_SEARCHES_KEY);
     }
   }, [recentSearches]);
 
@@ -79,6 +85,7 @@ export const SearchInput = ({ name, orgId }: SearchInputProps) => {
     setMessagePreview([]);
     setPeoplePreview([]);
     setIsLoadingPreview(false);
+    setPreviewQuery("");
     previewRequestRef.current += 1;
   }, [pathname]);
 
@@ -123,6 +130,7 @@ export const SearchInput = ({ name, orgId }: SearchInputProps) => {
       setMessagePreview([]);
       setPeoplePreview([]);
       setIsLoadingPreview(false);
+      setPreviewQuery("");
       return;
     }
 
@@ -148,6 +156,7 @@ export const SearchInput = ({ name, orgId }: SearchInputProps) => {
 
         setMessagePreview(messages.slice(0, PREVIEW_LIMIT));
         setPeoplePreview(people.slice(0, PREVIEW_LIMIT));
+        setPreviewQuery(trimmedQuery);
         setActiveIndex(-1);
       } catch (error) {
         if (requestId !== previewRequestRef.current) return;
@@ -191,10 +200,14 @@ export const SearchInput = ({ name, orgId }: SearchInputProps) => {
   );
 
   const openMessageResult = useCallback(
-    (result: MessageSearchResult) => {
-      openSearchMessageResult({
+    async (result: MessageSearchResult) => {
+      await openSearchMessageResult({
         result,
         orgSlug,
+        orgId: resolvedOrgId,
+        dms: state.dms,
+        channels: state.channels,
+        getDmParticipants: GetRequest,
         router,
         dispatch,
       });
@@ -202,39 +215,43 @@ export const SearchInput = ({ name, orgId }: SearchInputProps) => {
       setIsOpen(false);
       setSearchQuery("");
     },
-    [dispatch, orgSlug, router, saveRecentSearch, searchQuery]
+    [
+      dispatch,
+      orgSlug,
+      resolvedOrgId,
+      router,
+      saveRecentSearch,
+      searchQuery,
+      state.channels,
+      state.dms,
+    ]
   );
 
   const openPersonResult = useCallback(
     async (person: UserSearchResult) => {
-      if (!resolvedOrgId) return;
-
       localStorage.setItem("channelName", person.username);
       saveRecentSearch(searchQuery);
 
-      const response = await PostRequest(
-        `/organisations/${resolvedOrgId}/dms`,
-        {
-          chat_type: "user",
-          participant_id: person.id,
-        }
-      );
+      const opened = await openDmWithUser({
+        user: person,
+        orgId: resolvedOrgId,
+        orgSlug,
+        router,
+        dispatch,
+      });
 
-      if (response?.status === 200 || response?.status === 201) {
-        router.push(
-          `/${orgSlug}/home/people/${response?.data?.data?.channel_id}/${response?.data?.data?.participant_id}/dm`
-        );
+      if (opened) {
         setIsOpen(false);
         setSearchQuery("");
       }
     },
-    [orgSlug, resolvedOrgId, router, saveRecentSearch, searchQuery]
+    [dispatch, orgSlug, resolvedOrgId, router, saveRecentSearch, searchQuery]
   );
 
   const handlePreviewSelect = useCallback(
     async (item: PreviewItem) => {
       if (item.type === "message") {
-        openMessageResult(item.data);
+        await openMessageResult(item.data);
         return;
       }
 
@@ -254,7 +271,9 @@ export const SearchInput = ({ name, orgId }: SearchInputProps) => {
   const showPreviewPanel =
     isOpen &&
     searchQuery.trim().length >= MIN_QUERY_LENGTH &&
-    (isLoadingPreview || previewItems.length > 0);
+    (isLoadingPreview ||
+      previewItems.length > 0 ||
+      previewQuery === searchQuery.trim());
 
   const showRecentPanel =
     isOpen &&
@@ -332,7 +351,7 @@ export const SearchInput = ({ name, orgId }: SearchInputProps) => {
             <X className="w-4 h-4 text-white" />
           </button>
         ) : (
-          <kbd className="hidden lg:inline-flex items-center rounded border border-white/30 px-1.5 py-0.5 text-[10px] text-white/80 mr-2">
+          <kbd className="hidden lg:inline-flex shrink-0 whitespace-nowrap items-center rounded border border-white/30 px-1.5 py-0.5 text-[10px] text-white/80 mr-2">
             Ctrl K
           </kbd>
         )}

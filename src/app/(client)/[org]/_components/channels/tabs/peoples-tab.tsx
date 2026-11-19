@@ -6,9 +6,9 @@ import { useContext, useState } from "react";
 import { DataContext } from "~/store/GlobalState";
 import { Member } from "~/types/people";
 import images from "~/assets/images";
-import { PostRequest } from "~/utils/new-request";
-import { useRouter } from "next/navigation";
 import { useOrganisationUsers } from "~/hooks/useOrganisationUsers";
+import Tooltips from "~/app/(client)/[org]/_components/tooltip";
+import { ACTIONS } from "~/store/Actions";
 
 const SkeletonCard = () => (
   <div className="border border-gray-200 rounded-lg overflow-hidden animate-pulse w-full">
@@ -22,9 +22,8 @@ const SkeletonCard = () => (
 );
 
 export default function PeopleTab() {
-  const { state } = useContext(DataContext);
-  const { channelloading, orgMembers, orgMembersTotal, orgSlug } = state;
-  const router = useRouter();
+  const { state, dispatch } = useContext(DataContext);
+  const { channelloading, orgMembers, orgMembersTotal } = state;
 
   const [searchInput, setSearchInput] = useState("");
 
@@ -41,26 +40,18 @@ export default function PeopleTab() {
     (isSearching ? members.length : orgMembersTotal || orgMembers?.length) ||
     0;
 
-  const handleRoute = async (data: any) => {
-    localStorage.setItem("channelName", data?.name);
-
-    const resolvedOrgId = localStorage.getItem("orgId") || "";
-
-    const payload = {
-      chat_type: data?.entity_type,
-      participant_id: data?.id,
-    };
-
-    const res = await PostRequest(
-      `/organisations/${resolvedOrgId}/dms`,
-      payload
-    );
-
-    if (res?.status === 200 || res?.status === 201) {
-      router.push(
-        `/${orgSlug}/people/${res?.data?.data?.channel_id}/${res?.data?.data?.participant_id}`
-      );
-    }
+  const handleOpenProfile = (member: Member) => {
+    dispatch({
+      type: ACTIONS.USER_DATA,
+      payload: {
+        ...member,
+        user_id: member.id,
+        username: member.username || member.name,
+        full_name: member.name,
+        phone: member.phone_number,
+      },
+    });
+    dispatch({ type: ACTIONS.HOVER_PROFILE, payload: true });
   };
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -107,10 +98,12 @@ export default function PeopleTab() {
           {members.length > 0 ? (
             members.map((user: Member, index: number) => {
               return (
-                <div
+                <button
+                  type="button"
                   key={user.id || index}
-                  className="border border-gray-200 rounded-lg overflow-hidden flex flex-col group cursor-pointer hover:shadow-md transition-shadow bg-white w-full min-w-0"
-                  onClick={() => handleRoute(user)}
+                  className="border border-gray-200 rounded-lg overflow-hidden flex flex-col group cursor-pointer hover:shadow-md transition-shadow bg-white w-full min-w-0 text-left"
+                  onClick={() => handleOpenProfile(user)}
+                  aria-label={`View ${user.name}'s profile`}
                 >
                   <div className="aspect-square relative overflow-hidden bg-gray-100">
                     <Image
@@ -128,21 +121,29 @@ export default function PeopleTab() {
                   </div>
                   <div className="p-3">
                     <div className="flex items-center gap-1 min-w-0">
-                      <span className="font-bold text-[15px] truncate">
-                        {user.name}
-                      </span>
+                      <Tooltips text={user.name || ""}>
+                        <span className="font-bold text-[15px] truncate">
+                          {user.name}
+                        </span>
+                      </Tooltips>
                       <ExternalLink
                         size={12}
                         className="shrink-0 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"
                       />
                     </div>
-                    <p className="text-[13px] text-gray-500 mt-0.5 line-clamp-1">
-                      {user.email}
-                    </p>
+                    {user.email && (
+                      <Tooltips text={user.email}>
+                        <p className="text-[13px] text-gray-500 mt-0.5 line-clamp-1">
+                          {user.email}
+                        </p>
+                      </Tooltips>
+                    )}
                     {user.phone_number && (
-                      <p className="text-[13px] text-gray-500 mt-1 line-clamp-1">
-                        {user.phone_number}
-                      </p>
+                      <Tooltips text={user.phone_number}>
+                        <p className="text-[13px] text-gray-500 mt-1 line-clamp-1">
+                          {user.phone_number}
+                        </p>
+                      </Tooltips>
                     )}
                     <div className="mt-2 flex items-center gap-2">
                       <span
@@ -156,7 +157,7 @@ export default function PeopleTab() {
                       </span>
                     </div>
                   </div>
-                </div>
+                </button>
               );
             })
           ) : (

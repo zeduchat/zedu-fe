@@ -3,19 +3,84 @@
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
+import Loading from "~/components/ui/loading";
+import { showError, showSuccess } from "~/components/toast/sonner";
+import { formatTime, maskEmail } from "~/utils";
+import { PostRequest } from "~/utils/request";
+
+const RESEND_COOLDOWN_SECONDS = 60;
+
+const secondsUntil = (deadline: number) =>
+  Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
 
 const CheckEmail = () => {
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
+  const type = searchParams.get("type") || "";
+  const [resending, setResending] = useState(false);
+  // When the cooldown ends, as a timestamp. The countdown is recalculated from
+  // the clock, so it stays correct if the browser pauses the tab's timers.
+  const [cooldownEndsAt, setCooldownEndsAt] = useState(0);
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (!cooldownEndsAt) return;
+    const update = () => setCooldown(secondsUntil(cooldownEndsAt));
+    update();
+    const timerId = setInterval(update, 1000);
+    document.addEventListener("visibilitychange", update);
+    return () => {
+      clearInterval(timerId);
+      document.removeEventListener("visibilitychange", update);
+    };
+  }, [cooldownEndsAt]);
+
+  const cleanEmail = email.trim().toLowerCase();
+
+  const handleResend = async () => {
+    if (resending || cooldown > 0) return;
+    if (!cleanEmail) {
+      showError(
+        "We couldn't find your email address. Please request a password reset again."
+      );
+      return;
+    }
+
+    setResending(true);
+    try {
+      const isVerification = type === "verification" || type === "verify";
+      const endpoint = isVerification
+        ? "/auth/email-request"
+        : "/auth/password-reset";
+
+      const res = await PostRequest(endpoint, { email: cleanEmail });
+
+      if (res?.status === 200 || res?.status === 201) {
+        setCooldownEndsAt(Date.now() + RESEND_COOLDOWN_SECONDS * 1000);
+        showSuccess(res?.data?.message || "Email sent. Check your inbox.");
+      }
+    } catch {
+      showError(
+        "Couldn't resend the email. Check your connection and try again."
+      );
+    } finally {
+      setResending(false);
+    }
+  };
 
   return (
     <>
       <main className="w-full min-h-screen flex flex-col md:flex-row">
         <section className="w-full md:w-[45%] bg-[#F9FAFB] px-[20px] md:px-[40px] py-[20px] hidden lg:block">
           <Link href="/">
-            <Image src="/login_logo.svg" alt="" width={86} height={31} />
+            <Image
+              src="/login_logo.svg"
+              alt="Zedu home"
+              width={86}
+              height={31}
+            />
           </Link>
           <div>
             <div className="w-full flex flex-col gap-[12px] mb-[40px] md:mb-[71px]">
@@ -56,11 +121,10 @@ const CheckEmail = () => {
               Check your Email
             </h1>
             <p className="w-full text-left text-[14px] md:text-[16px] text-[#344054] font-[400] leading-[21px] md:leading-[27px] mb-[32px]">
-              We have sent an email with the password reset information to{" "}
-              {email
-                ? email.replace(/(.{2}).+(@.+)/, "$1***$2")
-                : "your email address"}
-              .
+              {type === "verification" || type === "verify"
+                ? "We have sent an email with the verification link to "
+                : "We have sent an email with the password reset information to "}
+              {cleanEmail ? maskEmail(cleanEmail) : "your email address"}.
             </p>
             <p className="w-full text-center text-[12px] md:text-[14px] text-[#344054] font-[400] leading-[18px] md:leading-[21px]">
               Didn’t receive the email? Check your spam folder or
@@ -70,9 +134,15 @@ const CheckEmail = () => {
             <Button
               type="button"
               variant="default"
+              onClick={handleResend}
+              disabled={resending || cooldown > 0}
               className="py-6 bg-[#7141F8] hover:bg-[#8760f8] text-white"
             >
-              Resend Email
+              {cooldown > 0 ? (
+                `Resend Email in ${formatTime(cooldown)}`
+              ) : (
+                <>Resend Email {resending && <Loading />}</>
+              )}
             </Button>
             <Link href="/auth/login">
               <Button

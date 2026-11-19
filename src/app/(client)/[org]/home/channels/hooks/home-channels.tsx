@@ -10,6 +10,23 @@ const UseHomeChannel = () => {
 
   useEffect(() => {
     if (!orgId) return;
+    if (
+      typeof window !== "undefined" &&
+      localStorage.getItem("isAssessmentMode") === "true"
+    ) {
+      const demoChannels = [
+        {
+          id: "general",
+          channel_id: "general",
+          name: "general",
+          description: "General discussion",
+        },
+      ];
+      dispatch({ type: ACTIONS.CHANNELS, payload: demoChannels });
+      dispatch({ type: ACTIONS.ALL_CHANNELS, payload: demoChannels });
+      dispatch({ type: ACTIONS.CHANNEL_LOADING, payload: false });
+      return;
+    }
     dispatch({ type: ACTIONS.CHANNELS, payload: null });
     dispatch({ type: ACTIONS.HOME_DMS, payload: null });
     dispatch({ type: ACTIONS.THREAD_MENTIONS, payload: { reset: true } });
@@ -18,26 +35,38 @@ const UseHomeChannel = () => {
 
   // fetch all user channels
   useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      localStorage.getItem("isAssessmentMode") === "true"
+    ) {
+      return;
+    }
     if (orgId && state?.token) {
+      let ignore = false;
       const fetchChannels = async () => {
         const res = await GetRequest(`/organisations/${orgId}/user-channels`);
         const data = res?.data?.data;
 
-        if (res?.status === 200 || res?.status === 201) {
+        if (!ignore && (res?.status === 200 || res?.status === 201)) {
           dispatch({ type: ACTIONS.CHANNELS, payload: data ?? [] });
         }
 
-        dispatch({
-          type: ACTIONS.CHANNEL_LOADING,
-          payload: false,
-        });
+        if (!ignore) {
+          dispatch({
+            type: ACTIONS.CHANNEL_LOADING,
+            payload: false,
+          });
+        }
       };
 
       fetchChannels();
+      return () => {
+        ignore = true;
+      };
     }
   }, [
     orgId,
-    // state?.channelCallback,
+    state?.channelCallback,
     dispatch,
     state?.joinCallback,
     state?.leaveCallback,
@@ -45,13 +74,20 @@ const UseHomeChannel = () => {
 
   // FETCH ALL CHANNELS
   useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      localStorage.getItem("isAssessmentMode") === "true"
+    ) {
+      return;
+    }
     if (orgId && state?.token) {
+      let ignore = false;
       const fetchAllChannels = async () => {
         const res = await GetRequest(
           `/organisations/${orgId}/channels?limit=200`
         );
 
-        if (res?.status === 200 || res?.status === 201) {
+        if (!ignore && (res?.status === 200 || res?.status === 201)) {
           dispatch({ type: ACTIONS.ALL_CHANNELS, payload: res?.data?.data });
         }
       };
@@ -62,10 +98,19 @@ const UseHomeChannel = () => {
       });
 
       fetchAllChannels();
+      return () => {
+        ignore = true;
+      };
     }
-  }, [orgId, dispatch]);
+  }, [orgId, dispatch, state?.channelCallback]);
 
   useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      localStorage.getItem("isAssessmentMode") === "true"
+    ) {
+      return;
+    }
     if (orgId) {
       const fetchChannels = async () => {
         const res = await GetRequest(
@@ -83,6 +128,12 @@ const UseHomeChannel = () => {
   // visibility dms
   useEffect(() => {
     if (!orgId) return;
+    if (
+      typeof window !== "undefined" &&
+      localStorage.getItem("isAssessmentMode") === "true"
+    ) {
+      return;
+    }
 
     const fetchVisibleDms = async () => {
       const res = await GetRequest(
@@ -108,6 +159,12 @@ const UseHomeChannel = () => {
 
   useEffect(() => {
     if (!orgId || !state?.token) return;
+    if (
+      typeof window !== "undefined" &&
+      localStorage.getItem("isAssessmentMode") === "true"
+    ) {
+      return;
+    }
 
     const fetchSidebarThreads = async () => {
       const { success, threads, hasMore, unseenThreadCount } =

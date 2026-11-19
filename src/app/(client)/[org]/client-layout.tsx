@@ -4,7 +4,8 @@ import { ACTIONS } from "~/store/Actions";
 import { bootstrapOrganisationAccess } from "~/utils/org-access-api";
 import { DataContext } from "~/store/GlobalState";
 import { GetRequest } from "~/utils/new-request";
-import { usePathname, useRouter } from "next/navigation";
+import { showError } from "~/components/toast/sonner";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Topbar from "~/components/layout/topbar";
 import { ChannelBuzzProvider } from "~/hooks/buzz/ChannelBuzzContext";
 import {
@@ -19,7 +20,6 @@ import { TooltipProvider } from "~/components/ui/tooltip";
 import { UploadProvider } from "~/store/UploadContext";
 import UploadProgressPopover from "./_components/file-management/UploadProgressPopover";
 import FirebasePush from "~/components/layout/firebase/firebase-push";
-import { NotificationBanner } from "./_components/notification-banner";
 import IncomingCallPopupContainer from "~/app/(client)/[org]/_components/buzz-management/IncomingCallPopupContainer";
 import StatusConnection from "~/components/layout/centrifugo/status-connection";
 import ChatBuzzSidePanel from "./_components/buzz-management/chatBuzzSidePanel";
@@ -33,16 +33,25 @@ import {
   resolveChannelIdForOrgSwitch,
 } from "~/utils/org-switch";
 import { useOrganisationUsers } from "~/hooks/useOrganisationUsers";
+import { useLoadSavedMessages } from "~/hooks/useSavedMessages";
 import { isReservedPathSegment } from "~/lib/reserved-paths";
+import ErrorState, {
+  ErrorStateVariant,
+  errorVariantFromStatus,
+} from "~/components/ui/error-state";
+import usePageTitle from "~/hooks/use-page-title";
 
 const ClientLayout = ({
   children,
 }: Readonly<{ children: React.ReactNode }>) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [orgError, setOrgError] = useState<ErrorStateVariant | null>(null);
   const { state, dispatch } = useContext(DataContext);
   const pathname = usePathname();
+  usePageTitle(pathname);
   const prevPathnameRef = useRef<string | null>(null);
   const segments = pathname.split("/");
   const slug = segments[1];
@@ -53,6 +62,7 @@ const ClientLayout = ({
     (typeof window !== "undefined" ? localStorage.getItem("orgId") || "" : "");
 
   useOrganisationUsers(orgId, { enabled: isInitialized && !!orgId });
+  useLoadSavedMessages(orgId, { enabled: isInitialized && !!orgId });
 
   useEffect(() => {
     if (
@@ -60,6 +70,7 @@ const ClientLayout = ({
       prevPathnameRef.current !== pathname
     ) {
       dispatch({ type: ACTIONS.REPLY, payload: false });
+      dispatch({ type: ACTIONS.IS_EDIT, payload: false });
       dispatch({ type: ACTIONS.IS_EDIT_REPLY, payload: false });
       dispatch({ type: ACTIONS.HOVER_PROFILE, payload: false });
       dispatch({ type: ACTIONS.SHOW_USER_PROFILE, payload: false });
@@ -74,6 +85,7 @@ const ClientLayout = ({
 
   useEffect(() => {
     let cancelled = false;
+    setOrgError(null);
 
     const storedSlug =
       localStorage.getItem("orgSlug") ||
@@ -116,7 +128,39 @@ const ClientLayout = ({
       };
     }
 
+    // Assessment / demo mode bypass
+    const isAssessment =
+      searchParams.get("assessment") === "true" ||
+      searchParams.get("demo") === "true" ||
+      searchParams.get("testNotification") === "true" ||
+      (typeof window !== "undefined" &&
+        (localStorage.getItem("isAssessmentMode") === "true" ||
+          localStorage.getItem("enableTestNotifications") === "true"));
+
+    if (isAssessment) {
+      if (slug && slug !== "undefined") {
+        localStorage.setItem("orgSlug", slug);
+        if (state.orgSlug !== slug) {
+          dispatch({ type: ACTIONS.ORG_SLUG, payload: slug });
+        }
+      }
+      finish();
+      return () => {
+        cancelled = true;
+      };
+    }
+
     if (slug === "client") {
+      // "/client/*" is an alias for the current org (used by marketing links
+      // that can't know the slug). Swap in the real slug once we have one.
+      if (storedSlug && storedSlug !== "client" && storedSlug !== "undefined") {
+        router.replace(
+          `${pathname.replace(/^\/client/, `/${storedSlug}`)}${window.location.search}`
+        );
+        return () => {
+          cancelled = true;
+        };
+      }
       dispatch({
         type: ACTIONS.ORG_SLUG,
         payload: "client",
@@ -212,8 +256,10 @@ const ClientLayout = ({
 
         redirectAfterOrgSwitch(nextSlug, channelId);
         return;
-      } else if (status === 404 || status === 400) {
-        router.push("/404");
+      } else if (!status || [400, 403, 404].includes(status) || status >= 500) {
+        // Show the real cause in place: a missing workspace, no membership,
+        // or a request that actually failed.
+        setOrgError(errorVariantFromStatus(status));
       }
 
       finish();
@@ -229,6 +275,16 @@ const ClientLayout = ({
 
   // Bootstrap organisation invites and access after init
   useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      localStorage.getItem("isAssessmentMode") === "true"
+    ) {
+      dispatch({ type: ACTIONS.PERMISSIONS_CATALOG, payload: [] });
+      dispatch({ type: ACTIONS.ORG_ROLES, payload: [] });
+      dispatch({ type: ACTIONS.ORG_INVITES, payload: [] });
+      return;
+    }
+
     const resolvedOrgId = localStorage.getItem("orgId");
 
     const getOrganisationInvites = async () => {
@@ -253,6 +309,7 @@ const ClientLayout = ({
         dispatch({ type: ACTIONS.ORG_ROLES, payload: roles });
       } catch (error) {
         console.error("Failed to load organisation access data:", error);
+        showError("Failed to load organisation access data");
       } finally {
         dispatch({ type: ACTIONS.ORG_ACCESS_LOADING, payload: false });
       }
@@ -287,6 +344,8 @@ const ClientLayout = ({
 
   if (loading) return null;
 
+  if (orgError) return <ErrorState variant={orgError} />;
+
   if (isStandaloneBuzzSession) {
     return (
       <UploadProvider>
@@ -318,7 +377,11 @@ const ClientLayout = ({
           <Topbar />
           <div className="w-full flex relative">
             <SideBar />
-            <div className={`w-full relative`}>
+            <div
+              className={`w-full relative ${
+                state.showUserProfile ? "sm:mr-[408px]" : ""
+              }`}
+            >
               {children}
               <UserSidebar />
             </div>
@@ -338,7 +401,6 @@ const ClientLayout = ({
           </div>
         </ChannelBuzzProvider>
         <UploadProgressPopover />
-        <NotificationBanner />
         <IncomingCallPopupContainer />
       </TooltipProvider>
     </UploadProvider>

@@ -38,7 +38,12 @@ export const handleSessionExpired = () => {
   const currentFullUrl = `${window.location.pathname}${window.location.search}`;
   const loginUrl = `/auth/login?redirect=${encodeURIComponent(currentFullUrl)}`;
 
-  localStorage.clear();
+  try {
+    sessionStorage.removeItem("pending_org");
+    localStorage.removeItem("token");
+  } catch {
+    // ignore
+  }
   window.location.href = loginUrl;
 };
 

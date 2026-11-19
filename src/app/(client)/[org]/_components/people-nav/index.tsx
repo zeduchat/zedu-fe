@@ -1,4 +1,5 @@
 "use client";
+import { NotificationBanner } from "~/app/(client)/[org]/_components/notification-banner";
 
 import { HeadphonesIcon, Search } from "lucide-react";
 import { useContext, useRef, useState } from "react";
@@ -24,6 +25,7 @@ const PeopleHeader = ({ user }: { user: any }) => {
 
   const params = useParams();
   const id = params.id as string;
+  const isPersonalDm = user?.user_id === state?.user?.user_id;
 
   const handleOpen = () => {
     setTimeout(() => {
@@ -81,9 +83,7 @@ const PeopleHeader = ({ user }: { user: any }) => {
     }
   };
 
-  if (!user) return null;
-
-  return (
+  const navigation = (
     <nav className="flex items-center justify-between p-5 border-b border-[#E6EAEF]">
       <div
         className="flex items-center gap-3 cursor-pointer"
@@ -106,8 +106,12 @@ const PeopleHeader = ({ user }: { user: any }) => {
           )}
         </div>
 
-        <h2 className="text-[#1D2939] text-base lg:text-lg font-bold">
+        <h2
+          tabIndex={-1}
+          className="text-[#1D2939] text-base lg:text-lg font-bold"
+        >
           {user?.username}
+          {isPersonalDm ? " (you)" : ""}
         </h2>
       </div>
 
@@ -151,6 +155,13 @@ const PeopleHeader = ({ user }: { user: any }) => {
         displayName={user?.username || "this chat"}
       />
     </nav>
+  );
+
+  return (
+    <header className="shrink-0">
+      {navigation}
+      <NotificationBanner />
+    </header>
   );
 };
 

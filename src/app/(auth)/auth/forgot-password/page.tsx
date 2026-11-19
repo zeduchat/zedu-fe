@@ -17,10 +17,11 @@ function ForgotPassword() {
   const [buttonloading, setButtonloading] = useState(false);
 
   const validateForm = () => {
+    const cleanEmail = email.trim();
     const newErrors = { email: "" };
-    if (!email) {
+    if (!cleanEmail) {
       newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
+    } else if (!/\S+@\S+\.\S+/.test(cleanEmail)) {
       newErrors.email = "Invalid email address";
     }
 
@@ -34,11 +35,16 @@ function ForgotPassword() {
     if (validateForm()) {
       setButtonloading(true);
 
-      const res = await PostRequest("/auth/password-reset", { email });
+      const cleanEmail = email.trim().toLowerCase();
+      const res = await PostRequest("/auth/password-reset", {
+        email: cleanEmail,
+      });
 
       if (res?.status === 200 || res?.status === 201) {
         showSuccess(res?.data.message);
-        router.push(`/auth/reset-password?email=${encodeURIComponent(email)}`);
+        router.push(
+          `/auth/reset-password?email=${encodeURIComponent(cleanEmail)}`
+        );
       } else {
         setButtonloading(false);
       }
@@ -58,7 +64,7 @@ function ForgotPassword() {
       <main className="w-full min-h-screen flex flex-col">
         <div className="flex items-center justify-between w-full py-6 max-w-7xl px-4 sm:px-6 lg:px-8">
           <Link href="/">
-            <Image src="/Zedu.png" alt="" width={86} height={31} />
+            <Image src="/Zedu.png" alt="Zedu home" width={86} height={31} />
           </Link>
           <div>
             Remember your password?{" "}
@@ -74,8 +80,8 @@ function ForgotPassword() {
               Forgot Password
             </h1>
             <p className="w-full text-center text-[14px] md:text-[16px] text-[#344054] font-[400] leading-[21px] md:leading-[27px]">
-              Enter the email you used in creating your account, we will send
-              you instructions on how to reset your password.
+              Enter the email you used to create your account, and we will send
+              you instructions to reset your password.
             </p>
           </div>
           <form onSubmit={handleSubmit} className="w-full">
@@ -89,6 +95,7 @@ function ForgotPassword() {
                 </label>
                 <div className="w-full flex flex-col gap-[2px]">
                   <input
+                    id="email"
                     type="email"
                     value={email}
                     onChange={handleEmailChange}
@@ -110,6 +117,7 @@ function ForgotPassword() {
                 <Button
                   type="submit"
                   variant="default"
+                  disabled={buttonloading}
                   className="py-6 bg-[#7141F8] hover:bg-[#8760f8] text-white"
                 >
                   {buttonloading ? (
@@ -122,15 +130,14 @@ function ForgotPassword() {
                   )}
                 </Button>
 
-                <Link href="/auth/login">
-                  <Button
-                    type="submit"
-                    variant="outline"
-                    className="w-full py-6 border border-[#8760f8] text-[#8760f8] bg-white hover:bg-[#7141F8] hover:text-white"
-                  >
-                    Back to Login
-                  </Button>
-                </Link>
+                {/* A link, not a submit button: leaving must not send a reset email. */}
+                <Button
+                  asChild
+                  variant="outline"
+                  className="w-full py-6 border border-[#8760f8] text-[#8760f8] bg-white hover:bg-[#7141F8] hover:text-white"
+                >
+                  <Link href="/auth/login">Back to Login</Link>
+                </Button>
               </div>
             </div>
           </form>

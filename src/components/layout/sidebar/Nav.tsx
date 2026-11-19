@@ -20,6 +20,7 @@ import ChannelInviteModal from "~/app/(client)/[org]/_components/invite-modal/ch
 import OrganisationMenu from "~/app/(client)/[org]/_components/org-dropdown";
 import Tooltips from "~/app/(client)/[org]/_components/tooltip";
 import { formatCount } from "~/utils/utils";
+import { parseStoredAccordions } from "~/utils/stored-accordions";
 // import AddColleagueDialog from "~/app/(client)/[org]/_components/colleagues/add-colleagues-modal";
 // import { ColleaguesCard } from "~/app/(client)/[org]/_components/colleagues/card";
 
@@ -52,7 +53,7 @@ export default function ChannelNav({
     if (sidebarRef && savedScroll) {
       sidebarRef.current.scrollTop = parseInt(savedScroll, 10);
     }
-  }, []);
+  }, [sidebarRef]);
 
   const handleScroll = () => {
     if (sidebarRef) {
@@ -64,13 +65,12 @@ export default function ChannelNav({
   };
 
   const [openAccordions, setOpenAccordions] = useState<string[]>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("openAccordions");
-      return saved
-        ? JSON.parse(saved)
-        : ["channels", "workflows", "agents", "people"];
-    }
-    return ["channels", "workflows", "agents", "people"];
+    const defaults = ["starred", "channels", "workflows", "agents", "people"];
+    if (typeof window === "undefined") return defaults;
+    return parseStoredAccordions(
+      localStorage.getItem("openAccordions"),
+      defaults
+    );
   });
 
   const handleAccordionChanges = (values: string[]) => {
@@ -94,6 +94,16 @@ export default function ChannelNav({
   const unseenThreadCount = state?.unseenThreadCount ?? 0;
   const showThreadsBadge = unseenThreadCount > 0;
 
+  const starredChannels = channelsReady
+    ? state.channels
+        .filter((c: any) => Boolean(c?.is_starred))
+        .sort((a: any, b: any) => {
+          const nameA = (a?.name || a?.channel_slug || "").toLowerCase();
+          const nameB = (b?.name || b?.channel_slug || "").toLowerCase();
+          return nameA.localeCompare(nameB);
+        })
+    : [];
+
   const sortedChannels = channelsReady
     ? state.channels.slice().sort((a: any, b: any) => {
         const nameA = (a?.name || a?.channel_slug || "").toLowerCase();
@@ -101,6 +111,18 @@ export default function ChannelNav({
         return nameA.localeCompare(nameB);
       })
     : [];
+
+  /** Returns the DM list with favourited entries first, stable order within each group. */
+  const sortHomeDmsFavouritesFirst = (dms: any[]) => {
+    const favourites: any[] = [];
+    const rest: any[] = [];
+
+    for (const dm of dms) {
+      (dm?.is_favourite ? favourites : rest).push(dm);
+    }
+
+    return [...favourites, ...rest];
+  };
 
   return (
     <>
@@ -122,14 +144,17 @@ export default function ChannelNav({
             <Link
               href={`/${orgSlug}/threads`}
               className={cn(
-                "relative flex-1 flex items-center gap-[2px] py-[7px] px-2 mx-2 mb-2 hover:bg-blue-200 hover:text-white rounded-lg ",
-                pathname.includes("/threads") ? "bg-blue-200" : ""
+                "group relative flex-1 flex items-center gap-[2px] py-[7px] px-2 mx-2 mb-2 hover:bg-blue-200 hover:text-white rounded-lg ",
+                pathname.includes("/threads") ? "bg-blue-200 text-white" : ""
               )}
             >
-              <ChatBubbleIcon />
+              <ChatBubbleIcon color="currentColor" />
               <p
                 className={cn(
-                  "text-[15px] leading-4 truncate w-[180px] text-blue-50"
+                  "text-[15px] leading-4 truncate w-[180px]",
+                  pathname.includes("/threads")
+                    ? "font-semibold text-white"
+                    : "text-blue-50 group-hover:text-white"
                 )}
               >
                 Threads
@@ -153,16 +178,19 @@ export default function ChannelNav({
             <Link
               href={`/${orgSlug}/buzzs`}
               className={cn(
-                "flex-1 flex items-center gap-[2px] py-[7px] px-2 mx-2 hover:bg-blue-200 hover:text-white rounded-lg ",
-                pathname.includes("/buzzs") ? "bg-blue-200" : ""
+                "group flex-1 flex items-center gap-[2px] py-[7px] px-2 mx-2 hover:bg-blue-200 hover:text-white rounded-lg ",
+                pathname.includes("/buzzs") ? "bg-blue-200 text-white" : ""
               )}
             >
               <div className="mt-[2px]">
-                <HeadphoneIcon />
+                <HeadphoneIcon color="currentColor" />
               </div>
               <p
                 className={cn(
-                  "text-[15px] leading-4 truncate w-[180px] text-blue-50"
+                  "text-[15px] leading-4 truncate w-[180px]",
+                  pathname.includes("/buzzs")
+                    ? "font-semibold text-white"
+                    : "text-blue-50 group-hover:text-white"
                 )}
               >
                 Buzzes
@@ -180,6 +208,37 @@ export default function ChannelNav({
                   onValueChange={handleAccordionChanges}
                   onClick={(e) => e.stopPropagation()}
                 >
+                  {starredChannels.length > 0 && (
+                    <AccordionItem value="starred" className="border-none">
+                      <AccordionTrigger className="font-normal w-full py-0">
+                        <div className="relative py-3 mx-4 flex items-center gap-1 rounded-lg cursor-pointer w-full">
+                          <DropdownIcon
+                            className={`transition-transform duration-300 ${
+                              openAccordions.includes("starred")
+                                ? "rotate-0"
+                                : "-rotate-90"
+                            }`}
+                          />
+                          <h3 className="text-[15px] font-medium">Starred</h3>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent onClick={handleClose}>
+                        <ul className="flex flex-col gap-1">
+                          {starredChannels.map((item: any, index: number) => (
+                            <ChannelCard
+                              {...item}
+                              key={
+                                item?.channels_id ?? item?.channel_slug ?? index
+                              }
+                              selectedChannelId={selectedChannelId}
+                              onSelectChannel={setPendingChannelId}
+                            />
+                          ))}
+                        </ul>
+                      </AccordionContent>
+                    </AccordionItem>
+                  )}
+
                   <AccordionItem value="channels" className="border-none">
                     <AccordionTrigger className="font-normal w-full py-0">
                       <div className="relative py-3 mx-4 flex items-center gap-1 rounded-lg cursor-pointer w-full">
@@ -311,14 +370,16 @@ export default function ChannelNav({
                   </Tooltips>
                 </div>
                 <AccordionContent onClick={handleClose}>
-                  {state.homeDms.map((item: any, index: number) => (
-                    <div
-                      className="mb-1"
-                      key={item?.channel_id || item?.channels_id || index}
-                    >
-                      <PeopleHomeCard {...item} />
-                    </div>
-                  ))}
+                  {sortHomeDmsFavouritesFirst(state.homeDms).map(
+                    (item: any, index: number) => (
+                      <div
+                        className="mb-1"
+                        key={item?.channel_id || item?.channels_id || index}
+                      >
+                        <PeopleHomeCard {...item} />
+                      </div>
+                    )
+                  )}
 
                   {state.homeDms.length === 0 && (
                     <p className="text-xs text-center text-blue-50">

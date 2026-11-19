@@ -15,12 +15,21 @@ import {
 import { formatTime, maskEmail } from "~/utils";
 import { showSuccess } from "~/components/toast/sonner";
 import { Eye, EyeOff } from "lucide-react";
+import {
+  PASSWORD_HINT,
+  PASSWORD_TOO_SHORT_MESSAGE,
+  isPasswordTooShort,
+} from "~/lib/password";
 
 function ResetPassword() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState({ password: "", confirmPassword: "" });
+  const [errors, setErrors] = useState({
+    code: "",
+    password: "",
+    confirmPassword: "",
+  });
   const router = useRouter();
   const [buttonloading, setButtonloading] = useState(false);
   const searchParams = useSearchParams();
@@ -44,11 +53,15 @@ function ResetPassword() {
   };
 
   const validateForm = () => {
-    const newErrors = { password: "", confirmPassword: "" };
+    const newErrors = { code: "", password: "", confirmPassword: "" };
+    if (value.length < 6) {
+      newErrors.code = "Enter the 6-digit code from your email";
+    }
+
     if (!password) {
       newErrors.password = "Password is required";
-    } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+    } else if (isPasswordTooShort(password)) {
+      newErrors.password = PASSWORD_TOO_SHORT_MESSAGE;
     }
 
     if (confirmPassword !== password) {
@@ -56,7 +69,14 @@ function ResetPassword() {
     }
 
     setErrors(newErrors);
-    return !newErrors.password && !newErrors.confirmPassword;
+    return !newErrors.code && !newErrors.password && !newErrors.confirmPassword;
+  };
+
+  const handleCodeChange = (code: string) => {
+    setValue(code);
+    if (errors.code) {
+      setErrors((prevErrors) => ({ ...prevErrors, code: "" }));
+    }
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,11 +122,15 @@ function ResetPassword() {
 
   // resend otp
   const handleResend = async () => {
-    const payload = {
-      email,
-    };
+    const cleanEmail = email?.trim().toLowerCase();
+    if (!cleanEmail || loading) return;
+    setLoading(true);
 
-    const res = await PostRequest("/auth/email-request", payload);
+    // Same endpoint as Forgot Password, so the user gets a new reset code.
+    // /auth/email-request is the account verification email.
+    const res = await PostRequest("/auth/password-reset", {
+      email: cleanEmail,
+    });
 
     if (res?.status === 200 || res?.status === 201) {
       setTimeLeft(1 * 60);
@@ -123,7 +147,7 @@ function ResetPassword() {
       <main className="w-full min-h-screen flex flex-col">
         <div className="flex items-center justify-between w-full py-6 max-w-7xl px-4 sm:px-6 lg:px-8">
           <Link href="/">
-            <Image src="/Zedu.png" alt="" width={86} height={31} />
+            <Image src="/Zedu.png" alt="Zedu home" width={86} height={31} />
           </Link>
           <div>
             Go back to Login?{" "}
@@ -150,18 +174,19 @@ function ResetPassword() {
             <div className="flex flex-col gap-[16px] mb-[32px]">
               <div className="w-full flex flex-col gap-[8px] relative">
                 <label
-                  htmlFor="password"
+                  htmlFor="code"
                   className="text-[14px] font-[400] leading-[21px]"
                 >
                   Enter code from email
                 </label>
 
                 <InputOTP
+                  id="code"
                   maxLength={6}
                   className="flex w-full"
                   // onComplete={onOtpSubmit}
                   value={value}
-                  onChange={setValue}
+                  onChange={handleCodeChange}
                   disabled={loading}
                 >
                   {...[0, 1, 2, 3, 4, 5].map((number_) => (
@@ -170,6 +195,11 @@ function ResetPassword() {
                     </InputOTPGroup>
                   ))}
                 </InputOTP>
+                {errors.code && (
+                  <small className="text-xs text-[#F81404]">
+                    {errors.code}
+                  </small>
+                )}
               </div>
 
               <div className="w-full flex flex-col gap-[8px] relative">
@@ -182,10 +212,14 @@ function ResetPassword() {
                 <div className="w-full flex flex-col gap-[2px]">
                   <div className="relative">
                     <input
+                      id="password"
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={handlePasswordChange}
                       placeholder="Password"
+                      aria-describedby="new-password-help"
+                      aria-invalid={Boolean(errors.password)}
+                      autoComplete="new-password"
                       className={`w-full text-[12px] text-[#667085] leading-[15.12px] font-[500] h-[48px] border ${
                         errors.password
                           ? "border-[#F81404]"
@@ -203,11 +237,14 @@ function ResetPassword() {
                       {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
                   </div>
-                  {errors.password && (
-                    <small className="text-[12px] text-[#F81404]">
-                      {errors.password}
-                    </small>
-                  )}
+                  <small
+                    id="new-password-help"
+                    className={`text-[12px] ${
+                      errors.password ? "text-[#F81404]" : "text-[#667085]"
+                    }`}
+                  >
+                    {errors.password || PASSWORD_HINT}
+                  </small>
                 </div>
               </div>
 
@@ -221,10 +258,12 @@ function ResetPassword() {
                 <div className="w-full flex flex-col gap-[2px]">
                   <div className="relative">
                     <input
+                      id="confirmPassword"
                       type={showPassword ? "text" : "password"}
                       value={confirmPassword}
                       onChange={handleConfirmPasswordChange}
                       placeholder="Confirm New Password"
+                      autoComplete="new-password"
                       className={`w-full text-[12px] text-[#667085] leading-[15.12px] font-[500] h-[48px] border ${
                         errors.confirmPassword
                           ? "border-[#F81404]"
@@ -256,6 +295,7 @@ function ResetPassword() {
                 <Button
                   type="submit"
                   variant="default"
+                  disabled={buttonloading}
                   className="py-6 bg-[#7141F8] hover:bg-[#8760f8] text-white"
                 >
                   {buttonloading ? (
@@ -268,27 +308,28 @@ function ResetPassword() {
                   )}
                 </Button>
 
-                <Link href="/auth/login">
-                  <Button
-                    type="submit"
-                    variant="outline"
-                    className="w-full py-6 border border-[#8760f8] text-[#8760f8] bg-white hover:bg-[#7141F8] hover:text-white"
-                  >
-                    Back to Login
-                  </Button>
-                </Link>
+                {/* A link, not a submit button: leaving must not reset the password. */}
+                <Button
+                  asChild
+                  variant="outline"
+                  className="w-full py-6 border border-[#8760f8] text-[#8760f8] bg-white hover:bg-[#7141F8] hover:text-white"
+                >
+                  <Link href="/auth/login">Back to Login</Link>
+                </Button>
               </div>
             </div>
 
             <div className="flex flex-col items-center mt-3">
               <p className="text-xs text-gray-500">
                 {timeLeft <= 0 ? (
-                  <span
-                    className="cursor-pointer text-underline"
+                  <button
+                    type="button"
+                    className="cursor-pointer underline disabled:opacity-60"
                     onClick={handleResend}
+                    disabled={loading}
                   >
                     Resend code
-                  </span>
+                  </button>
                 ) : (
                   <span className="cursor-disabled">Resend code after</span>
                 )}{" "}

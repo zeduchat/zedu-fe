@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 
 import ArchivedChannel from "../../../_components/archived-channel";
 import ChannelConnection from "~/components/layout/centrifugo/channel-connection";
@@ -23,10 +23,30 @@ import { ACTIONS } from "~/store/Actions";
 import { useIsSmUp } from "~/hooks/use-media-query";
 import { cn } from "~/lib/utils";
 import RestrictedChannel from "../../../_components/restricted-channel";
+import ErrorState, {
+  ErrorStateVariant,
+  errorVariantFromStatus,
+} from "~/components/ui/error-state";
 import ConversationSearchSidebar, {
   CONVERSATION_SEARCH_PANEL_TRANSITION,
   getConversationSearchSidebarWidth,
 } from "../../../_components/conversation-search/conversation-search-sidebar";
+import { dispatchPrependChannelPreview } from "~/utils/prepend-channel-preview";
+
+const CHANNEL_ERROR_COPY: Partial<
+  Record<ErrorStateVariant, { title: string; description: string }>
+> = {
+  "not-found": {
+    title: "Channel not found",
+    description:
+      "This channel doesn't exist or has been deleted. Check the link, or pick a channel from the list.",
+  },
+  "no-access": {
+    title: "You don't have access to this channel",
+    description:
+      "It may be private, or you may have been removed. Ask a channel admin to add you.",
+  },
+};
 
 const ChannelsPage = () => {
   const params = useParams();
@@ -41,13 +61,20 @@ const ChannelsPage = () => {
 
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
-  const [render, setRender] = useState(true);
+  const [channelError, setChannelError] = useState<ErrorStateVariant | null>(
+    null
+  );
 
   useEffect(() => {
-    if (!state?.channelReady) {
-      setRender(false);
-    }
-  }, [state?.channelReady]);
+    setChannelError(null);
+  }, [channelId]);
+
+  const handleChannelError = useCallback(
+    (status: number | undefined | null) => {
+      setChannelError(status === null ? null : errorVariantFromStatus(status));
+    },
+    []
+  );
 
   useEffect(() => {
     if (!buzzSidebar && isChatOpen) {
@@ -66,14 +93,14 @@ const ChannelsPage = () => {
     return () => window.removeEventListener("resize", updateDesktopState);
   }, []);
 
-  // send messages
   const handleSendMessage = async (
     id: string,
     uuid: string,
     content: string,
-    medias: any
+    medias: any,
+    mentions: any = state?.mentions,
+    isRetry = false
   ) => {
-    // send client side update
     const optimisticMessage = {
       channels_id: id,
       thread_id: uuid,
@@ -83,33 +110,47 @@ const ChannelsPage = () => {
       created_at: new Date().toISOString(),
       status: "pending",
       type: "message",
-      media: state.media,
+      media: medias,
       user_id: user?.user_id,
       reactions: null,
       isOptimistic: true,
     };
 
-    dispatch({
-      type: ACTIONS.MESSAGES,
-      payload: { newMessage: optimisticMessage },
-    });
+    if (!isRetry) {
+      dispatch({
+        type: ACTIONS.MESSAGES,
+        payload: { newMessage: optimisticMessage },
+      });
+      dispatchPrependChannelPreview(dispatch, {
+        channelId: id,
+        threadId: uuid,
+        message: content,
+        user,
+        media: medias,
+        channelName: state?.channelName || state?.channelDetails?.name,
+        channelType: state?.channelDetails?.is_private ? "private" : "public",
+        createdAt: optimisticMessage.created_at,
+      });
+    }
 
     const payload = {
       content: content,
       thread_id: uuid,
       media: medias,
-      mentions: state?.mentions,
+      mentions: mentions,
     };
 
-    await PostRequest(`/threads/${id}`, payload);
+    const res = await PostRequest(`/threads/${id}`, payload);
+    return res?.status === 200 || res?.status === 201;
   };
 
-  // reply messages
   const handleReplyMessage = async (
     id: string,
     uuid: string,
     content: string,
-    medias: any
+    medias: any,
+    mentions: any = state?.mentions,
+    isRetry = false
   ) => {
     const optimisticMessage = {
       id: uuid,
@@ -121,16 +162,18 @@ const ChannelsPage = () => {
       created_at: new Date().toISOString(),
       status: "pending",
       type: "message",
-      media: state.media,
+      media: medias,
       user_id: user?.user_id ?? user?.id,
       reactions: null,
       isOptimistic: true,
     };
 
-    dispatch({
-      type: ACTIONS.REPLIES,
-      payload: { newMessage: optimisticMessage },
-    });
+    if (!isRetry) {
+      dispatch({
+        type: ACTIONS.REPLIES,
+        payload: { newMessage: optimisticMessage },
+      });
+    }
 
     const payload = {
       content: content,
@@ -138,15 +181,13 @@ const ChannelsPage = () => {
       user_id: state?.user?.id,
       thread_id: state?.thread?.thread_id,
       media: medias,
-      mentions: state?.mentions,
+      mentions: mentions,
     };
 
-    await PostRequest(`/channels/${id}/messages`, payload);
+    const res = await PostRequest(`/channels/${id}/messages`, payload);
+    return res?.status === 200 || res?.status === 201;
   };
 
-  if (state?.channelloading) return null;
-
-  // Calculate combined width of open side panels
   let totalSidePanelWidth = 0;
 
   const buzzRegionWidth = shouldShowBuzzSidePanel
@@ -167,17 +208,40 @@ const ChannelsPage = () => {
     isSmUp
   );
 
-  const channelReady =
-    String(state?.channelDetails?.channels_id || "") ===
-    String(channelId || "");
+  const channelFetchComplete = !state?.channelReady;
+  const channelDetails = state?.channelDetails || null;
+
+  const showJoinChannel =
+    channelFetchComplete && channelDetails?.access === false;
+  const showArchivedChannel =
+    channelFetchComplete && Boolean(channelDetails?.archived);
+  const showRestrictedChannel = Boolean(
+    state?.channelNavContext?.is_restricted
+  );
+
+  if (channelError) {
+    return (
+      <div className="flex h-[calc(100dvh-70px)] relative w-full overflow-hidden">
+        <UseGetSingleChannel onError={handleChannelError} />
+        <ErrorState
+          variant={channelError}
+          {...CHANNEL_ERROR_COPY[channelError]}
+          action={{
+            label: "Go to channels",
+            href: `/${params?.org}/home/channels`,
+          }}
+          className="min-h-0 h-full"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-[calc(100dvh-70px)] relative w-full overflow-hidden">
-      <UseGetSingleChannel />
+      <UseGetSingleChannel onError={handleChannelError} />
       <ChannelConnection />
       <ChannelAgoraConnection />
 
-      {/* MAIN CONTENT */}
       <div
         className={cn(
           "relative flex flex-col flex-1 transition-[margin]",
@@ -190,23 +254,22 @@ const ChannelsPage = () => {
         <ChannelsMessage />
 
         <div className="absolute bottom-0 left-0 right-[17px]">
-          {!render && state?.channelDetails?.access === false ? (
+          {showJoinChannel ? (
             <JoinChannel />
-          ) : state?.channelDetails?.archived ? (
+          ) : showArchivedChannel ? (
             <ArchivedChannel />
-          ) : channelReady && state?.channelDetails?.is_restricted ? (
+          ) : showRestrictedChannel ? (
             <RestrictedChannel />
           ) : (
             <MessageBox
               subscription={state?.channelSubscription}
               sendMessage={handleSendMessage}
-              channelLoading={render}
+              channelLoading={false}
             />
           )}
         </div>
       </div>
 
-      {/* Master Side Panels Container - Holds all right-aligned panels */}
       <div
         className={cn(
           "fixed z-30 mt-[60px] right-0 top-0 h-full flex overflow-hidden transition-[width]",
@@ -219,14 +282,12 @@ const ChannelsPage = () => {
             : { width: `${totalSidePanelWidth}px` }
         }
       >
-        {/* Hover Sidebar */}
         {state?.hoverProfile && isSmUp && (
           <div className="w-[408px] h-full bg-white border-l border-[#E6EAEF]">
             <HoverSidebar />
           </div>
         )}
 
-        {/* Threads Sidebar */}
         {state?.reply && (
           <div className={threadsSidebarPanelClassName}>
             <ThreadsSidebar

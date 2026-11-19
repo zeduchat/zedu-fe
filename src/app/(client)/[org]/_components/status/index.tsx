@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   Dialog,
   DialogClose,
@@ -19,6 +19,7 @@ import { PostRequest } from "~/utils/new-request";
 import Loading from "~/components/ui/loading";
 import { ACTIONS } from "~/store/Actions";
 import { DataContext } from "~/store/GlobalState";
+import { clampStatusText, STATUS_MAX_LENGTH } from "./status-text";
 
 type StatusPreset = {
   emoji: string;
@@ -32,26 +33,22 @@ const presets: StatusPreset[] = [
     emoji: "📅",
     text: "In a meeting",
     duration: "1 hour",
-    section: "For HNG Inc",
   },
   {
     emoji: "🚗",
     text: "Commuting",
     duration: "30 minutes",
-    section: "For HNG Inc",
   },
-  { emoji: "🤒", text: "Out sick", duration: "Today", section: "For HNG Inc" },
+  { emoji: "🤒", text: "Out sick", duration: "Today" },
   {
     emoji: "🌴",
     text: "Vacationing",
     duration: "Don’t clear",
-    section: "For HNG Inc",
   },
   {
     emoji: "🏡",
     text: "Working remotely",
     duration: "Today",
-    section: "For HNG Inc",
   },
   {
     emoji: "📅",
@@ -61,43 +58,53 @@ const presets: StatusPreset[] = [
   },
 ];
 
-const groupedPresets = presets.reduce(
-  (acc, preset) => {
-    const section = preset.section || "Other";
-    if (!acc[section]) acc[section] = [];
-    acc[section].push(preset);
-    return acc;
-  },
-  {} as Record<string, StatusPreset[]>
-);
-
 const StatusModal = () => {
   const { state, dispatch } = useContext(DataContext);
-  const { user, statusCallback, status } = state;
-  const [statusText, setStatusText] = useState(user?.text);
-  const [emoji, setEmoji] = useState(user?.icon);
+  const { user, statusCallback, status, orgData } = state;
+
+  const workspaceSection = `For ${orgData?.name || "your workspace"}`;
+
+  const groupedPresets = useMemo(() => {
+    return presets.reduce(
+      (acc, preset) => {
+        const section = preset.section || workspaceSection;
+        if (!acc[section]) acc[section] = [];
+        acc[section].push(preset);
+        return acc;
+      },
+      {} as Record<string, StatusPreset[]>
+    );
+  }, [workspaceSection]);
+  const [statusText, setStatusText] = useState("");
+  const isComposingRef = useRef(false);
+  const [emoji, setEmoji] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [removeAfter, setRemoveAfter] = useState(user?.status_timeout);
+  const [removeAfter, setRemoveAfter] = useState("Today");
   const [pauseNotifications, setPauseNotifications] = useState<boolean>(
     user?.pause_notification
   );
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setStatusText(user?.text);
-    setEmoji(user?.icon);
-    setRemoveAfter(user?.status_timeout);
-    setPauseNotifications(user?.pause_notification);
+    if (status) {
+      setStatusText("");
+      setEmoji("");
+      setRemoveAfter("Today");
+      setShowEmojiPicker(false);
+      setPauseNotifications(user?.pause_notification);
+    }
 
     if (statusCallback) {
       setStatusText("");
       setEmoji("");
     }
 
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       dispatch({ type: ACTIONS.STATUS_CALLBACK, payload: false });
     }, 2000);
-  }, [user?.text, user?.icon, statusCallback]);
+
+    return () => clearTimeout(timer);
+  }, [status, statusCallback, user?.pause_notification, dispatch]);
 
   const removeOptions = [
     "30 minutes",
@@ -107,17 +114,49 @@ const StatusModal = () => {
     "dont-clear",
   ];
 
+  // "dont-clear" is the API value; show a human-readable label instead.
+  const removeOptionLabels: Record<string, string> = {
+    "dont-clear": "Don't clear",
+  };
+
   const handleEmojiSelect = (emoji: any) => {
     setEmoji(emoji.native);
     setShowEmojiPicker(false);
   };
 
+  const handleStatusTextChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const { value } = event.target;
+
+    // Rewriting an active composition buffer can split a surrogate pair or
+    // cancel the IME. Keep the buffer untouched and clamp on composition end.
+    if (isComposingRef.current) {
+      setStatusText(value);
+      return;
+    }
+
+    setStatusText(clampStatusText(value));
+  };
+
+  const handleCompositionEnd = (
+    event: React.CompositionEvent<HTMLInputElement>
+  ) => {
+    isComposingRef.current = false;
+    setStatusText(clampStatusText(event.currentTarget.value));
+  };
+
   const handleSubmit = async () => {
+    // The input can briefly hold a longer value while an IME composition is
+    // active, and a programmatic value change can skip the change handler.
+    const safeStatusText = clampStatusText(statusText);
+    if (safeStatusText !== statusText) setStatusText(safeStatusText);
+
     setLoading(true);
 
     const payload = {
       icon: emoji,
-      text: statusText,
+      text: safeStatusText,
       status_timeout: removeAfter,
       pause_notification: pauseNotifications,
       clear_status: false,
@@ -171,9 +210,15 @@ const StatusModal = () => {
           <input
             type="text"
             value={statusText}
-            onChange={(e) => setStatusText(e.target.value)}
+            onChange={handleStatusTextChange}
+            onCompositionStart={() => {
+              isComposingRef.current = true;
+            }}
+            onCompositionEnd={handleCompositionEnd}
             placeholder="What's your status?"
-            className="flex-1 border-0 focus:outline-none"
+            aria-label="Status text"
+            aria-describedby="status-character-count"
+            className="min-w-0 flex-1 border-0 focus:outline-none"
           />
 
           {(statusText || emoji) && (
@@ -188,6 +233,15 @@ const StatusModal = () => {
               <X className="w-4 h-4 text-gray-400" />
             </button>
           )}
+
+          <span
+            id="status-character-count"
+            aria-live="polite"
+            aria-atomic="true"
+            className="shrink-0 text-xs tabular-nums text-gray-500"
+          >
+            {statusText.length}/{STATUS_MAX_LENGTH}
+          </span>
         </div>
 
         {/* Show Suggestions when no status */}
@@ -236,7 +290,7 @@ const StatusModal = () => {
               >
                 {removeOptions.map((option) => (
                   <option key={option} value={option}>
-                    {option}
+                    {removeOptionLabels[option] ?? option}
                   </option>
                 ))}
               </select>

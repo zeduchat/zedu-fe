@@ -26,6 +26,7 @@ export const DataProvider = ({ children }: DataProviderProps) => {
     thread: null,
 
     channelDetails: null,
+    channelNavContext: null,
     channelName: "",
     dmDetails: null,
 
@@ -58,7 +59,10 @@ export const DataProvider = ({ children }: DataProviderProps) => {
 
     // ----------------------
     orgData: null,
-    channelCallback: false,
+    // Monotonic counter, not a boolean: two CHANNEL_CALLBACK dispatches in one
+    // batch must both count, or the second toggle cancels the first and the
+    // channel-list refetch is skipped.
+    channelCallback: 0,
     channelSubscription: null,
     chatSubscription: null,
     replySubscription: null,
@@ -137,6 +141,8 @@ export const DataProvider = ({ children }: DataProviderProps) => {
     threadMentions: null,
     threadMentionsHasMore: false,
     unseenThreadCount: 0,
+    channelUnreadCount: 0,
+    unseenThreadCountRevision: 0,
     muteParticipant: false,
     buzzView: "side",
     buzzSidebar: false,
@@ -158,7 +164,7 @@ export const DataProvider = ({ children }: DataProviderProps) => {
     homeDmsCallback: false,
     deleteCallback: false,
     dmRenderCallback: false,
-    channelReady: true,
+    channelReady: false,
     conversationSearchOpen: false,
   };
 

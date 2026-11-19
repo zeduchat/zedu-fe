@@ -9,7 +9,8 @@ import React, {
 } from "react";
 import CreateFolderModal from "./CreateFolderModal";
 import FolderList from "./FolderList";
-import Header from "./header";
+import Header, { HeaderHandle } from "./header";
+import { FilesEmptyState, FoldersEmptyState } from "./empty-state";
 import DeleteFileModal from "./delete-file-modal";
 import BulkDeleteModal from "./bulk-delete-modal";
 import RenameFileModal from "./rename-file-modal";
@@ -20,9 +21,15 @@ import MoveFileModal, { FolderInfo } from "./MoveFile";
 import { FilterOption } from "../sorting/sorting";
 import FilterSection from "../../filter/filterSection";
 import { useParams } from "next/navigation";
-import { GetRequest, PostRequest, PutRequest } from "~/utils/new-request";
+import {
+  DeleteRequest,
+  GetRequest,
+  PostRequest,
+  PutRequest,
+} from "~/utils/new-request";
 import FilePreview from "./FilePreview";
 import Loading from "~/components/ui/loading";
+import { Button } from "~/components/ui/button";
 import DeleteFolderModal from "./DeleteFolderModal";
 import RenameFolderModal from "./RenameFolderModal";
 import { Pin } from "lucide-react";
@@ -181,6 +188,7 @@ const FolderPaginationLink = ({
 );
 
 const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
+  const headerRef = useRef<HeaderHandle>(null);
   const [modalState, setModalState] = useState<ModalState>({ type: null });
   const [folders, setFolders] = useState<FolderInfo[]>([]);
   const [files, setFiles] = useState<FileDetails[]>([]);
@@ -216,6 +224,10 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalFilePages, setTotalFilePages] = useState(1);
   const [currentFolderPage, setCurrentFolderPage] = useState(1);
+  const [totalFolderPages, setTotalFolderPages] = useState(1);
+  const [folderLoadError, setFolderLoadError] = useState(false);
+  const [loadedFolderQueryKey, setLoadedFolderQueryKey] = useState("");
+  const folderRequestId = useRef(0);
 
   // Bulk selection state
   const [selectedFileIds, setSelectedFileIds] = useState<Set<string>>(
@@ -300,6 +312,14 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
     }
   }, [state.orgMembers]);
 
+  // Files and folders store the uploader's user id. orgMembers only holds the
+  // first page (50), so look owners up in the full mention list first, and
+  // key each member by both id and user_id since either can be the user's id.
+  const ownerMembers = useMemo(
+    () => [...(state.mentionOrgMembers ?? []), ...(state.orgMembers ?? [])],
+    [state.mentionOrgMembers, state.orgMembers]
+  );
+
   const userProfileMap = useMemo(() => {
     interface UploaderInfo {
       name: string;
@@ -308,27 +328,26 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
     }
 
     const map = new Map<string, UploaderInfo>();
-    if (state.orgMembers) {
-      for (const member of state.orgMembers) {
-        map.set(member.id, {
-          name: member.name,
-          username: member.username,
-          profile_url: member.profile_url,
-        });
+    for (const member of ownerMembers) {
+      const info = {
+        name: member.name,
+        username: member.username,
+        profile_url: member.profile_url || member.avatar_url,
+      };
+      for (const key of [member.id, member.user_id]) {
+        if (key && !map.has(String(key))) map.set(String(key), info);
       }
     }
     return map;
-  }, [state.orgMembers]);
+  }, [ownerMembers]);
 
   const folderOwnerMap = useMemo(() => {
     const map = new Map<string, string>();
-    if (state.orgMembers) {
-      state.orgMembers.forEach((member: any) => {
-        map.set(member.id, member.name || member.username || "Unknown");
-      });
-    }
+    userProfileMap.forEach((info, key) => {
+      map.set(key, info.name || info.username || "Unknown");
+    });
     return map;
-  }, [state.orgMembers]);
+  }, [userProfileMap]);
 
   const fileDetailsCache = useRef(new Map<string, FileDetails>());
   const [isLoadingFileDetails, setIsLoadingFileDetails] = useState(false);
@@ -398,14 +417,26 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
         limit: 10,
       });
 
-      const response = await GetRequest(`/files?${queryString}`);
+      const [response, favoritesResponse] = await Promise.all([
+        GetRequest(`/files?${queryString}`),
+        GetRequest("/files/favorites"),
+      ]);
       if (response?.status === 200) {
         const fetchedFiles = response.data?.data?.files || [];
+        const pinnedIds = new Set<string>(
+          favoritesResponse?.status === 200 &&
+            Array.isArray(favoritesResponse.data?.data)
+            ? favoritesResponse.data.data.map(
+                (pinned: { file?: { id?: string } }) => String(pinned.file?.id)
+              )
+            : []
+        );
         fileDetailsCache.current.clear();
         setFiles(
-          fetchedFiles.map((file: Record<string, unknown>) =>
-            mapApiFileToFileDetails(file, channelLabelMap)
-          )
+          fetchedFiles.map((file: Record<string, unknown>) => ({
+            ...mapApiFileToFileDetails(file, channelLabelMap),
+            pinned: pinnedIds.has(String(file.id)),
+          }))
         );
 
         const pagination = parseFilesListPagination(
@@ -457,9 +488,17 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
     return processedFiles;
   }, [displayFiles, access, sortOrder]);
 
+  const folderQueryKey = JSON.stringify([
+    viewType,
+    currentFolderId,
+    currentFolderPage,
+  ]);
+
   const fetchFolders = useCallback(async () => {
+    const requestId = ++folderRequestId.current;
     try {
       setIsLoadingFolders(true);
+      setFolderLoadError(false);
       const queryParams = new URLSearchParams();
 
       const modeMapping = {
@@ -469,6 +508,8 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
         "Deleted Files": "trash",
       };
       queryParams.append("mode", modeMapping[viewType] || "all");
+      queryParams.append("page", String(currentFolderPage));
+      queryParams.append("limit", "10");
 
       if (currentFolderId) {
         queryParams.append("parent_id", currentFolderId);
@@ -477,23 +518,42 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
       const endpoint = `/files/folders${queryString ? `?${queryString}` : ""}`;
 
       const response = await GetRequest(endpoint);
+      if (requestId !== folderRequestId.current) return;
       if (response?.status === 200) {
+        const pagination = parseFilesListPagination(
+          response.data?.data?.pagination
+        );
+        const pageCount = Math.max(1, pagination?.totalPages ?? 1);
+        setTotalFolderPages(pageCount);
+        if (currentFolderPage > pageCount) {
+          setCurrentFolderPage(pageCount);
+          return;
+        }
         setFolders(
-          Array.isArray(response.data.data.folders)
+          Array.isArray(response.data?.data?.folders)
             ? response.data.data.folders
             : []
         );
+        setLoadedFolderQueryKey(folderQueryKey);
+      } else {
+        setFolderLoadError(true);
+        showError("Failed to load folders");
       }
     } catch (error) {
+      if (requestId !== folderRequestId.current) return;
+      setFolderLoadError(true);
       console.error("Failed to fetch folders:", error);
       showError("Failed to load folders");
     } finally {
-      setIsLoadingFolders(false);
+      if (requestId === folderRequestId.current) setIsLoadingFolders(false);
     }
-  }, [currentFolderId, viewType]);
+  }, [currentFolderId, currentFolderPage, folderQueryKey, viewType]);
 
   useEffect(() => {
     fetchFolders();
+    return () => {
+      folderRequestId.current += 1;
+    };
   }, [fetchFolders]);
 
   // Handle folder navigation
@@ -714,13 +774,37 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
       setModalState({ type: "rename-folder", data: folderToEdit });
     }
   };
-  const handlePinClick = (fileId: string) => {
-    // TODO: API call to pin/unpin file
-    setFiles((prevFiles) =>
-      prevFiles.map((file) =>
-        file.id === fileId ? { ...file, pinned: !file.pinned } : file
-      )
-    );
+  const pendingPinIds = useRef(new Set<string>());
+
+  const handlePinClick = async (fileId: string) => {
+    const fileInfo = files.find((file) => file.id === fileId);
+    if (!fileInfo || pendingPinIds.current.has(fileId)) return;
+
+    const wasPinned = Boolean(fileInfo.pinned);
+    const setPinned = (pinned: boolean) =>
+      setFiles((prevFiles) =>
+        prevFiles.map((file) =>
+          file.id === fileId ? { ...file, pinned } : file
+        )
+      );
+
+    pendingPinIds.current.add(fileId);
+    setPinned(!wasPinned);
+    try {
+      const response = wasPinned
+        ? await DeleteRequest(`/files/file/${fileId}/pin`)
+        : await PostRequest(`/files/file/${fileId}/pin`);
+
+      if (response?.status !== 200 && response?.status !== 201) {
+        setPinned(wasPinned);
+        // The request helpers already toast the backend message when present
+        if (!response?.response?.data?.message) {
+          showError(wasPinned ? "Failed to unpin file" : "Failed to pin file");
+        }
+      }
+    } finally {
+      pendingPinIds.current.delete(fileId);
+    }
   };
   const handleShareClick = (fileId: string) => {
     const fileInfo = displayFiles.find((file) => file.id === fileId);
@@ -918,15 +1002,9 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
     return pages;
   };
 
-  const foldersPerPage = 10;
-  const lastFolderIndex = currentFolderPage * foldersPerPage;
-  const firstFolderIndex = lastFolderIndex - foldersPerPage;
-  const currentFolders = Array.isArray(folders)
-    ? folders.slice(firstFolderIndex, lastFolderIndex)
-    : [];
-  const totalFolderPages = Math.ceil(
-    (Array.isArray(folders) ? folders.length : 0) / foldersPerPage
-  );
+  const hasCurrentFolders =
+    loadedFolderQueryKey === folderQueryKey && folders.length > 0;
+  const currentFolders = hasCurrentFolders ? folders : [];
 
   const getFolderPageNumbers = () => {
     const pages: (number | string)[] = [];
@@ -962,6 +1040,57 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
     return pages;
   };
 
+  const renderFolderPagination = () =>
+    totalFolderPages > 1 && (
+      <div className="flex justify-center mt-4">
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <FolderPaginationPrevious
+                onClick={() =>
+                  setCurrentFolderPage((prev) => Math.max(prev - 1, 1))
+                }
+                disabled={currentFolderPage === 1}
+              />
+            </PaginationItem>
+            {getFolderPageNumbers().map((page, index) => (
+              <PaginationItem key={index}>
+                {page === "ellipsis" ? (
+                  <PaginationEllipsis />
+                ) : (
+                  <FolderPaginationLink
+                    onClick={() => setCurrentFolderPage(page as number)}
+                    isActive={currentFolderPage === page}
+                  >
+                    {page}
+                  </FolderPaginationLink>
+                )}
+              </PaginationItem>
+            ))}
+            <PaginationItem>
+              <FolderPaginationNext
+                onClick={() =>
+                  setCurrentFolderPage((prev) =>
+                    Math.min(prev + 1, totalFolderPages)
+                  )
+                }
+                disabled={currentFolderPage === totalFolderPages}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      </div>
+    );
+
+  const folderLoadErrorNotice = (
+    <div className="flex flex-col items-center gap-3 py-6 text-[#344054]">
+      <p>Failed to load folders</p>
+      <Button variant="outline" onClick={fetchFolders}>
+        Retry
+      </Button>
+    </div>
+  );
+
   useEffect(() => {
     setCurrentPage(1);
     setCurrentFolderPage(1);
@@ -985,6 +1114,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
           }`}
         >
           <Header
+            ref={headerRef}
             onNewFolderClick={handleNewFolderClick}
             onFileUpload={handleFileUpload}
             title={viewType}
@@ -1083,8 +1213,14 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
                         ))}
                       </div>
                     </div>
-                  ) : Array.isArray(folders) && folders.length > 0 ? (
+                  ) : folderLoadError && !hasCurrentFolders ? (
+                    <div className="py-10">
+                      {folderLoadErrorNotice}
+                      {renderFolderPagination()}
+                    </div>
+                  ) : hasCurrentFolders ? (
                     <div className="mb-6">
+                      {folderLoadError && folderLoadErrorNotice}
                       <div className="mb-3">
                         <h2 className="font-semibold mt-5 text-[16px] text-[#344054]">
                           Folders
@@ -1121,58 +1257,10 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
                           />
                         ))}
                       </div>
-                      {totalFolderPages > 1 && (
-                        <div className="flex justify-center mt-4">
-                          <Pagination>
-                            <PaginationContent>
-                              <PaginationItem>
-                                <FolderPaginationPrevious
-                                  onClick={() =>
-                                    setCurrentFolderPage((prev) =>
-                                      Math.max(prev - 1, 1)
-                                    )
-                                  }
-                                  disabled={currentFolderPage === 1}
-                                />
-                              </PaginationItem>
-                              {getFolderPageNumbers().map((page, index) => (
-                                <PaginationItem key={index}>
-                                  {page === "ellipsis" ? (
-                                    <PaginationEllipsis />
-                                  ) : (
-                                    <FolderPaginationLink
-                                      onClick={() =>
-                                        setCurrentFolderPage(page as number)
-                                      }
-                                      isActive={currentFolderPage === page}
-                                    >
-                                      {page}
-                                    </FolderPaginationLink>
-                                  )}
-                                </PaginationItem>
-                              ))}
-                              <PaginationItem>
-                                <FolderPaginationNext
-                                  onClick={() =>
-                                    setCurrentFolderPage((prev) =>
-                                      Math.min(prev + 1, totalFolderPages)
-                                    )
-                                  }
-                                  disabled={
-                                    currentFolderPage === totalFolderPages
-                                  }
-                                />
-                              </PaginationItem>
-                            </PaginationContent>
-                          </Pagination>
-                        </div>
-                      )}
+                      {renderFolderPagination()}
                     </div>
                   ) : (
-                    <div className="flex flex-col gap-2 text-[#344054] justify-center items-center mt-40">
-                      <p className="text-2xl">No folders yet</p>
-                      <p>Create a folder to get started</p>
-                    </div>
+                    <FoldersEmptyState onCreateFolder={handleNewFolderClick} />
                   )}
                 </>
               )}
@@ -1256,10 +1344,14 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
                     <div className="flex flex-col gap-2 text-[#344054] justify-center items-center mt-40">
                       {(viewType === "All files" ||
                         viewType === "My Files") && (
-                        <>
-                          <p className="text-2xl">No files yet</p>
-                          <p>Upload or drag & drop to get started</p>
-                        </>
+                        <FilesEmptyState
+                          onUploadClick={() =>
+                            headerRef.current?.openFilePicker()
+                          }
+                          onFilesDropped={(droppedFiles) =>
+                            headerRef.current?.uploadFiles(droppedFiles)
+                          }
+                        />
                       )}
                       {viewType === "Shared with me" && (
                         <>
@@ -1453,7 +1545,13 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
           onClose={() => setModalState({ type: null })}
           fileToMove={modalState.data}
           onMove={(folderId) => handleMoveFile(modalState.data.id, folderId)}
-          folders={folders}
+          folders={currentFolders}
+          currentFolderPage={currentFolderPage}
+          totalFolderPages={totalFolderPages}
+          isLoadingFolders={isLoadingFolders}
+          folderLoadError={folderLoadError}
+          onRetryFolders={fetchFolders}
+          onFolderPageChange={setCurrentFolderPage}
           onFoldersChange={setFolders}
         />
       )}
@@ -1481,9 +1579,12 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ viewType, folderId }) => {
           folderName={modalState.data.name}
           folderId={modalState.data.id}
           onDeleteSuccess={() => {
+            const deletedFolderId = modalState.data.id;
+            // Drop the folder first, so it is gone even if the refetch fails.
             setFolders((prevFolders) =>
-              prevFolders.filter((folder) => folder.id !== modalState.data.id)
+              prevFolders.filter((folder) => folder.id !== deletedFolderId)
             );
+            fetchFolders();
             setModalState({ type: null });
           }}
         />

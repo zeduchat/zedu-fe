@@ -12,16 +12,11 @@ import {
   AtSign,
   Hash,
   Slash,
-  XIcon,
-  FileIcon,
   SendHorizonal,
   Upload,
 } from "lucide-react";
-import Image from "next/image";
-import { UploadRequest } from "~/utils/new-request";
-import { compressImage } from "~/utils/compress-image";
-import { useParams } from "next/navigation";
 import { uuidv7 } from "uuidv7";
+import { useRouter } from "next/navigation";
 import { EditorContent } from "@tiptap/react";
 import {
   Dialog,
@@ -36,7 +31,6 @@ import { Button } from "~/components/ui/button";
 import Picker from "~/components/theme/themed-emoji-picker";
 import GifPicker from "~/components/gifs/gif-picker";
 import data from "@emoji-mart/data";
-import Loading from "~/components/ui/loading";
 import {
   Popover,
   PopoverContent,
@@ -45,31 +39,46 @@ import {
 import UseTextEditor from "./editor";
 import { normalizeOutgoingMessageHtml } from "./editor/normalize-message-html";
 import Tooltips from "./tooltip";
+import { AttachmentList } from "./message-box/attachment-list";
+import { useAttachments } from "./message-box/use-attachments";
 import { CHAT_FILE_ACCEPT } from "~/utils/document-files";
 import { localGifToFile, type LocalGif } from "~/lib/gifs/local-pack";
+import { showError } from "~/components/toast/sonner";
 
-const FirstMessageBox = ({ sendMessage }: any) => {
-  const { editor, isEmpty } = UseTextEditor();
-  const params = useParams();
-  const id = params.id as string;
-  const uuid = uuidv7();
+interface FirstMessageBoxProps {
+  sendMessage: (
+    uuid: string,
+    content: string,
+    medias: unknown[]
+  ) => Promise<{ destination: string } | false>;
+  placeholder?: string;
+  disabled?: boolean;
+}
+
+const FirstMessageBox = ({
+  sendMessage,
+  placeholder,
+  disabled,
+}: FirstMessageBoxProps) => {
+  const { editor, isEmpty } = UseTextEditor(
+    undefined,
+    undefined,
+    undefined,
+    placeholder
+  );
+  const router = useRouter();
+  const uuid = useRef(uuidv7());
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [url, setUrl] = useState("");
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [isGifPickerOpen, setIsGifPickerOpen] = useState(false);
   const [showFormatting, setShowformatting] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submittingRef = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [media, setMedia] = useState<any>([]);
-  const [medias, setMedias] = useState<string[]>([]);
-  const [uploadingImages, setUploadingImages] = useState<number[]>([]);
-
-  // Cleanup object URLs
-  useEffect(() => {
-    return () => {
-      media.forEach((image: any) => URL.revokeObjectURL(image.preview));
-    };
-  }, [media]);
+  const { attachments, uploaded, readyToSend, add, remove, retry, clear } =
+    useAttachments();
 
   const handleSave = () => {
     if (!text || !url) return;
@@ -87,75 +96,45 @@ const FirstMessageBox = ({ sendMessage }: any) => {
     setUrl("");
   };
 
-  const handleFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files) return;
 
-    const newMedia = Array.from(files).map((file) => {
-      const fileType = file.type.split("/")[0];
-
-      return {
-        id: Date.now() + Math.random(),
-        file,
-        type: fileType,
-        preview:
-          fileType === "image" || fileType === "video"
-            ? URL.createObjectURL(file)
-            : null,
-      };
-    });
-
-    setMedia((prevMedia: any) => [...prevMedia, ...newMedia]);
-
-    for (const media of newMedia) {
-      setUploadingImages((prev) => [...prev, media.id]);
-
-      const formData = new FormData();
-      const fileToUpload = await compressImage(media.file);
-      formData.append("files", fileToUpload);
-
-      try {
-        const res = await UploadRequest(`/files/upload-files`, formData);
-        if (res?.data?.data) {
-          setMedias((prevMedias) => [...prevMedias, ...res.data.data]);
-        }
-      } catch (error) {
-        console.error("Upload failed", error);
-      } finally {
-        setUploadingImages((prev) => prev.filter((id) => id !== media.id));
-      }
-    }
-  };
-
-  const handleRemoveImage = (index: number) => {
-    setMedia((prevImages: any) =>
-      prevImages.filter((_: any) => _ !== prevImages[index])
-    );
-    setMedias((prevMedias) => prevMedias.filter((_, i) => i !== index));
+    add(Array.from(files));
   };
 
   // Handle message submission (no need to upload images here)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (disabled || submittingRef.current) return;
 
     const editorText = editor?.getText() ?? "";
-    let content = normalizeOutgoingMessageHtml(
+    const content = normalizeOutgoingMessageHtml(
       editor?.getHTML() ?? "",
       editorText
     );
 
     const strippedContent = content?.replace(/<[^>]+>/g, "").trim();
 
-    if (!strippedContent && medias.length === 0) {
-      return;
+    if (!strippedContent && attachments.length === 0) return;
+    if (!readyToSend()) return;
+
+    submittingRef.current = true;
+    setIsSubmitting(true);
+    try {
+      const result = await sendMessage(uuid.current, content, uploaded);
+      if (result) {
+        editor?.commands?.clearContent();
+        clear();
+        uuid.current = uuidv7();
+        router.push(result.destination);
+      }
+    } catch {
+      showError("Could not send your message. Your draft is saved. Try again.");
+    } finally {
+      submittingRef.current = false;
+      setIsSubmitting(false);
     }
-
-    editor?.commands?.clearContent();
-    setMedia([]);
-
-    sendMessage(id, uuid, content, medias);
   };
 
   const handleKeyDown = (event: any) => {
@@ -164,7 +143,9 @@ const FirstMessageBox = ({ sendMessage }: any) => {
         return;
       } else {
         event.preventDefault();
-        handleSubmit(event);
+        if (!disabled) {
+          handleSubmit(event);
+        }
       }
     }
   };
@@ -182,34 +163,7 @@ const FirstMessageBox = ({ sendMessage }: any) => {
     setIsGifPickerOpen(false);
 
     try {
-      const file = await localGifToFile(gif);
-      const mediaId = Date.now() + Math.random();
-      const preview = URL.createObjectURL(file);
-
-      const newMedia = {
-        id: mediaId,
-        file,
-        type: "image",
-        preview,
-      };
-
-      setMedia((prevMedia: any) => [...prevMedia, newMedia]);
-      setUploadingImages((prev) => [...prev, mediaId]);
-
-      const formData = new FormData();
-      const fileToUpload = await compressImage(file);
-      formData.append("files", fileToUpload);
-
-      try {
-        const res = await UploadRequest(`/files/upload-files`, formData);
-        if (res?.data?.data) {
-          setMedias((prevMedias) => [...prevMedias, ...res.data.data]);
-        }
-      } catch (error) {
-        console.error("GIF upload failed", error);
-      } finally {
-        setUploadingImages((prev) => prev.filter((id) => id !== mediaId));
-      }
+      add([await localGifToFile(gif)]);
     } catch (error) {
       console.error("GIF select failed", error);
     }
@@ -233,17 +187,26 @@ const FirstMessageBox = ({ sendMessage }: any) => {
     }
   }, [editor]);
 
+  useEffect(() => {
+    editor?.setEditable(!isSubmitting);
+  }, [editor, isSubmitting]);
+
   //
 
   return (
     <>
       <div
         onClick={() => editor && editor.commands.focus()}
-        className={`bg-white border rounded-xl mx-3 md:mx-5 border-[#E6EAEF]`}
+        aria-busy={isSubmitting}
+        className={`bg-white border rounded-xl mx-3 md:mx-5 border-[#E6EAEF] ${
+          isSubmitting ? "pointer-events-none" : ""
+        }`}
       >
         {showFormatting && (
           <div className="border-b border-[#E6EAEF] flex items-center gap-2 bg-[#F9FAFB] pl-3 pr-4 py-[5px]">
             <button
+              aria-label="Bold"
+              aria-pressed={editor?.isActive("bold") ?? false}
               onClick={() => editor?.chain().focus().toggleBold().run()}
               className={`p-1.5 hover:bg-gray-100 rounded ${
                 editor?.isActive("bold")
@@ -258,6 +221,8 @@ const FirstMessageBox = ({ sendMessage }: any) => {
             </button>
 
             <button
+              aria-label="Italic"
+              aria-pressed={editor?.isActive("italic") ?? false}
               onClick={() => editor?.chain().focus().toggleItalic().run()}
               className={`p-1.5 hover:bg-gray-100 rounded ${
                 editor?.isActive("italic")
@@ -272,6 +237,8 @@ const FirstMessageBox = ({ sendMessage }: any) => {
             </button>
 
             <button
+              aria-label="Strikethrough"
+              aria-pressed={editor?.isActive("strike") ?? false}
               onClick={() => editor?.chain().focus().toggleStrike().run()}
               className={`p-1.5 hover:bg-gray-100 rounded ${
                 editor?.isActive("strike")
@@ -290,6 +257,7 @@ const FirstMessageBox = ({ sendMessage }: any) => {
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <button
+                  aria-label="Add link"
                   onClick={() => setOpen(true)}
                   className={`p-1.5 hover:bg-gray-100 rounded ${editor?.isActive("link") ? "bg-gray-200 font-semibold text-black" : ""}`}
                 >
@@ -338,6 +306,8 @@ const FirstMessageBox = ({ sendMessage }: any) => {
             </Dialog>
 
             <button
+              aria-label="Numbered list"
+              aria-pressed={editor?.isActive("orderedList") ?? false}
               onClick={() => editor?.chain().focus().toggleOrderedList().run()}
               className={`p-1.5 hover:bg-gray-100 rounded ${
                 editor?.isActive("orderedList")
@@ -352,6 +322,8 @@ const FirstMessageBox = ({ sendMessage }: any) => {
             </button>
 
             <button
+              aria-label="Bulleted list"
+              aria-pressed={editor?.isActive("bulletList") ?? false}
               onClick={() => editor?.chain().focus().toggleBulletList().run()}
               className={`p-1.5 hover:bg-gray-100 rounded ${
                 editor?.isActive("bulletList")
@@ -368,6 +340,8 @@ const FirstMessageBox = ({ sendMessage }: any) => {
             <div className="w-px h-5 bg-[#E6EAEF]" />
 
             <button
+              aria-label="Inline code"
+              aria-pressed={editor?.isActive("code") ?? false}
               onClick={() => editor?.chain().focus().toggleCode().run()}
               className={`p-1.5 hover:bg-gray-100 rounded ${
                 editor?.isActive("code")
@@ -390,52 +364,18 @@ const FirstMessageBox = ({ sendMessage }: any) => {
             onKeyDown={handleKeyDown}
           />
 
-          <div className={`flex gap-3 ${media?.length > 0 ? "mt-3" : ""}`}>
-            {media?.map((file: any, index: number) => (
-              <div key={index} className="relative w-[70px] h-[70px]">
-                {file.type === "image" ? (
-                  <Image
-                    src={file.preview}
-                    alt={`Uploaded ${index}`}
-                    width={70}
-                    height={70}
-                    className="w-[70px] h-[70px] rounded-md object-cover border border-primary-400 cursor-pointer"
-                  />
-                ) : file.type === "application" ? (
-                  <div className="w-[70px] h-[70px] flex items-center justify-center border border-primary-500 rounded-md bg-gray-100">
-                    <a
-                      href={URL.createObjectURL(file.file)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex flex-col items-center"
-                    >
-                      <FileIcon size={24} color="#606060" />
-                      <span className="text-xs text-blue-500 mt-1">PDF</span>
-                    </a>
-                  </div>
-                ) : null}
-
-                <button
-                  onClick={() => handleRemoveImage(index)}
-                  className="absolute -top-1 -right-2 p-1 bg-gray-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center"
-                >
-                  <XIcon size={14} />
-                </button>
-
-                {uploadingImages.includes(file?.id) && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-50">
-                    <Loading />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+          <AttachmentList
+            attachments={attachments}
+            onRemove={remove}
+            onRetry={retry}
+          />
         </div>
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 py-2 pl-3 pr-4">
             <Tooltips text="Upload from your computer">
               <button
+                aria-label="Upload from your computer"
                 onClick={() => fileInputRef.current?.click()}
                 className="p-1.5 hover:bg-gray-100 rounded-full bg-[#F2F4F7]"
               >
@@ -456,6 +396,9 @@ const FirstMessageBox = ({ sendMessage }: any) => {
               text={!showFormatting ? "Show formatting" : "Hide formatting"}
             >
               <button
+                aria-label={
+                  showFormatting ? "Hide formatting" : "Show formatting"
+                }
                 onClick={() => setShowformatting((prev) => !prev)}
                 className="p-1.5 hover:bg-gray-100 rounded text-[#606060] underline"
               >
@@ -474,6 +417,7 @@ const FirstMessageBox = ({ sendMessage }: any) => {
                 >
                   <PopoverTrigger asChild>
                     <button
+                      aria-label="Emoji"
                       onClick={(e) => e.stopPropagation()}
                       className="p-1.5 hover:bg-gray-100 rounded"
                     >
@@ -520,6 +464,7 @@ const FirstMessageBox = ({ sendMessage }: any) => {
 
             <Tooltips text="Mention someone">
               <button
+                aria-label="Mention someone"
                 onClick={handleMentionClick}
                 className="p-1.5 hover:bg-gray-100 rounded"
               >
@@ -529,6 +474,7 @@ const FirstMessageBox = ({ sendMessage }: any) => {
 
             <Tooltips text="Mention a channel">
               <button
+                aria-label="Mention a channel"
                 onClick={handleChannelMentionClick}
                 className="p-1.5 hover:bg-gray-100 rounded"
               >
@@ -538,6 +484,7 @@ const FirstMessageBox = ({ sendMessage }: any) => {
 
             <Tooltips text="Slash commands">
               <button
+                aria-label="Slash commands"
                 onClick={handleSlashCommandClick}
                 className="p-1.5 hover:bg-gray-100 rounded"
               >
@@ -548,14 +495,19 @@ const FirstMessageBox = ({ sendMessage }: any) => {
 
           <div className="flex items-center gap-1 py-2 pl-3 pr-4">
             <button
+              aria-label="Send message"
               type="submit"
-              className="p-1.5 hover:bg-gray-100 rounded size-8 flex items-center justify-center"
+              className="p-1.5 hover:bg-gray-100 rounded size-8 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleSubmit}
-              disabled={isEmpty && media?.length === 0}
+              disabled={
+                disabled ||
+                isSubmitting ||
+                (isEmpty && attachments.length === 0)
+              }
             >
               <SendHorizonal
                 className={
-                  isEmpty && media?.length === 0
+                  isEmpty && attachments.length === 0
                     ? "text-[#999] dark:text-zinc-500"
                     : "text-zinc-900 dark:text-zinc-100"
                 }

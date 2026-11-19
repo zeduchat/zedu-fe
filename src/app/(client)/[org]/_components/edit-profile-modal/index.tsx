@@ -17,7 +17,27 @@ import { ACTIONS } from "~/store/Actions";
 import { timezones } from "./timezones";
 import { showError, showSuccess } from "~/components/toast/sonner";
 import { compressImage } from "~/utils/compress-image";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+
+const phonePattern = /^\+?[0-9 .()-]+$/;
+
+const isValidPhone = (value: string) => {
+  const trimmed = value.trim();
+
+  // An empty number can be saved because the profile phone field is optional.
+  if (trimmed === "") {
+    return true;
+  }
+
+  if (!phonePattern.test(trimmed)) {
+    return false;
+  }
+
+  const digits = trimmed.replace(/\D/g, "");
+  return digits.length >= 10 && digits.length <= 15;
+};
 
 const EditProfileDialog = ({ isOpen, onClose }: any) => {
   const { state, dispatch } = useContext(DataContext);
@@ -27,13 +47,16 @@ const EditProfileDialog = ({ isOpen, onClose }: any) => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [phoneError, setPhoneError] = useState("");
   const [title, setTitle] = useState("");
   const [avatar, setAvatar] = useState<any>("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarRemoved, setAvatarRemoved] = useState(false);
   const [namePronunciation, setNamePronunciation] = useState("");
   const [timezone, setTimezone] = useState(user?.timezone);
   const [avatarKey, setAvatarKey] = useState(Date.now());
   const [buttonLoading, setButtonLoading] = useState(false);
+  const originalPhoneRef = useRef("");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -44,31 +67,58 @@ const EditProfileDialog = ({ isOpen, onClose }: any) => {
     setDisplayName(user?.display_name || "");
     setUsername(user?.username || "");
     setEmail(user?.email || "");
-    setPhone(user?.phone || "");
+    const savedPhone = user?.phone || "";
+    originalPhoneRef.current = savedPhone;
+    setPhone(savedPhone);
+    setPhoneError("");
     setAvatar(user?.avatar_url || user?.default_avatar_url || images?.user);
 
     setTitle(user?.title || "");
     setNamePronunciation(user?.name_pronounciation);
   }, [user]);
+  // Discard pending photo changes when the dialog is closed.
+  useEffect(() => {
+    if (!isOpen) {
+      setAvatar(user?.avatar_url || user?.default_avatar_url || images?.user);
+      setAvatarFile(null);
+      setAvatarRemoved(false);
 
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  }, [isOpen, user]);
   const handleSave = async () => {
-    const formData = new FormData();
-    formData.append("full_name", fullName);
-    formData.append("display_name", displayName);
-    formData.append("username", username);
-    formData.append("email", email);
-    formData.append("phone", phone);
-    formData.append("title", title);
-    formData.append("timezone", timezone);
-    formData.append("name_pronounciation", namePronunciation);
-    if (avatarFile) {
-      const compressedAvatar = await compressImage(avatarFile);
-      formData.append("avatar_file", compressedAvatar);
+    const phoneChanged = phone !== originalPhoneRef.current;
+
+    if (phoneChanged && !isValidPhone(phone)) {
+      setPhoneError("Please enter a valid phone number");
+      return;
     }
 
+    setPhoneError("");
     setButtonLoading(true);
 
     try {
+      const formData = new FormData();
+
+      formData.append("full_name", fullName);
+      formData.append("display_name", displayName);
+      formData.append("username", username);
+      formData.append("email", email);
+      formData.append(
+        "phone",
+        phoneChanged ? phone.trim() : originalPhoneRef.current
+      );
+      formData.append("title", title);
+      formData.append("timezone", timezone);
+      formData.append("name_pronounciation", namePronunciation);
+
+      if (avatarFile) {
+        const compressedAvatar = await compressImage(avatarFile);
+        formData.append("avatar_file", compressedAvatar);
+      }
+
       const res = await axios.patch(BASE_URL + "/profile", formData, {
         headers: {
           Authorization: `Bearer ${state?.token}`,
@@ -76,64 +126,84 @@ const EditProfileDialog = ({ isOpen, onClose }: any) => {
         },
       });
 
-      if (res?.status === 200 || res?.status === 201) {
-        dispatch({
-          type: ACTIONS.PROFILE_CALLBACK,
-          payload: !state?.profileCallback,
-        });
-        showSuccess(res?.data?.message);
+      if (res?.status !== 200 && res?.status !== 201) {
+        throw new Error("Failed to update profile");
       }
 
-      setTimeout(() => {
-        setButtonLoading(false);
-        onClose();
-      }, 1000);
-    } catch (err) {
-      setButtonLoading(false);
-    }
-  };
+      if (avatarRemoved) {
+        try {
+          await axios.delete(BASE_URL + "/profile/image", {
+            headers: {
+              Authorization: `Bearer ${state?.token}`,
+              "Content-Type": "application/json",
+            },
+          });
+        } catch (error) {
+          console.error("Error removing profile photo:", error);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+          dispatch({
+            type: ACTIONS.PROFILE_CALLBACK,
+            payload: !state?.profileCallback,
+          });
 
-    if (file?.type !== "image/jpeg" && file?.type !== "image/png") {
-      return showError("Image type is not supported");
-    }
+          showError(
+            "Your profile was updated, but your photo could not be removed. Please try again."
+          );
 
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setAvatar(url);
-      setAvatarKey(Date.now());
-      setAvatarFile(file);
-    }
-  };
-
-  const handleRemovePhoto = async () => {
-    try {
-      await axios.delete(BASE_URL + "/profile/image", {
-        headers: {
-          Authorization: `Bearer ${state?.token}`,
-          "Content-Type": "application/json",
-        },
-      });
+          return;
+        }
+      }
 
       dispatch({
         type: ACTIONS.PROFILE_CALLBACK,
         payload: !state?.profileCallback,
       });
 
-      setAvatar(images?.user);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+      showSuccess(
+        avatarRemoved
+          ? "Profile updated and photo removed successfully"
+          : res?.data?.message || "Profile updated successfully"
+      );
+
+      setAvatarRemoved(false);
+      setAvatarFile(null);
+      onClose();
     } catch (error) {
-      setAvatar(images?.user);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+      console.error("Error saving profile:", error);
+      showError("Unable to save your changes. Please try again.");
+    } finally {
+      setButtonLoading(false);
     }
   };
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
 
+    if (!file) return;
+
+    if (file.type !== "image/jpeg" && file.type !== "image/png") {
+      showError("Image type is not supported");
+      e.target.value = "";
+      return;
+    }
+
+    const url = URL.createObjectURL(file);
+
+    setAvatar(url);
+    setAvatarKey(Date.now());
+    setAvatarFile(file);
+    setAvatarRemoved(false);
+  };
+
+  const handleRemovePhoto = () => {
+    setAvatar(images?.user);
+    setAvatarKey(Date.now());
+    setAvatarFile(null);
+    setAvatarRemoved(true);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
   const triggerFileInput = () => {
     fileInputRef.current?.click();
   };
@@ -233,14 +303,40 @@ const EditProfileDialog = ({ isOpen, onClose }: any) => {
                 >
                   Phone Number
                 </label>
-                <input
-                  id="phone"
-                  type="text"
-                  value={phone}
-                  placeholder="+44 20 7946 0958"
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#E6EAEF] rounded-md text-[15px] text-[#344054] focus:outline-none focus:ring-2 focus:ring-[#6868F7]"
+                <PhoneInput
+                  country={"ng"}
+                  value={phone.replace(/\D/g, "")}
+                  onChange={(value, country) => {
+                    // Only the dial code left means the number was cleared.
+                    const dialCode =
+                      "dialCode" in country ? country.dialCode : "";
+                    setPhone(value && value !== dialCode ? `+${value}` : "");
+                    if (phoneError) {
+                      setPhoneError("");
+                    }
+                  }}
+                  placeholder="801 234 5678"
+                  enableSearch
+                  containerClass="!w-full"
+                  inputClass="!w-full !h-[42px] !border !border-[#E6EAEF] !rounded-md !text-[15px] !text-[#344054] focus:!outline-none focus:!ring-2 focus:!ring-[#6868F7]"
+                  buttonClass="!border !border-[#E6EAEF] !rounded-l-md"
+                  dropdownClass="!z-[9999]"
+                  inputProps={{
+                    id: "phone",
+                    autoComplete: "tel",
+                    "aria-invalid": Boolean(phoneError),
+                    "aria-describedby": phoneError ? "phone-error" : undefined,
+                  }}
                 />
+                {phoneError && (
+                  <p
+                    id="phone-error"
+                    role="alert"
+                    className="text-xs text-red-500"
+                  >
+                    {phoneError}
+                  </p>
+                )}
               </div>
 
               {/* Title/Role */}

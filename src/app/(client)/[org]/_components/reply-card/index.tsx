@@ -1,7 +1,13 @@
 "use client";
 
+import { useContext } from "react";
 import { format as timeformat } from "timeago.js";
 import UserAvatar from "~/components/layout/user-avatar";
+import { DataContext } from "~/store/GlobalState";
+import {
+  getDefaultAvatarLookup,
+  withResolvedDefaultAvatar,
+} from "~/utils/avatar";
 
 type User = {
   id?: number | string;
@@ -27,6 +33,10 @@ export default function ReplyCard({
   lastReplyTime,
   handleReply,
 }: ReplySummaryProps) {
+  const { state } = useContext(DataContext);
+  const members = state?.mentionOrgMembers ?? state?.orgMembers ?? null;
+  const defaultAvatarLookup = getDefaultAvatarLookup(members);
+
   const uniqueUsers = Array.from(
     (users ?? [])
       .reduce((acc, user) => {
@@ -63,7 +73,7 @@ export default function ReplyCard({
             className="w-6 h-6 rounded-md border overflow-hidden"
           >
             <UserAvatar
-              item={user}
+              item={withResolvedDefaultAvatar(user, defaultAvatarLookup)}
               size="2xs"
               alt={`User ${user.id}`}
               className="rounded-md"
@@ -83,7 +93,7 @@ export default function ReplyCard({
       {visibleUsers?.length > 0 && (
         <>
           <span className="text-blue-600 hover:underline cursor-pointer ml-2">
-            {totalReplies} replies
+            {totalReplies} {totalReplies === 1 ? "reply" : "replies"}
           </span>
           <span className="text-gray-500 ml-1">
             Last reply {timeformat(lastReplyTime)}

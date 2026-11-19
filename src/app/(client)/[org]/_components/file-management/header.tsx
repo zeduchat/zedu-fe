@@ -1,5 +1,10 @@
 import { Upload, FileIcon, FolderUp, Plus } from "lucide-react";
-import React, { useRef, ChangeEvent, useState } from "react";
+import React, {
+  useRef,
+  ChangeEvent,
+  useState,
+  useImperativeHandle,
+} from "react";
 import { Button } from "~/components/ui/button";
 import {
   Popover,
@@ -40,6 +45,12 @@ interface HeaderProps {
   onClearSelection?: () => void;
 }
 
+export interface HeaderHandle {
+  openFilePicker: () => void;
+  uploadFiles: (files: File[]) => void;
+}
+
+// React 19 passes `ref` as a normal prop, so no forwardRef wrapper is needed.
 const Header = ({
   onNewFolderClick,
   onFileUpload,
@@ -48,7 +59,8 @@ const Header = ({
   selectedCount = 0,
   onBulkDelete,
   onClearSelection,
-}: HeaderProps) => {
+  ref,
+}: HeaderProps & { ref?: React.Ref<HeaderHandle> }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { addUploadingFile, updateUploadProgress, updateUploadStatus } =
     useUpload();
@@ -195,6 +207,15 @@ const Header = ({
     setSelectedFiles([]);
   };
 
+  useImperativeHandle(ref, () => ({
+    openFilePicker: handleUploadClick,
+    uploadFiles: (files: File[]) => {
+      if (files.length === 0) return;
+      setSelectedFiles(files);
+      setIsConfirmationOpen(true);
+    },
+  }));
+
   return (
     <>
       <header className="border-[#E6EAEF] border-b p-5 flex justify-between items-center gap-3">
@@ -239,8 +260,9 @@ const Header = ({
                       open={isMobileMenuOpen}
                       onOpenChange={setIsMobileMenuOpen}
                     >
-                      <PopoverTrigger>
+                      <PopoverTrigger asChild>
                         <Button
+                          aria-label="Open upload menu"
                           className={`px-3 py-2 border border-[#BABAFB] flex items-center gap-2 hover:bg-[#F6F7F9] ${isMobileMenuOpen ? "bg-[#F6F7F9]" : "active:bg-[#F6F7F9]"}`}
                         >
                           <Plus className="text-[#8686F9] size-4" />
@@ -292,7 +314,7 @@ const Header = ({
                       open={isUploadPopoverOpen}
                       onOpenChange={setIsUploadPopoverOpen}
                     >
-                      <PopoverTrigger>
+                      <PopoverTrigger asChild>
                         <ActionBtns
                           icon={Upload}
                           text="Upload File"
@@ -353,20 +375,36 @@ const Header = ({
   );
 };
 
-export const ActionBtns = ({
-  icon: Icon,
-  text,
-  onClick,
-  isPopoverOpen,
-}: ActionBtnsProps) => {
-  return (
-    <Button
-      className={`px-3 py-2 border border-[#BABAFB] flex items-center gap-2 hover:bg-[#F6F7F9] ${isPopoverOpen ? "bg-[#F6F7F9]" : "active:bg-[#F6F7F9]"}`}
-      onClick={onClick}
-    >
-      <Icon className="text-[#8686F9] size-4" />
-      <span className="text-[#5F5FE1] font-semibold">{text}</span>
-    </Button>
-  );
-};
+// Forwards the ref and extra props so it can be a Radix trigger's child
+// (asChild) instead of a button nested inside the trigger's own button.
+export const ActionBtns = React.forwardRef<
+  HTMLButtonElement,
+  ActionBtnsProps &
+    Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, keyof ActionBtnsProps>
+>(
+  (
+    {
+      icon: Icon,
+      text,
+      onClick,
+      isPopoverOpen,
+      classname: _classname,
+      ...props
+    },
+    ref
+  ) => {
+    return (
+      <Button
+        ref={ref}
+        {...props}
+        className={`px-3 py-2 border border-[#BABAFB] flex items-center gap-2 hover:bg-[#F6F7F9] ${isPopoverOpen ? "bg-[#F6F7F9]" : "active:bg-[#F6F7F9]"}`}
+        onClick={onClick}
+      >
+        <Icon className="text-[#8686F9] size-4" />
+        <span className="text-[#5F5FE1] font-semibold">{text}</span>
+      </Button>
+    );
+  }
+);
+ActionBtns.displayName = "ActionBtns";
 export default Header;

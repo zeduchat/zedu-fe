@@ -15,8 +15,7 @@ import {
 export default function ChannelConnection() {
   const params = useParams();
   const id = params.id as string;
-  const { dispatch, state } = useContext(DataContext);
-  const { channelCallback } = state;
+  const { dispatch } = useContext(DataContext);
 
   // centrifugo connection for notification
   useEffect(() => {
@@ -26,13 +25,8 @@ export default function ChannelConnection() {
         getToken: () => getSubscriptionToken(id),
       });
 
-      const onSubscribed = () => {
-        dispatch({ type: ACTIONS.CHANNEL_SUBSCRIPTION, payload: sub });
-      };
-
       const onPublication = (ctx: any) => {
         const result = ctx?.data;
-        // console.log("channel publishing", ctx);
 
         if (ctx?.data?.type === "typing") {
           dispatch({
@@ -46,7 +40,7 @@ export default function ChannelConnection() {
           return;
         }
 
-        if (ctx?.data?.type === "message") {
+        if (ctx?.data?.type === "message" || ctx?.data?.type === "system") {
           dispatch({
             type: ACTIONS.USER_TYPING,
             payload: {
@@ -275,17 +269,18 @@ export default function ChannelConnection() {
         console.error(`Subscription error: ${ctx.message}`);
       };
 
-      sub.on("subscribed", onSubscribed);
       sub.on("publication", onPublication);
       sub.on("error", onError);
 
       if (sub.state !== "subscribed") {
         sub.subscribe();
       }
+      // Match chat-connection: expose the sub as soon as we have it so send is
+      // not gated on a second "subscribed" event (shared subs often skip it).
+      dispatch({ type: ACTIONS.CHANNEL_SUBSCRIPTION, payload: sub });
 
       // Cleanup on channel change or unmount — keep the shared connection alive
       return () => {
-        sub.off("subscribed", onSubscribed);
         sub.off("publication", onPublication);
         sub.off("error", onError);
         releaseChannelSubscription(centrifugeClient, id, sub);

@@ -7,11 +7,15 @@ import { useParams, usePathname } from "next/navigation";
 import images from "~/assets/images";
 import { showInfo } from "~/components/toast/sonner";
 import { playBuzzParticipantJoinSound } from "~/lib/buzz/play-join-sound";
+import { GetRequest } from "~/utils/new-request";
 import {
   registerNotificationBadge,
-  isHomeRoute,
+  shouldIncrementNotificationBadge,
   isNotificationsRoute,
+  TRIGGER_NOTIFICATION_EVENT,
+  isTestNotificationEnabled,
 } from "~/lib/notifications/notification-badge";
+import { fetchAndSyncUnreadBadge } from "~/lib/notifications/notification-store";
 import {
   getSharedCentrifuge,
   getSubscriptionToken,
@@ -25,7 +29,7 @@ const CLIENT_URL = process.env.NEXT_PUBLIC_CLIENT_URL;
 
 export default function GeneralNotificationConnection() {
   const { state, dispatch } = useContext(DataContext);
-  const { orgId, channelCallback } = state;
+  const { orgId } = state;
   const pathname = usePathname();
   const params = useParams();
   const id = params.id as string;
@@ -52,16 +56,55 @@ export default function GeneralNotificationConnection() {
     // ask for permission early on
     if (typeof window !== "undefined" && "Notification" in window) {
       if (Notification.permission !== "granted") {
-        Notification.requestPermission().then((permission) => {
-          console.log("Notification permission:", permission);
-        });
+        Notification.requestPermission();
       }
     }
   }, []);
 
+  useEffect(() => {
+    if (!isTestNotificationEnabled()) {
+      return;
+    }
+
+    const handleTestNotification = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const data = customEvent.detail;
+      dispatch({ type: ACTIONS.NOTIFICATIONS, payload: data });
+      if (!isNotificationsRoute(pathnameRef.current)) {
+        dispatch({ type: ACTIONS.INCREMENT_NOTIFICATION_BADGE });
+      }
+    };
+
+    window.addEventListener(TRIGGER_NOTIFICATION_EVENT, handleTestNotification);
+    return () => {
+      window.removeEventListener(
+        TRIGGER_NOTIFICATION_EVENT,
+        handleTestNotification
+      );
+    };
+  }, [dispatch]);
+
+  // Sync unread notification count on load/reload (skip if on notifications route)
+  useEffect(() => {
+    if (isNotificationsRoute(pathnameRef.current)) return;
+    let user: { id?: string; user_id?: string } | null = null;
+    try {
+      user = JSON.parse(localStorage.getItem("user") || "{}");
+    } catch {}
+    const userId = user?.id || user?.user_id || null;
+    if (orgId) {
+      fetchAndSyncUnreadBadge(orgId, userId, dispatch, GetRequest);
+    }
+  }, [orgId, dispatch]);
+
   // centrifugo connection for notification
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    let user: { id?: string; user_id?: string } | null = null;
+    try {
+      user = JSON.parse(localStorage.getItem("user") || "{}");
+    } catch {
+      return;
+    }
     if (!orgId || !user?.id) return;
 
     const channel = `${orgId}/${user.id}`;
@@ -71,20 +114,19 @@ export default function GeneralNotificationConnection() {
     });
 
     const onPublication = (ctx: any) => {
-      dispatch({ type: ACTIONS.NOTIFICATIONS, payload: ctx?.data });
-      dispatch({ type: ACTIONS.NOTIFY, payload: ctx?.data?.data });
-
-      if (
-        !isHomeRoute(pathnameRef.current) &&
-        !isNotificationsRoute(pathnameRef.current) &&
-        registerNotificationBadge(ctx?.data)
-      ) {
-        dispatch({ type: ACTIONS.INCREMENT_NOTIFICATION_BADGE });
+      const data = ctx?.data;
+      if (shouldIncrementNotificationBadge(data)) {
+        dispatch({ type: ACTIONS.NOTIFICATIONS, payload: data });
+        if (
+          !isNotificationsRoute(pathnameRef.current) &&
+          registerNotificationBadge(data)
+        ) {
+          dispatch({ type: ACTIONS.INCREMENT_NOTIFICATION_BADGE });
+        }
       }
+      dispatch({ type: ACTIONS.NOTIFY, payload: data?.data });
 
       const result = ctx?.data;
-
-      // console.log("general notification", ctx?.data);
 
       if (
         result?.section === "thread_message" &&
@@ -100,8 +142,7 @@ export default function GeneralNotificationConnection() {
         //     type: ACTIONS.PREPEND_CHANNEL_PREVIEW,
         //     payload: message,
         //   });
-        //   dispatch({ type: ACTIONS.CHANNEL_CALLBACK, payload: !channelCallback });
-        //   console.log("channel message general notification", ctx?.data);
+        //   dispatch({ type: ACTIONS.CHANNEL_CALLBACK });
         // }
 
         // if (message?.channel_id && message?.thread_id && !isChannelMessage) {
@@ -110,7 +151,6 @@ export default function GeneralNotificationConnection() {
         //     payload: message,
         //   });
         //   dispatch({ type: ACTIONS.HOME_DMS_CALLBACK });
-        //   console.log("home dmgeneral notification", ctx?.data);
         // }
 
         if (audioPlayer.current === null) return;

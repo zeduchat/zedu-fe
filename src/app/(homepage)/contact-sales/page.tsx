@@ -1,12 +1,13 @@
 import { Metadata } from "next";
-import { ogImageUrl, siteUrl } from "~/lib/env-urls";
-import { ContactSalesBenefits } from "./_components/ContactSalesBenefits";
-import { ContactSalesForm } from "./_components/ContactSalesForm";
+import { siteUrl } from "~/lib/env-urls";
+import { ContactSalesOptions } from "./_components/contact-sales-options";
+
+const description =
+  "Contact the Zedu sales team to find the right plan for your school, bootcamp, or learning organisation. Get tailored pricing, onboarding guidance, and enterprise support.";
 
 export const metadata: Metadata = {
-  title: "Contact Sales",
-  description:
-    "Contact the Zedu sales team to find the right plan for your school, bootcamp, or learning organisation. Get tailored pricing, onboarding guidance, and enterprise support.",
+  title: "Contact Sales for Schools and Cohorts",
+  description,
   keywords: [
     "contact Zedu sales",
     "education platform demo",
@@ -17,31 +18,17 @@ export const metadata: Metadata = {
     "AI education platform pricing",
     "Zedu onboarding",
   ],
-  icons: {
-    icon: "/TelexIcon.svg",
-  },
   openGraph: {
     title: "Contact Sales - Zedu for Schools and Cohorts",
-    description:
-      "Talk to Zedu sales about tailored plans, onboarding, and AI-powered collaboration for modern learning teams.",
+    description,
     url: siteUrl("/contact-sales"),
     siteName: "Zedu",
-    images: [
-      {
-        url: ogImageUrl("og-image-5.png"),
-        width: 1200,
-        height: 630,
-        alt: "Contact Zedu sales for education platform plans",
-      },
-    ],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Contact Sales - Zedu",
-    description:
-      "Get tailored plans and onboarding from Zedu sales for your school, bootcamp, or cohort-based learning organisation.",
-    images: [ogImageUrl("og-image-5.png")],
+    description,
   },
   alternates: {
     canonical: siteUrl("/contact-sales"),
@@ -61,8 +48,7 @@ const ContactPage = () => {
       />
 
       <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-8 lg:grid-cols-[0.95fr_1.15fr] lg:items-center lg:gap-10">
-        <ContactSalesBenefits />
-        <ContactSalesForm />
+        <ContactSalesOptions />
       </div>
     </section>
   );

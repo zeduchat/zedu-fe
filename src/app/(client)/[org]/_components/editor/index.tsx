@@ -283,11 +283,13 @@ function createSuggestionRender(getPopulateFn: () => PopulateFn) {
 const UseTextEditor = (
   subscription?: any,
   handleImagePaste?: any,
-  handleTyping?: (isTyping: boolean) => void
+  handleTyping?: (isTyping: boolean) => void,
+  customPlaceholder?: string
 ) => {
   const { state, dispatch } = useContext(DataContext);
-  const name = localStorage.getItem("channelName") || "";
   const [isEmpty, setIsEmpty] = useState(true);
+  const placeholderRef = useRef(customPlaceholder);
+  placeholderRef.current = customPlaceholder;
 
   const memberPopulateRef = useRef<PopulateFn>(null!);
   const channelPopulateRef = useRef<PopulateFn>(null!);
@@ -528,7 +530,8 @@ const UseTextEditor = (
 
       const secondaryTextSpan = document.createElement("span");
       secondaryTextSpan.textContent =
-        channel?.description || `${channel?.members_count ?? 0} members`;
+        channel?.description ||
+        `${channel?.members_count ?? 0} ${(channel?.members_count ?? 0) === 1 ? "member" : "members"}`;
       secondaryTextSpan.className = "text-xs text-gray-500 secondary-span";
       textContainer.appendChild(mainTextLine);
       textContainer.appendChild(secondaryTextSpan);
@@ -716,7 +719,15 @@ const UseTextEditor = (
       }),
       MessageEnter,
       Placeholder.configure({
-        placeholder: `Message #${name}`,
+        placeholder: () => {
+          if (placeholderRef.current !== undefined) {
+            return placeholderRef.current;
+          }
+          const currentName = localStorage.getItem("channelName") || "";
+          return currentName
+            ? `Message #${currentName}`
+            : "Start typing a message...";
+        },
       }),
       Mention.configure({
         HTMLAttributes: {
