@@ -28,13 +28,17 @@ import { useMessageDeepLink } from "~/hooks/use-message-deep-link";
 import { ScrollToLatestButton } from "~/components/ui/scroll-to-latest-button";
 import { showError, showSuccess } from "~/components/toast/sonner";
 
-const PeopleMessage = ({ participant }: any) => {
-  const { fetchMoreData, hasMore, loading } = UsePeopleMessage();
+const PeopleMessage = ({
+  participant,
+  channelId: channelIdProp,
+  markReadOnView = true,
+}: any) => {
+  const params = useParams();
+  const id = channelIdProp ?? (params.id as string);
+  const { fetchMoreData, hasMore, loading } = UsePeopleMessage(channelIdProp);
   const { state, dispatch } = useContext(DataContext);
   const { chats, user, isEdit, thread, notify, bookmarks, dataId } = state;
   const groupedMessages = groupMessagesByDate(chats);
-  const params = useParams();
-  const id = params.id as string;
   const isPersonalDm = participant?.user_id === user?.user_id;
   const [showBadge, setShowBadge] = useState(false);
   const [popupId, setPopupId] = useState<any>(null);
@@ -54,16 +58,16 @@ const PeopleMessage = ({ participant }: any) => {
   }, [dispatch, id]);
 
   const getData = useCallback(async () => {
-    if (!id) return;
+    if (!id || !markReadOnView) return;
     await GetRequest(`/dms/channels/${id}/threads?page=1&limit=1`);
     clearDmUnread();
-  }, [id, clearDmUnread]);
+  }, [id, clearDmUnread, markReadOnView]);
 
   // Mark as read and clear Nav highlight whenever this DM is opened
   useEffect(() => {
-    if (!id) return;
+    if (!id || !markReadOnView) return;
     getData();
-  }, [id, getData]);
+  }, [id, getData, markReadOnView]);
 
   useEffect(() => {
     const container = scrollableContainerRef.current;
@@ -73,8 +77,10 @@ const PeopleMessage = ({ participant }: any) => {
       const isAtBottom = container.scrollTop >= -1;
 
       if (isAtBottom) {
-        getData();
-        hasDispatchedRef.current = true;
+        if (markReadOnView) {
+          getData();
+          hasDispatchedRef.current = true;
+        }
       } else if (!isAtBottom && hasDispatchedRef.current) {
         hasDispatchedRef.current = false;
       }
@@ -89,18 +95,20 @@ const PeopleMessage = ({ participant }: any) => {
     return () => {
       container.removeEventListener("scroll", handleScroll);
     };
-  }, [getData]);
+  }, [getData, markReadOnView]);
 
   // Runs when new messages arrive; reads the latest badge and user without re-running on them.
   const markReadOnNewMessage = useEffectEvent(() => {
+    if (!markReadOnView) return;
     if (!showBadge && notify?.user_id !== user?.user_id) {
       getData();
     }
   });
 
   useEffect(() => {
+    if (!markReadOnView) return;
     markReadOnNewMessage();
-  }, [chats]);
+  }, [chats, markReadOnView]);
 
   // edit message
   const handleEditMessage = async (content: any) => {

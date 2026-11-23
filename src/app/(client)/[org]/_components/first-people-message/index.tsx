@@ -9,12 +9,12 @@ const FirstPeopleMessage = ({ selectedUsers }: any) => {
     <div
       id="scrollableDivs"
       style={{
-        height: "100vh",
-        overflowY: "scroll",
+        overflowY: "auto",
         display: "flex",
         flexDirection: "column-reverse",
+        paddingBottom: "var(--chat-composer-height, 140px)",
       }}
-      className="w-full pb-48"
+      className="min-h-0 w-full flex-1"
     >
       {selectedUsers?.length > 0 && (
         <div className="mt-auto px-5 mb-5">

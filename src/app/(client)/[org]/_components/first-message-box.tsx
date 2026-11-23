@@ -53,18 +53,22 @@ interface FirstMessageBoxProps {
   ) => Promise<{ destination: string } | false>;
   placeholder?: string;
   disabled?: boolean;
+  /** When false, composer does not grab focus on mount (e.g. new DM recipient search). */
+  autoFocusEditor?: boolean;
 }
 
 const FirstMessageBox = ({
   sendMessage,
   placeholder,
   disabled,
+  autoFocusEditor = true,
 }: FirstMessageBoxProps) => {
   const { editor, isEmpty } = UseTextEditor(
     undefined,
     undefined,
     undefined,
-    placeholder
+    placeholder,
+    autoFocusEditor
   );
   const router = useRouter();
   const uuid = useRef(uuidv7());
@@ -182,19 +186,40 @@ const FirstMessageBox = ({
   };
 
   useEffect(() => {
-    if (editor) {
-      editor.commands.focus();
-    }
-  }, [editor]);
+    if (!editor || disabled) return;
+    editor.commands.focus();
+  }, [editor, disabled]);
 
   useEffect(() => {
     editor?.setEditable(!isSubmitting);
   }, [editor, isSubmitting]);
 
-  //
+  const composerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = composerRef.current;
+    if (!el) return;
+
+    const updateComposerHeight = () => {
+      const height = Math.ceil(el.getBoundingClientRect().height);
+      document.documentElement.style.setProperty(
+        "--chat-composer-height",
+        `${Math.max(height, 140)}px`
+      );
+    };
+
+    updateComposerHeight();
+    const observer = new ResizeObserver(updateComposerHeight);
+    observer.observe(el);
+
+    return () => {
+      observer.disconnect();
+      document.documentElement.style.removeProperty("--chat-composer-height");
+    };
+  }, []);
 
   return (
-    <>
+    <div ref={composerRef} className="relative w-full bg-white pb-3">
       <div
         onClick={() => editor && editor.commands.focus()}
         aria-busy={isSubmitting}
@@ -516,7 +541,7 @@ const FirstMessageBox = ({
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

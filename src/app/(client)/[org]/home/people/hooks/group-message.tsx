@@ -5,9 +5,9 @@ import { DataContext } from "~/store/GlobalState";
 import { GetRequest } from "~/utils/new-request";
 import { prefetchAvatars } from "~/utils/prefetch-avatars";
 
-const UseGroupMessage = () => {
+const UseGroupMessage = (channelIdOverride?: string) => {
   const params = useParams();
-  const id = params.id as string;
+  const id = channelIdOverride ?? (params.id as string);
   const { state, dispatch } = useContext(DataContext);
   const token = localStorage.getItem("token") || "";
   const [page, setPage] = useState<number>(1);

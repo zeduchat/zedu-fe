@@ -10,7 +10,7 @@ import React, {
 import { DataContext } from "~/store/GlobalState";
 import { groupMessagesByDate } from "~/utils/group-messages";
 import InfiniteScroll from "react-infinite-scroll-component";
-import UsePeopleMessage from "../../home/people/hooks/people-message";
+import UseGroupMessage from "../../home/people/hooks/group-message";
 import UserAvatar from "~/components/layout/user-avatar";
 import Message from "../ChannelMessage/message";
 import { GetRequest, PutRequest } from "~/utils/new-request";
@@ -26,14 +26,18 @@ import EditMessageBox from "../message-box/edit";
 import { ScrollToLatestButton } from "~/components/ui/scroll-to-latest-button";
 import { showError, showSuccess } from "~/components/toast/sonner";
 
-const GroupMessage = ({ participants }: any) => {
-  const { fetchMoreData, hasMore, loading } = UsePeopleMessage();
+const GroupMessage = ({
+  participants,
+  channelId: channelIdProp,
+  markReadOnView = true,
+}: any) => {
+  const params = useParams();
+  const id = channelIdProp ?? (params.id as string);
+  const { fetchMoreData, hasMore, loading } = UseGroupMessage(channelIdProp);
   const { state, dispatch } = useContext(DataContext);
   const { chats, user, notify, bookmarks, dataId, isEdit, thread } = state;
   const groupedMessages = groupMessagesByDate(chats);
   const [showBadge, setShowBadge] = useState(false);
-  const params = useParams();
-  const id = params.id as string;
   const [popupId, setPopupId] = useState<any>(null);
 
   const scrollableContainerRef = useRef<HTMLDivElement>(null);
@@ -51,16 +55,16 @@ const GroupMessage = ({ participants }: any) => {
   }, [dispatch, id]);
 
   const getData = useCallback(async () => {
-    if (!id) return;
+    if (!id || !markReadOnView) return;
     await GetRequest(`/group-dms/channels/${id}/threads?page=1&limit=1`);
     clearDmUnread();
-  }, [id, clearDmUnread]);
+  }, [id, clearDmUnread, markReadOnView]);
 
   // Mark as read and clear Nav highlight whenever this group DM is opened
   useEffect(() => {
-    if (!id) return;
+    if (!id || !markReadOnView) return;
     getData();
-  }, [id, getData]);
+  }, [id, getData, markReadOnView]);
 
   useEffect(() => {
     const container = scrollableContainerRef.current;
@@ -70,8 +74,10 @@ const GroupMessage = ({ participants }: any) => {
       const isAtBottom = container.scrollTop >= -1;
 
       if (isAtBottom) {
-        getData();
-        hasDispatchedRef.current = true;
+        if (markReadOnView) {
+          getData();
+          hasDispatchedRef.current = true;
+        }
       } else if (!isAtBottom && hasDispatchedRef.current) {
         hasDispatchedRef.current = false;
       }
@@ -86,18 +92,20 @@ const GroupMessage = ({ participants }: any) => {
     return () => {
       container.removeEventListener("scroll", handleScroll);
     };
-  }, [getData]);
+  }, [getData, markReadOnView]);
 
   // Runs when new messages arrive; reads the latest badge and user without re-running on them.
   const markReadOnNewMessage = useEffectEvent(() => {
+    if (!markReadOnView) return;
     if (!showBadge && notify?.user_id !== user?.user_id) {
       getData();
     }
   });
 
   useEffect(() => {
+    if (!markReadOnView) return;
     markReadOnNewMessage();
-  }, [chats]);
+  }, [chats, markReadOnView]);
 
   const handleEditMessage = async (content: any) => {
     try {

@@ -1,6 +1,6 @@
 import type { Dispatch } from "react";
 import { ACTIONS } from "~/store/Actions";
-import { PostRequest } from "~/utils/new-request";
+import { GetRequest, PostRequest } from "~/utils/new-request";
 import { showError } from "~/components/toast/sonner";
 
 type DmUserLike = {
@@ -31,7 +31,7 @@ const getParticipantId = (user: DmUserLike) => user.user_id ?? user.id ?? "";
  * conversation's participant wins the `previewParticipant || participant` check
  * and the DM renders with the wrong name and avatar.
  */
-const toPreviewParticipant = (user: DmUserLike, userId: string) => ({
+export const toPreviewParticipant = (user: DmUserLike, userId: string) => ({
   user_id: userId,
   username: user.username || user.name || "",
   avatar_url: user.profile_url || user.avatar_url || undefined,
@@ -92,6 +92,29 @@ export async function openDmWithUser({
       type: ACTIONS.PARTICIPANT,
       payload: toPreviewParticipant(user, channelParticipantId),
     });
+
+    dispatch({
+      type: ACTIONS.CHATS,
+      payload: { newThreads: [], newPage: 1 },
+    });
+    dispatch({ type: ACTIONS.MESSAGE_LOADING, payload: true });
+
+    try {
+      const threadsRes = await GetRequest(
+        `/dms/channels/${channelId}/threads?page=1&limit=50`
+      );
+      if (threadsRes?.status === 200 || threadsRes?.status === 201) {
+        const newThreads = Array.isArray(threadsRes?.data?.data)
+          ? threadsRes.data.data
+          : [];
+        dispatch({
+          type: ACTIONS.CHATS,
+          payload: { newThreads, newPage: 1 },
+        });
+      }
+    } finally {
+      dispatch({ type: ACTIONS.MESSAGE_LOADING, payload: false });
+    }
 
     router.push(
       `/${orgSlug}/home/people/${channelId}/${channelParticipantId}/dm`

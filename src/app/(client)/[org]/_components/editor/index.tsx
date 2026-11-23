@@ -284,7 +284,8 @@ const UseTextEditor = (
   subscription?: any,
   handleImagePaste?: any,
   handleTyping?: (isTyping: boolean) => void,
-  customPlaceholder?: string
+  customPlaceholder?: string,
+  autoFocusOnCreate = true
 ) => {
   const { state, dispatch } = useContext(DataContext);
   const [isEmpty, setIsEmpty] = useState(true);
@@ -807,7 +808,9 @@ const UseTextEditor = (
       AppleEmoji,
     ],
     onCreate: ({ editor }) => {
-      editor.commands.focus();
+      if (autoFocusOnCreate) {
+        editor.commands.focus();
+      }
     },
     onUpdate: ({ editor }) => {
       const isContentEmpty = editor.isEmpty;
