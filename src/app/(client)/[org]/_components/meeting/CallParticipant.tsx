@@ -63,7 +63,6 @@ export const BuzzParticipant = ({
     //       ? { ...p, isPinned: !p.isPinned }
     //       : { ...p, isPinned: false }
     //   );
-    //   // console.log("Pin toggled for uid:", uid, "New state:", updated);
     //   return updated;
     // });
   };

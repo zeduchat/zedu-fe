@@ -1,8 +1,9 @@
 import { useContext, useRef, useState } from "react";
+import type { Editor, Range } from "@tiptap/core";
 import { Extension, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
-import Mention from "@tiptap/extension-mention";
+import Mention, { type MentionNodeAttrs } from "@tiptap/extension-mention";
 import Link from "@tiptap/extension-link";
 import { DataContext } from "~/store/GlobalState";
 import { ACTIONS } from "~/store/Actions";
@@ -279,6 +280,26 @@ function createSuggestionRender(getPopulateFn: () => PopulateFn) {
     };
   };
 }
+
+/** Slack-style gap after @/# mentions in the composer. */
+const insertMentionWithSpacing = ({
+  editor,
+  range,
+  props,
+}: {
+  editor: Editor;
+  range: Range;
+  props: MentionNodeAttrs;
+}) => {
+  editor
+    .chain()
+    .focus()
+    .insertContentAt(range, [
+      { type: "mention", attrs: props },
+      { type: "text", text: " " },
+    ])
+    .run();
+};
 
 const UseTextEditor = (
   subscription?: any,
@@ -737,6 +758,7 @@ const UseTextEditor = (
         suggestions: [
           {
             char: "@",
+            command: insertMentionWithSpacing,
             items: (props: { query?: string }) => {
               const query = props?.query ?? "";
               const queryString = String(query).toLowerCase();
@@ -757,6 +779,7 @@ const UseTextEditor = (
           },
           {
             char: "#",
+            command: insertMentionWithSpacing,
             items: (props: { query?: string }) => {
               const query = props?.query ?? "";
               const queryString = String(query).toLowerCase();

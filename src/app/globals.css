@@ -526,8 +526,13 @@ code {
   color: blue;
   font-weight: normal;
   background: #f1f1fe;
-  padding: 0 2px;
+  padding: 1px 4px;
+  margin-inline-end: 0.35em;
   border-radius: 3px;
+}
+
+.ProseMirror .mention {
+  margin-inline-end: 0.35em;
 }
 
 .mention[data-id="channel"],

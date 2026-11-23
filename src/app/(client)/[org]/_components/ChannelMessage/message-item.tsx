@@ -458,7 +458,6 @@ const MessageItem: React.FC<MessageItemProps> = ({ item }) => {
                 />
               ),
               // p: (props) => {
-              //   console.log("Rendering paragraph with props:", props);
               //   return (
               //     <p
               //       style={{

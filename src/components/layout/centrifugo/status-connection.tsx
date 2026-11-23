@@ -9,6 +9,7 @@ import {
   getSubscriptionToken,
   prepareChannelSubscription,
   releaseChannelSubscription,
+  safeSubscribe,
 } from "~/lib/centrifugo/shared-centrifuge";
 
 const CLIENT_URL = process.env.NEXT_PUBLIC_CLIENT_URL;
@@ -125,7 +126,7 @@ export default function StatusConnection() {
     sub.on("error", onError);
 
     if (sub.state !== "subscribed") {
-      sub.subscribe();
+      safeSubscribe(sub);
     }
 
     return () => {

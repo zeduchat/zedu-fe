@@ -69,12 +69,7 @@ const MenuDropdown = ({ isOpen, onClose }: MenuDropdownProps) => {
 
         <div className={dividerClass} />
 
-        <div
-          className={menuItemClass}
-          onClick={() => console.log("Star conversation")}
-        >
-          Star conversation
-        </div>
+        <div className={menuItemClass}>Star conversation</div>
 
         <div className={dividerClass} />
 

@@ -21,6 +21,7 @@ import {
   getSubscriptionToken,
   prepareChannelSubscription,
   releaseChannelSubscription,
+  safeSubscribe,
 } from "~/lib/centrifugo/shared-centrifuge";
 
 const CLIENT_URL = process.env.NEXT_PUBLIC_CLIENT_URL;
@@ -127,34 +128,6 @@ export default function GeneralNotificationConnection() {
       dispatch({ type: ACTIONS.NOTIFY, payload: data?.data });
 
       const result = ctx?.data;
-
-      if (
-        result?.section === "thread_message" &&
-        result?.notification_type == "new_message"
-      ) {
-        // const message = result?.data;
-        // const isChannelMessage =
-        //   message?.channel_type === "public" ||
-        //   message?.channel_type === "private";
-
-        // if (message?.channel_id && message?.thread_id && isChannelMessage) {
-        //   dispatch({
-        //     type: ACTIONS.PREPEND_CHANNEL_PREVIEW,
-        //     payload: message,
-        //   });
-        //   dispatch({ type: ACTIONS.CHANNEL_CALLBACK });
-        // }
-
-        // if (message?.channel_id && message?.thread_id && !isChannelMessage) {
-        //   dispatch({
-        //     type: ACTIONS.PREPEND_HOME_DM_PREVIEW,
-        //     payload: message,
-        //   });
-        //   dispatch({ type: ACTIONS.HOME_DMS_CALLBACK });
-        // }
-
-        if (audioPlayer.current === null) return;
-      }
 
       // Thread count and mention count highlight
       if (
@@ -426,7 +399,7 @@ export default function GeneralNotificationConnection() {
     sub.on("error", onError);
 
     if (sub.state !== "subscribed") {
-      sub.subscribe();
+      safeSubscribe(sub);
     }
 
     return () => {

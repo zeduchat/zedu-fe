@@ -8,6 +8,7 @@ import {
   getSubscriptionToken,
   prepareChannelSubscription,
   releaseChannelSubscription,
+  safeSubscribe,
 } from "~/lib/centrifugo/shared-centrifuge";
 
 /** eslint-disable */
@@ -452,7 +453,7 @@ export default function ChatConnection() {
       sub.on("error", onError);
 
       if (sub.state !== "subscribed") {
-        sub.subscribe();
+        safeSubscribe(sub);
       }
       dispatch({ type: ACTIONS.CHAT_SUBSCRIPTION, payload: sub });
 

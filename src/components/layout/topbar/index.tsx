@@ -247,39 +247,35 @@ const Topbar = () => {
                   <div className="bg-white">
                     {organisations.length > 1 && (
                       <>
-                        <div className="py-3 px-6">
-                          <p className="text-xs text-gray-400 mb-2">Pinned</p>
-                          {!organisations.some(
-                            (item: any) =>
-                              item.pinned === true &&
-                              item.name !== orgData?.name
-                          ) && (
-                            <span className="text-sm text-gray-400 px-3 flex items-center justify-center py-2">
-                              No pinned organisations
-                            </span>
-                          )}
-                          {organisations.map((item: any, index: number) => {
-                            if (orgData?.name === item.name || !item.pinned)
-                              return;
-                            return (
-                              <OrgList
-                                key={index}
-                                name={item.name}
-                                pinned
-                                logo_url={item.logo_url}
-                                onClick={() => handleOrg(item)}
-                                notificationCount={
-                                  item?.total_messages_count ?? 0
-                                }
-                                onPin={
-                                  item?.pinned
-                                    ? () => handleDelete(item?.id)
-                                    : () => handlePin(item?.id)
-                                }
-                              />
-                            );
-                          })}
-                        </div>
+                        {organisations.some(
+                          (item: any) =>
+                            item.pinned === true && item.name !== orgData?.name
+                        ) && (
+                          <div className="py-3 px-6">
+                            <p className="text-xs text-gray-400 mb-2">Pinned</p>
+                            {organisations.map((item: any, index: number) => {
+                              if (orgData?.name === item.name || !item.pinned)
+                                return;
+                              return (
+                                <OrgList
+                                  key={index}
+                                  name={item.name}
+                                  pinned
+                                  logo_url={item.logo_url}
+                                  onClick={() => handleOrg(item)}
+                                  notificationCount={
+                                    item?.total_messages_count ?? 0
+                                  }
+                                  onPin={
+                                    item?.pinned
+                                      ? () => handleDelete(item?.id)
+                                      : () => handlePin(item?.id)
+                                  }
+                                />
+                              );
+                            })}
+                          </div>
+                        )}
                         {organisations.some(
                           (item: any) =>
                             item?.pinned === false &&
@@ -428,41 +424,37 @@ const Topbar = () => {
                   <div className="bg-white -mx-4">
                     {organisations.length > 1 && (
                       <>
-                        <div className="py-2 px-8">
-                          <p className="text-xs text-gray-400 mb-0.5 -mt-1">
-                            Pinned
-                          </p>
-                          {!organisations.some(
-                            (item: any) =>
-                              item.pinned === true &&
-                              item.name !== orgData?.name
-                          ) && (
-                            <span className="text-sm text-gray-400 px-3 flex items-center justify-center">
-                              You have no pinned organization yet.
-                            </span>
-                          )}
-                          {organisations.map((item: any, index: number) => {
-                            if (orgData?.name === item.name || !item.pinned)
-                              return;
-                            return (
-                              <OrgList
-                                key={index}
-                                name={item.name}
-                                pinned
-                                logo_url={item.logo_url}
-                                onClick={() => handleOrg(item)}
-                                notificationCount={
-                                  item?.total_messages_count ?? 0
-                                }
-                                onPin={
-                                  item?.pinned
-                                    ? () => handleDelete(item?.id)
-                                    : () => handlePin(item?.id)
-                                }
-                              />
-                            );
-                          })}
-                        </div>
+                        {organisations.some(
+                          (item: any) =>
+                            item.pinned === true && item.name !== orgData?.name
+                        ) && (
+                          <div className="py-2 px-8">
+                            <p className="text-xs text-gray-400 mb-0.5 -mt-1">
+                              Pinned
+                            </p>
+                            {organisations.map((item: any, index: number) => {
+                              if (orgData?.name === item.name || !item.pinned)
+                                return;
+                              return (
+                                <OrgList
+                                  key={index}
+                                  name={item.name}
+                                  pinned
+                                  logo_url={item.logo_url}
+                                  onClick={() => handleOrg(item)}
+                                  notificationCount={
+                                    item?.total_messages_count ?? 0
+                                  }
+                                  onPin={
+                                    item?.pinned
+                                      ? () => handleDelete(item?.id)
+                                      : () => handlePin(item?.id)
+                                  }
+                                />
+                              );
+                            })}
+                          </div>
+                        )}
                         {organisations.some(
                           (item: any) =>
                             item?.pinned === false &&

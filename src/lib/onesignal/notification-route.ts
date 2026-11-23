@@ -177,6 +177,7 @@ export const resolveNotificationRoute = (
 
   const isGroupDm =
     notificationType === "groupdm" ||
+    notificationType === "group_dm" ||
     channelType === "groupdm" ||
     channelType === "groupdms";
 
@@ -189,9 +190,9 @@ export const resolveNotificationRoute = (
   const dmRoute = () => {
     if (!channelId) return null;
     if (isGroupDm || !participantId) {
-      return `/${orgSlug}/dm/${channelId}/dms`;
+      return `/${orgSlug}/home/people/${channelId}/dms`;
     }
-    return `/${orgSlug}/dm/${channelId}/${participantId}`;
+    return `/${orgSlug}/home/people/${channelId}/${participantId}/dm`;
   };
 
   const channelRoute = () => {

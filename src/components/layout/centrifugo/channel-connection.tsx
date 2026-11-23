@@ -8,6 +8,7 @@ import {
   getSubscriptionToken,
   prepareChannelSubscription,
   releaseChannelSubscription,
+  safeSubscribe,
 } from "~/lib/centrifugo/shared-centrifuge";
 
 //
@@ -273,7 +274,7 @@ export default function ChannelConnection() {
       sub.on("error", onError);
 
       if (sub.state !== "subscribed") {
-        sub.subscribe();
+        safeSubscribe(sub);
       }
       // Match chat-connection: expose the sub as soon as we have it so send is
       // not gated on a second "subscribed" event (shared subs often skip it).

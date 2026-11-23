@@ -10,6 +10,7 @@ import {
   getSubscriptionToken,
   prepareChannelSubscription,
   releaseChannelSubscription,
+  safeSubscribe,
 } from "~/lib/centrifugo/shared-centrifuge";
 
 export default function ChannelAgoraConnection() {
@@ -200,7 +201,7 @@ export default function ChannelAgoraConnection() {
     sub.on("publication", onPublication);
 
     if (sub.state !== "subscribed") {
-      sub.subscribe();
+      safeSubscribe(sub);
     }
 
     return () => {

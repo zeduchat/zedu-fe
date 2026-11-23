@@ -71,10 +71,38 @@ const ChatPage = () => {
     uuid: string,
     content: string,
     medias: any,
-    mentions: any = state?.mentions
+    mentions: any = state?.mentions,
+    isRetry = false
   ) => {
+    const optimisticMessage = {
+      channels_id: id,
+      thread_id: uuid,
+      username: user?.username || "You",
+      avatar_url: user?.avatar_url,
+      message: content,
+      created_at: new Date().toISOString(),
+      status: "pending",
+      type: "message",
+      media: medias,
+      user_id: user?.user_id ?? user?.id,
+      reactions: null,
+      isOptimistic: true,
+    };
+
+    if (!isRetry) {
+      dispatch({
+        type: ACTIONS.CHATS,
+        payload: { newMessage: optimisticMessage },
+      });
+    }
+    dispatch({
+      type: ACTIONS.UPDATE_DM_PREVIEW,
+      payload: { channelId: id, message: content },
+    });
+
     const payload = {
       content: content,
+      thread_id: uuid,
       media: medias,
       mentions: mentions,
     };

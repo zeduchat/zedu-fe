@@ -278,15 +278,10 @@ const GroupMessage = ({
                 );
               })}
 
-              <div className="sticky top-0 z-10 my-2">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-dotted border-[#E6EAEF]"></div>
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="bg-white px-4 py-1 text-[13px] text-[#101828] border border-[#E6EAEF] rounded-[30px]">
-                    {dateLabel}
-                  </span>
-                </div>
+              <div className="sticky top-0 z-10 my-2 flex justify-center">
+                <span className="bg-white px-4 py-1 text-[13px] text-[#101828] border border-[#E6EAEF] rounded-[30px]">
+                  {dateLabel}
+                </span>
               </div>
             </div>
           ))}

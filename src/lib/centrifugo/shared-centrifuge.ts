@@ -10,6 +10,56 @@ const connectUrl = process.env.NEXT_PUBLIC_CONNECT_URL as string;
 let sharedClient: Centrifuge | null = null;
 const subscriptionRefCounts = new Map<string, number>();
 
+const BENIGN_SUBSCRIBE_CODES = new Set([1, 7]);
+
+const logCentrifugoError = (label: string, err: unknown) => {
+  const code =
+    typeof err === "object" && err !== null && "code" in err
+      ? Number((err as { code: number }).code)
+      : undefined;
+  if (code !== undefined && BENIGN_SUBSCRIBE_CODES.has(code)) {
+    return;
+  }
+  console.warn(`[Centrifugo] ${label} failed`, err);
+};
+
+const absorbPromise = (result: unknown, label: string) => {
+  if (
+    result &&
+    typeof result === "object" &&
+    "catch" in result &&
+    typeof (result as Promise<unknown>).catch === "function"
+  ) {
+    void (result as Promise<unknown>).catch((err) =>
+      logCentrifugoError(label, err)
+    );
+  }
+};
+
+export function safeSubscribe(sub: Subscription): void {
+  if (sub.state === "subscribed" || sub.state === "subscribing") {
+    return;
+  }
+
+  try {
+    absorbPromise(sub.subscribe(), "subscribe");
+  } catch (err) {
+    logCentrifugoError("subscribe", err);
+  }
+}
+
+export function safeConnect(client: Centrifuge): void {
+  const state = client.state;
+  if (state === "connected" || state === "connecting") {
+    return;
+  }
+  try {
+    absorbPromise(client.connect(), "connect");
+  } catch (err) {
+    logCentrifugoError("connect", err);
+  }
+}
+
 export async function getConnectionToken(): Promise<string> {
   const token = localStorage.getItem("token") || "";
   const response = await axios.get(
@@ -45,9 +95,10 @@ export function getSharedCentrifuge(): Centrifuge {
   if (!sharedClient) {
     sharedClient = new Centrifuge(connectUrl, {
       getToken: getConnectionToken,
-      debug: true,
+      debug: process.env.NODE_ENV === "development",
+      timeout: 10_000,
     });
-    sharedClient.connect();
+    safeConnect(sharedClient);
   }
 
   return sharedClient;
@@ -81,8 +132,18 @@ export function releaseChannelSubscription(
 
   if (nextCount <= 0) {
     subscriptionRefCounts.delete(channel);
-    sub.unsubscribe();
-    client.removeSubscription(sub);
+    if (sub.state !== "unsubscribed") {
+      try {
+        sub.unsubscribe();
+      } catch {
+        // ignore teardown races
+      }
+    }
+    try {
+      client.removeSubscription(sub);
+    } catch {
+      // ignore if already removed
+    }
     return;
   }
 

@@ -21,7 +21,6 @@ export function ScreenSharePlayer({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // console.log("ScreenSharePlayer useEffect:", {
     //   hasTrack: !!videoTrack,
     //   hasContainer: !!containerRef.current,
     //   uid,

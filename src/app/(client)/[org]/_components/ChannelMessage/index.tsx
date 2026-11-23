@@ -22,7 +22,7 @@ import { GetRequest, PutRequest } from "~/utils/new-request";
 import { ACTIONS } from "~/store/Actions";
 import { useParams } from "next/navigation";
 import { Badge } from "~/components/ui/badge";
-import { ArrowDownIcon, Pin } from "lucide-react";
+import { ArrowDownIcon, ArrowUpIcon, Pin } from "lucide-react";
 import { BookmarkFilledIcon } from "@radix-ui/react-icons";
 import { useMessageHighlight } from "~/hooks/use-message-highlight";
 import { useMessageDeepLink } from "~/hooks/use-message-deep-link";
@@ -41,6 +41,9 @@ const ChannelsMessage = () => {
   const [popupId, setPopupId] = useState<any>(null);
   const [unreadDividerId, setUnreadDividerId] = useState<string | null>(null);
   const [dividerOnTop, setDividerOnTop] = useState(false);
+  const [unreadJumpCount, setUnreadJumpCount] = useState(0);
+  const [dismissedUnreadJump, setDismissedUnreadJump] = useState(false);
+  const [unreadBoundaryInView, setUnreadBoundaryInView] = useState(false);
 
   const scrollableContainerRef = useRef<HTMLDivElement>(null);
   const hasDispatchedRef = useRef(false);
@@ -90,6 +93,9 @@ const ChannelsMessage = () => {
     unreadCountRef.current = 0;
     capturedRef.current = false;
     setUnreadDividerId(null);
+    setUnreadJumpCount(0);
+    setDismissedUnreadJump(false);
+    setUnreadBoundaryInView(false);
   }, [id]);
 
   // Mark as read and clear Nav highlight whenever this channel is opened
@@ -152,33 +158,71 @@ const ChannelsMessage = () => {
             : firstUnread;
         setUnreadDividerId(`unread-divider-${targetMsg.thread_id}`);
         setDividerOnTop(unreadCountRef.current >= messages.length);
+        setUnreadJumpCount(unreadCountRef.current);
+        setDismissedUnreadJump(false);
       }
     } else {
       setUnreadDividerId(null);
+      setUnreadJumpCount(0);
     }
   }, [messages]);
 
-  // Scroll to the first unread message (not the older message above the divider)
+  // Only prompt a jump when the "last read" divider is off-screen (user can't see the boundary).
   useEffect(() => {
-    if (!unreadDividerId) return;
-    const hasScrolled = { current: false };
-    const timer = setTimeout(() => {
-      if (hasScrolled.current) return;
-      hasScrolled.current = true;
-      // Issue 3 fix: scroll directly to the first unread message by thread ID
-      const firstUnreadThreadId = unreadDividerId.replace(
-        "unread-divider-",
-        ""
-      );
-      const firstUnreadMsg = document.getElementById(
-        `thread-${firstUnreadThreadId}`
-      );
-      if (firstUnreadMsg) {
-        firstUnreadMsg.scrollIntoView({ block: "start", behavior: "smooth" });
+    if (!unreadDividerId) {
+      setUnreadBoundaryInView(false);
+      return;
+    }
+
+    let observer: IntersectionObserver | null = null;
+    const raf = requestAnimationFrame(() => {
+      const root = scrollableContainerRef.current;
+      const dividerEl = document.getElementById(unreadDividerId);
+      if (!root || !dividerEl) {
+        setUnreadBoundaryInView(false);
+        return;
       }
-    }, 500);
-    return () => clearTimeout(timer);
+
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          setUnreadBoundaryInView(entry.isIntersecting);
+        },
+        { root, threshold: 0.1 }
+      );
+      observer.observe(dividerEl);
+    });
+
+    return () => {
+      cancelAnimationFrame(raf);
+      observer?.disconnect();
+    };
+  }, [unreadDividerId, messages]);
+
+  const scrollToLastRead = useCallback(() => {
+    if (!unreadDividerId) return;
+
+    const dividerEl = document.getElementById(unreadDividerId);
+    if (dividerEl) {
+      dividerEl.scrollIntoView({ block: "start", behavior: "smooth" });
+      setDismissedUnreadJump(true);
+      return;
+    }
+
+    const firstUnreadThreadId = unreadDividerId.replace("unread-divider-", "");
+    const firstUnreadMsg = document.getElementById(
+      `thread-${firstUnreadThreadId}`
+    );
+    if (firstUnreadMsg) {
+      firstUnreadMsg.scrollIntoView({ block: "start", behavior: "smooth" });
+    }
+    setDismissedUnreadJump(true);
   }, [unreadDividerId]);
+
+  const showUnreadJumpBadge =
+    unreadJumpCount > 0 &&
+    Boolean(unreadDividerId) &&
+    !dismissedUnreadJump &&
+    !unreadBoundaryInView;
 
   const handleEditMessage = async (content: any) => {
     try {
@@ -234,6 +278,18 @@ const ChannelsMessage = () => {
 
   return (
     <div className="relative w-full flex-1 min-h-0 flex flex-col">
+      {showUnreadJumpBadge && (
+        <Badge
+          onClick={scrollToLastRead}
+          className="absolute top-3 z-20 left-1/2 -translate-x-1/2 cursor-pointer px-3 py-1.5 flex items-center gap-1.5 bg-primary-500 font-normal text-white text-[0.8125rem] border border-[#E6EAEF] shadow-sm"
+        >
+          <ArrowUpIcon className="h-3.5 w-3.5" aria-hidden />
+          {unreadJumpCount === 1
+            ? "Jump to last read"
+            : `Jump to last read · ${unreadJumpCount} new`}
+        </Badge>
+      )}
+
       {showBadge && state?.threadCount > 0 && (
         <Badge
           onClick={() => {
@@ -397,15 +453,10 @@ const ChannelsMessage = () => {
                     );
                   })}
 
-                  <div className="sticky top-0 z-10 my-2">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-dotted border-[#E6EAEF]"></div>
-                    </div>
-                    <div className="relative flex justify-center">
-                      <span className="bg-white px-4 py-1 text-[13px] text-[#101828] border border-[#E6EAEF] rounded-[30px]">
-                        {dateLabel}
-                      </span>
-                    </div>
+                  <div className="sticky top-0 z-10 my-2 flex justify-center">
+                    <span className="bg-white px-4 py-1 text-[13px] text-[#101828] border border-[#E6EAEF] rounded-[30px]">
+                      {dateLabel}
+                    </span>
                   </div>
                 </div>
               );

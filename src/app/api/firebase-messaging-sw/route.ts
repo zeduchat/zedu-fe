@@ -4,6 +4,11 @@ import {
   PREVIEW_CACHE_KEY,
   PREVIEW_CACHE_NAME,
 } from "~/lib/notification-preview";
+import {
+  FCM_NAV_CACHE_KEY,
+  FCM_NAV_CACHE_NAME,
+  FCM_NOTIFICATION_CLICK,
+} from "~/lib/firebase/fcm-notification-constants";
 
 export const dynamic = "force-dynamic";
 
@@ -57,6 +62,22 @@ async function showMessagePreviews() {
 const FCM_MSG_KEY = "FCM_MSG";
 
 messaging.onBackgroundMessage(async (payload) => {
+  // console.log("[FCM SW] incoming push (background)", payload);
+
+  const clientList = await self.clients.matchAll({
+    type: "window",
+    includeUncontrolled: true,
+  });
+  const hasVisibleClient = clientList.some(
+    (client) => client.visibilityState === "visible"
+  );
+  if (hasVisibleClient) {
+    console.log(
+      "[FCM SW] skipping background display — visible tab (foreground onMessage shows tray)"
+    );
+    return;
+  }
+
   const title = payload.notification?.title || payload.data?.title || "Zedu";
   const rawBody = payload.notification?.body || payload.data?.body || "";
   const showPreviews = await showMessagePreviews();
@@ -78,21 +99,78 @@ messaging.onBackgroundMessage(async (payload) => {
   }
 
   const body = rawBody && !showPreviews ? HIDDEN_PREVIEW_TEXT : rawBody;
+  const data = payload.data || {};
+  const tag =
+    data.message_id ||
+    data.thread_id ||
+    payload.messageId ||
+    "zedu-push";
 
   return self.registration.showNotification(title, {
     body,
-    data: payload.data || {},
+    tag: String(tag).slice(0, 64),
+    renotify: true,
+    data,
   });
 });
 
+const FCM_NAV_CACHE = ${JSON.stringify(FCM_NAV_CACHE_NAME)};
+const FCM_NAV_KEY = ${JSON.stringify(FCM_NAV_CACHE_KEY)};
+const FCM_CLICK_MSG = ${JSON.stringify(FCM_NOTIFICATION_CLICK)};
+
+// Flatten FCM click data (direct data map or nested FCM_MSG from the SDK).
+function flattenFcmClickData(data) {
+  if (!data || typeof data !== "object") return {};
+
+  const out = {};
+  Object.entries(data).forEach(([key, value]) => {
+    if (key === FCM_MSG_KEY && value && typeof value === "object") {
+      Object.assign(out, flattenFcmClickData(value));
+      if (value.data && typeof value.data === "object") {
+        Object.assign(out, flattenFcmClickData(value.data));
+      }
+      return;
+    }
+    if (typeof value === "string") {
+      out[key] = value;
+    }
+  });
+  return out;
+}
+
+async function stashPendingNav(data) {
+  try {
+    const cache = await caches.open(FCM_NAV_CACHE);
+    await cache.put(
+      FCM_NAV_KEY,
+      new Response(JSON.stringify(data), {
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+  } catch (error) {
+    // ignore cache errors
+  }
+}
+
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
+  const clickData = flattenFcmClickData(event.notification.data);
+
   event.waitUntil(
-    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
-      const existing = clientList.find((client) => "focus" in client);
-      if (existing) return existing.focus();
-      return self.clients.openWindow("/");
-    })
+    self.clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then(async (clientList) => {
+        const message = { type: FCM_CLICK_MSG, data: clickData };
+
+        for (const client of clientList) {
+          if (!("focus" in client)) continue;
+          client.postMessage(message);
+          return client.focus();
+        }
+
+        await stashPendingNav(clickData);
+        return self.clients.openWindow("/");
+      })
   );
 });
 `;

@@ -14,11 +14,12 @@ import {
   missingFirebaseWebEnv,
 } from "~/lib/firebase/config";
 import {
-  applyPreviewPreference,
   getShowMessagePreviews,
   setShowMessagePreviews,
 } from "~/lib/notification-preview";
 import { PostRequest } from "~/utils/new-request";
+import { deliverForegroundFcmNotification } from "~/lib/firebase/deliver-push";
+import { normalizeNotificationPayload } from "~/lib/onesignal/notification-route";
 
 const SERVICE_WORKER_URL = "/firebase-messaging-sw.js";
 
@@ -128,32 +129,15 @@ export const setupWebPush = async (): Promise<WebPushSetup> => {
   return { token, messaging, error: null };
 };
 
-const showPushNotification = (
-  title: string,
-  body: string,
-  data?: { [key: string]: string }
-) => {
-  const options = { body, data: data ?? {} };
-
-  if (!("serviceWorker" in navigator)) {
-    new Notification(title, { body });
-    return;
-  }
-
-  navigator.serviceWorker.ready
-    .then((registration) => registration.showNotification(title, options))
-    .catch(() => {
-      new Notification(title, { body });
-    });
-};
-
 export const listenForForegroundMessages = (messaging: Messaging) =>
   onMessage(messaging, (payload) => {
-    const title = payload.notification?.title || payload.data?.title || "Zedu";
-    const rawBody = payload.notification?.body || payload.data?.body || "";
-    const body = applyPreviewPreference(rawBody, getShowMessagePreviews());
+    // console.log("[FCM] incoming push (foreground)", payload);
+    // console.log("[FCM] incoming push data (normalized)", {
+    //   ...(payload.data || {}),
+    //   normalized: normalizeNotificationPayload({
+    //     ...(payload.data || {}),
+    //   }),
+    // });
 
-    if (Notification.permission !== "granted") return;
-
-    showPushNotification(title, body, payload.data);
+    void deliverForegroundFcmNotification(payload);
   });

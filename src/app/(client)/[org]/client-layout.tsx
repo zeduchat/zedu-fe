@@ -20,6 +20,7 @@ import { TooltipProvider } from "~/components/ui/tooltip";
 import { UploadProvider } from "~/store/UploadContext";
 import UploadProgressPopover from "./_components/file-management/UploadProgressPopover";
 import FirebasePush from "~/components/layout/firebase/firebase-push";
+import FirebaseNotificationNavigation from "~/components/layout/firebase/firebase-notification-navigation";
 import IncomingCallPopupContainer from "~/app/(client)/[org]/_components/buzz-management/IncomingCallPopupContainer";
 import StatusConnection from "~/components/layout/centrifugo/status-connection";
 import ChatBuzzSidePanel from "./_components/buzz-management/chatBuzzSidePanel";
@@ -351,6 +352,7 @@ const ClientLayout = ({
       <UploadProvider>
         <TooltipProvider>
           <FirebasePush />
+          <FirebaseNotificationNavigation />
           <ChannelBuzzProvider options={channelBuzzOptions}>
             {children}
           </ChannelBuzzProvider>
@@ -371,6 +373,7 @@ const ClientLayout = ({
       )}
       <TooltipProvider>
         <FirebasePush />
+        <FirebaseNotificationNavigation />
         {!isRecorderSession && <StatusConnection />}
 
         <ChannelBuzzProvider options={channelBuzzOptions}>

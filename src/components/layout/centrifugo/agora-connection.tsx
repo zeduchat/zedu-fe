@@ -11,6 +11,7 @@ import {
   getSubscriptionToken,
   prepareChannelSubscription,
   releaseChannelSubscription,
+  safeSubscribe,
 } from "~/lib/centrifugo/shared-centrifuge";
 
 export default function AgoraConnection() {
@@ -233,7 +234,7 @@ export default function AgoraConnection() {
     sub.on("publication", onPublication);
 
     if (sub.state !== "subscribed") {
-      sub.subscribe();
+      safeSubscribe(sub);
     }
 
     return () => {

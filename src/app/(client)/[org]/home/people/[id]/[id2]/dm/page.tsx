@@ -49,8 +49,6 @@ const DmPage = () => {
   );
   unseenThreadCountRevisionRef.current = state?.unseenThreadCountRevision ?? 0;
 
-  console.log(previewParticipant, participant);
-
   const refreshUnseenThreadCount = useCallback(async () => {
     const currentOrgId = state?.orgId || localStorage.getItem("orgId") || "";
     if (!currentOrgId) return;

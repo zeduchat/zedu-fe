@@ -8,6 +8,7 @@ import {
   getSubscriptionToken,
   prepareChannelSubscription,
   releaseChannelSubscription,
+  safeSubscribe,
 } from "~/lib/centrifugo/shared-centrifuge";
 
 /** eslint-disable */
@@ -68,7 +69,7 @@ export default function ReplyConnection() {
     sub.on("error", onError);
 
     if (sub.state !== "subscribed") {
-      sub.subscribe();
+      safeSubscribe(sub);
     } else {
       dispatch({ type: ACTIONS.REPLY_SUBSCRIPTION, payload: sub });
     }
@@ -192,7 +193,7 @@ export default function ReplyConnection() {
     sub.on("error", onError);
 
     if (sub.state !== "subscribed") {
-      sub.subscribe();
+      safeSubscribe(sub);
     }
 
     return () => {

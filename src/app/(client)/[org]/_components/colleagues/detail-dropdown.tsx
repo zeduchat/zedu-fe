@@ -60,12 +60,7 @@ const DetailDropdown = ({
       <div>
         <div className={dividerClass} />
 
-        <div
-          className={menuItemClass}
-          onClick={() => console.log("Star conversation")}
-        >
-          Star conversation
-        </div>
+        <div className={menuItemClass}>Star conversation</div>
 
         <div className={dividerClass} />
 
@@ -84,19 +79,9 @@ const DetailDropdown = ({
             </div>
           )}
         </div>
-        <div
-          className={menuItemClass}
-          onClick={() => console.log("Search in conversation")}
-        >
-          Search in conversation
-        </div>
+        <div className={menuItemClass}>Search in conversation</div>
 
-        <div
-          className={menuItemClass}
-          onClick={() => console.log("Open in new window")}
-        >
-          Open in new window
-        </div>
+        <div className={menuItemClass}>Open in new window</div>
 
         <div className={dividerClass} />
 

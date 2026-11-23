@@ -80,7 +80,7 @@ export const ChannelCard = (props: ComponentProps) => {
 
   // Determine if this card is the currently selected one
   const isSelected = props.channels_id === (props.selectedChannelId || id);
-
+  const isActive = props?.mention_count > 0 || props?.thread_count > 0;
   //
 
   return (
@@ -93,14 +93,22 @@ export const ChannelCard = (props: ComponentProps) => {
     >
       <div className="flex-1 flex items-center gap-1">
         {props?.is_private ? (
-          <LockClosedIcon className={cn("size-4 text-blue-50 ")} />
+          <LockClosedIcon
+            className={cn(
+              "size-4",
+              props.active ? "text-white" : "text-blue-50"
+            )}
+          />
         ) : (
-          <HashIcon className={cn("size-4 text-blue-50 ")} />
+          <HashIcon
+            className={cn("size-4", isActive ? "text-white" : "text-blue-50")}
+          />
         )}
 
         <p
           className={cn(
-            "text-[15px] leading-4 lowercase truncate py-1 w-[180px] text-blue-50 "
+            "text-[15px] leading-4 lowercase truncate py-1 w-[180px]",
+            isActive ? "font-semibold text-white" : "text-blue-50"
           )}
           title={props.name}
         >
