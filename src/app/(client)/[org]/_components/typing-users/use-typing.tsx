@@ -1,4 +1,5 @@
 import { useCallback, useContext, useRef } from "react";
+import { safePublish } from "~/lib/centrifugo/shared-centrifuge";
 import { DataContext } from "~/store/GlobalState";
 
 const TYPING_THROTTLE_MS = 2000;
@@ -17,18 +18,14 @@ const UseTyping = (subscription: any) => {
     const user = userRef.current;
     if (!sub || !user) return;
 
-    try {
-      sub.publish({
-        user: {
-          id: user.user_id || user.id,
-          username: user.username || user.name,
-        },
-        typing: isTyping,
-        type: "typing",
-      });
-    } catch {
-      // Ignore publish errors so typing never blocks the editor.
-    }
+    safePublish(sub, {
+      user: {
+        id: user.user_id || user.id,
+        username: user.username || user.name,
+      },
+      typing: isTyping,
+      type: "typing",
+    });
   };
 
   const handleTyping = useCallback((isTyping: boolean) => {

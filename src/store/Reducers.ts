@@ -353,11 +353,29 @@ const reducers = (state: any, action: any) => {
         (dm: any) =>
           String(dm.channel_id || dm.channels_id) === String(channelId)
       );
-      if (!match) return state;
 
-      return {
-        ...state,
-        dms: [
+      const updatePreviewOnRow = (dm: any) => {
+        const dmId = dm?.channel_id || dm?.channels_id;
+        if (String(dmId) !== String(channelId)) return dm;
+        return {
+          ...dm,
+          preview_message: message,
+          last_read_at: new Date().toISOString(),
+        };
+      };
+
+      const homeDmsList = state.homeDms || [];
+      const homeMatch = homeDmsList.some(
+        (dm: any) =>
+          String(dm?.channel_id || dm?.channels_id) === String(channelId)
+      );
+
+      if (!match && !homeMatch) return state;
+
+      const nextState: typeof state = { ...state };
+
+      if (match) {
+        nextState.dms = [
           {
             ...match,
             preview_message: message,
@@ -367,8 +385,24 @@ const reducers = (state: any, action: any) => {
             (dm: any) =>
               String(dm.channel_id || dm.channels_id) !== String(channelId)
           ),
-        ],
-      };
+        ];
+      }
+
+      if (homeMatch) {
+        const homeList = [...homeDmsList];
+        const homeIndex = homeList.findIndex(
+          (dm: any) =>
+            String(dm?.channel_id || dm?.channels_id) === String(channelId)
+        );
+        if (homeIndex !== -1) {
+          const row = homeList[homeIndex];
+          homeList.splice(homeIndex, 1);
+          homeList.unshift(updatePreviewOnRow(row));
+          nextState.homeDms = homeList;
+        }
+      }
+
+      return nextState;
     }
     case ACTIONS.UPDATE_DM_FAVOURITE: {
       const { channelId, isFavourite } = action.payload;
@@ -1134,6 +1168,68 @@ const reducers = (state: any, action: any) => {
       return {
         ...state,
         homeDms: (state.homeDms || []).map(updateDm),
+      };
+    }
+    case ACTIONS.MOVE_HOME_DM_TO_TOP: {
+      const updateData = action.payload;
+      const channelId = updateData?.channel_id;
+      if (!channelId) return state;
+
+      const homeDms = state.homeDms;
+      if (!Array.isArray(homeDms) || homeDms.length === 0) return state;
+
+      const dmIndex = homeDms.findIndex(
+        (dm: any) =>
+          String(dm?.channel_id || dm?.channels_id) === String(channelId)
+      );
+
+      if (dmIndex === -1) return state;
+
+      const existingDm = homeDms[dmIndex];
+      const latestPreview = updateData?.preview_thread?.[0];
+      const incomingPreviewThread = updateData?.preview_thread;
+      const hasIncomingPreviewThread =
+        Array.isArray(incomingPreviewThread) &&
+        incomingPreviewThread.length > 0;
+
+      const updatedDm = {
+        ...existingDm,
+        ...updateData,
+        thread_count: updateData.thread_count ?? existingDm.thread_count,
+        preview_message:
+          latestPreview?.message ??
+          (typeof updateData.preview_message === "string" &&
+          updateData.preview_message.length > 0
+            ? updateData.preview_message
+            : undefined) ??
+          existingDm.preview_message,
+        last_thread_id:
+          latestPreview?.thread_id ??
+          updateData.last_thread_id ??
+          existingDm.last_thread_id,
+        preview_thread: latestPreview
+          ? prependPreviewThread(existingDm.preview_thread, {
+              ...latestPreview,
+              channel_id: channelId,
+            })
+          : hasIncomingPreviewThread
+            ? incomingPreviewThread
+            : existingDm.preview_thread,
+        avatar_url: existingDm.avatar_url,
+        default_avatar_url: existingDm.default_avatar_url,
+        username: existingDm.username,
+        ...(Array.isArray(updateData.participants) && {
+          participants: updateData.participants,
+        }),
+      };
+
+      const nextHomeDms = [...homeDms];
+      nextHomeDms.splice(dmIndex, 1);
+      nextHomeDms.unshift(updatedDm);
+
+      return {
+        ...state,
+        homeDms: nextHomeDms,
       };
     }
     case ACTIONS.UPDATE_THREAD_COUNT: {

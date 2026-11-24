@@ -48,6 +48,15 @@ export function safeSubscribe(sub: Subscription): void {
   }
 }
 
+/** Typing and other fire-and-forget publishes — absorbs timeout / unsubscribed rejects. */
+export function safePublish(sub: Subscription, data: unknown): void {
+  try {
+    absorbPromise(sub.publish(data), "publish");
+  } catch (err) {
+    logCentrifugoError("publish", err);
+  }
+}
+
 export function safeConnect(client: Centrifuge): void {
   const state = client.state;
   if (state === "connected" || state === "connecting") {
@@ -134,7 +143,7 @@ export function releaseChannelSubscription(
     subscriptionRefCounts.delete(channel);
     if (sub.state !== "unsubscribed") {
       try {
-        sub.unsubscribe();
+        absorbPromise(sub.unsubscribe(), "unsubscribe");
       } catch {
         // ignore teardown races
       }

@@ -128,6 +128,7 @@ export default function GeneralNotificationConnection() {
       dispatch({ type: ACTIONS.NOTIFY, payload: data?.data });
 
       const result = ctx?.data;
+      // console.log("result", result);
 
       // Thread count and mention count highlight
       if (
@@ -186,6 +187,13 @@ export default function GeneralNotificationConnection() {
               ...latestMessage,
               channel_id: dmUpdate.channel_id,
             },
+          });
+        }
+
+        if (dmUpdate?.channel_id) {
+          dispatch({
+            type: ACTIONS.MOVE_HOME_DM_TO_TOP,
+            payload: dmUpdate,
           });
         }
       }
