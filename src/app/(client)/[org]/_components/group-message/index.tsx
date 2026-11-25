@@ -24,6 +24,7 @@ import { useMessageDeepLink } from "~/hooks/use-message-deep-link";
 import { ACTIONS } from "~/store/Actions";
 import EditMessageBox from "../message-box/edit";
 import { ScrollToLatestButton } from "~/components/ui/scroll-to-latest-button";
+import { useScrollToLatestOnOwnSend } from "~/hooks/use-scroll-to-latest-on-own-send";
 import { showError, showSuccess } from "~/components/toast/sonner";
 
 const GroupMessage = ({
@@ -158,6 +159,14 @@ const GroupMessage = ({
     chats,
     hasMore,
     fetchMoreData,
+  });
+
+  useScrollToLatestOnOwnSend({
+    scrollContainerRef: scrollableContainerRef,
+    messages: chats,
+    userId: user?.user_id,
+    conversationKey: id,
+    onScrolledToLatest: markReadOnView ? getData : undefined,
   });
 
   // if (loading) return null;

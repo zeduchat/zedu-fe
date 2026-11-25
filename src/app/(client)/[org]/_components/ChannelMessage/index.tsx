@@ -27,6 +27,7 @@ import { BookmarkFilledIcon } from "@radix-ui/react-icons";
 import { useMessageHighlight } from "~/hooks/use-message-highlight";
 import { useMessageDeepLink } from "~/hooks/use-message-deep-link";
 import { ScrollToLatestButton } from "~/components/ui/scroll-to-latest-button";
+import { useScrollToLatestOnOwnSend } from "~/hooks/use-scroll-to-latest-on-own-send";
 import { showError, showSuccess } from "~/components/toast/sonner";
 
 const ChannelsMessage = () => {
@@ -274,6 +275,14 @@ const ChannelsMessage = () => {
     chats: messages || [],
     hasMore,
     fetchMoreData,
+  });
+
+  useScrollToLatestOnOwnSend({
+    scrollContainerRef: scrollableContainerRef,
+    messages,
+    userId: user?.user_id,
+    conversationKey: id,
+    onScrolledToLatest: getData,
   });
 
   return (

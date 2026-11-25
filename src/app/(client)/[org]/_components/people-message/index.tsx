@@ -26,6 +26,7 @@ import { isUserDeactivated } from "~/utils/user-deactivation";
 import { useMessageHighlight } from "~/hooks/use-message-highlight";
 import { useMessageDeepLink } from "~/hooks/use-message-deep-link";
 import { ScrollToLatestButton } from "~/components/ui/scroll-to-latest-button";
+import { useScrollToLatestOnOwnSend } from "~/hooks/use-scroll-to-latest-on-own-send";
 import { showError, showSuccess } from "~/components/toast/sonner";
 
 const PeopleMessage = ({
@@ -162,6 +163,14 @@ const PeopleMessage = ({
     chats,
     hasMore,
     fetchMoreData,
+  });
+
+  useScrollToLatestOnOwnSend({
+    scrollContainerRef: scrollableContainerRef,
+    messages: chats,
+    userId: user?.user_id,
+    conversationKey: id,
+    onScrolledToLatest: markReadOnView ? getData : undefined,
   });
 
   //
