@@ -1299,10 +1299,17 @@ const reducers = (state: any, action: any) => {
           typeof payload === "number" ? payload : state.channelUnreadCount,
       };
     case ACTIONS.UPDATE_DM_COUNT: {
-      const updatedChannelId = action.payload.channel_id;
+      const updatedChannelId = String(
+        action.payload.channel_id || action.payload.channels_id || ""
+      );
 
       const updateDmThreadCount = (dm: any) => {
-        if (dm.channel_id === updatedChannelId) {
+        // DM rows carry either channel_id or channels_id (the sidebar keys
+        // them the same way), so match on whichever one the row has.
+        if (
+          updatedChannelId &&
+          String(dm.channel_id || dm.channels_id || "") === updatedChannelId
+        ) {
           return {
             ...dm,
             thread_count: action.payload.thread_count,
