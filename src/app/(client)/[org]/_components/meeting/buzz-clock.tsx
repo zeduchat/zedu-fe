@@ -7,6 +7,8 @@ const BuzzClock = () => {
   const [time, setTime] = useState<string>("");
 
   useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
     const updateClock = () => {
       const now = new Date();
       // Formats to "7:14 PM" - matching Meet's clean style
@@ -22,11 +24,16 @@ const BuzzClock = () => {
       const msUntilNextMinute =
         60000 - (now.getSeconds() * 1000 + now.getMilliseconds());
 
-      // Set a one-time timeout to trigger exactly at the start of the next minute
-      setTimeout(updateClock, msUntilNextMinute);
+      // Set a one-time timeout to trigger exactly at the start of the next minute.
+      // Clear any pending one first so timers never stack.
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(updateClock, msUntilNextMinute);
     };
 
     updateClock();
+
+    // Stop the chain when the clock unmounts (for example on leaving the meeting).
+    return () => clearTimeout(timeoutId);
   }, []);
 
   // Return null if time hasn't initialized to prevent hydration mismatch
