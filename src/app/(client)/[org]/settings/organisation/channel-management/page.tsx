@@ -512,8 +512,7 @@ const OrganisationChannelManagementPage = () => {
             </h1>
             <p className="text-sm text-[#667085] dark:text-zinc-400 mt-1 max-w-2xl">
               Control posting permissions, member access, and channel lifecycle
-              across your organisation — similar to Slack workspace channel
-              admin tools.
+              across your organisation.
             </p>
           </div>
         </div>
