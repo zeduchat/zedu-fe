@@ -3,6 +3,7 @@ import { DataContext } from "~/store/GlobalState";
 import { ACTIONS } from "~/store/Actions";
 import IncomingCallPopup from "~/app/(client)/[org]/_components/buzz-management/IncomingCallPopup";
 import { PostRequest } from "~/utils/new-request";
+import { showError } from "~/components/toast/sonner";
 
 export default function IncomingCallPopupContainer() {
   const [loading, setLoading] = useState(false);
@@ -24,47 +25,58 @@ export default function IncomingCallPopupContainer() {
     }
     setLoading(true);
 
-    const res = await PostRequest(`/buzz/${info.buzzId}/respond`, {
-      action: "accept",
-    });
-    if (res?.status === 200 || res.status === 201) {
+    try {
+      const res = await PostRequest(`/buzz/${info.buzzId}/respond`, {
+        action: "accept",
+      });
+      if (res?.status !== 200 && res?.status !== 201) {
+        showError("Failed to accept the call. Please try again.");
+        return;
+      }
+
       const buzzId = res.data.data.buzz_code;
 
       const joinRes = await PostRequest(`/buzz/${buzzId}/join`);
-      if (joinRes.status === 200 || joinRes.status === 201) {
-        const buzzData = joinRes.data.data;
-
-        const localUserAsParticipant = {
-          user_id: user?.user_id,
-          username: user?.username || "You",
-          avatar_url: user?.avatar_url,
-          audioTrack: null,
-          videoTrack: null,
-          handsRaised: false,
-          isPinned: false,
-          status: "active",
-        };
-
-        const participants = (buzzData.participants || []).map(
-          (participant: any) => {
-            if (participant?.user_id === user?.user_id) {
-              return { ...participant, ...localUserAsParticipant };
-            }
-            return participant;
-          }
-        );
-
-        dispatch({
-          type: ACTIONS.BUZZ_PARTICIPANTS,
-          payload: participants,
-        });
-        dispatch({ type: ACTIONS.BUZZ_DATA, payload: buzzData });
-        dispatch({ type: ACTIONS.HAS_JOINED, payload: true });
-        dispatch({ type: ACTIONS.BUZZ_SIDEBAR, payload: true });
-
-        setLoading(false);
+      if (joinRes?.status !== 200 && joinRes?.status !== 201) {
+        showError("Failed to join the call. Please try again.");
+        return;
       }
+
+      const buzzData = joinRes.data.data;
+
+      const localUserAsParticipant = {
+        user_id: user?.user_id,
+        username: user?.username || "You",
+        avatar_url: user?.avatar_url,
+        audioTrack: null,
+        videoTrack: null,
+        handsRaised: false,
+        isPinned: false,
+        status: "active",
+      };
+
+      const participants = (buzzData.participants || []).map(
+        (participant: any) => {
+          if (participant?.user_id === user?.user_id) {
+            return { ...participant, ...localUserAsParticipant };
+          }
+          return participant;
+        }
+      );
+
+      dispatch({
+        type: ACTIONS.BUZZ_PARTICIPANTS,
+        payload: participants,
+      });
+      dispatch({ type: ACTIONS.BUZZ_DATA, payload: buzzData });
+      dispatch({ type: ACTIONS.HAS_JOINED, payload: true });
+      dispatch({ type: ACTIONS.BUZZ_SIDEBAR, payload: true });
+
       dispatch({ type: "HIDE_INCOMING_CALL_POPUP" });
+    } catch (error) {
+      showError("Failed to join the call. Please try again.");
+    } finally {
+      setLoading(false);
     }
   }, [dispatch, user]);
 
