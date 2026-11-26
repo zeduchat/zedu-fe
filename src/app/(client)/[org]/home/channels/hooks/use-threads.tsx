@@ -1,10 +1,7 @@
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { ACTIONS } from "~/store/Actions";
 import { DataContext } from "~/store/GlobalState";
-import {
-  ORGANISATION_THREADS_PAGE_LIMIT,
-  loadOrganisationThreadsPage,
-} from "~/utils/org-threads";
+import { loadOrganisationThreadsPage } from "~/utils/org-threads";
 import type { ThreadGroup } from "~/types/threads";
 
 function threadGroupId(group: ThreadGroup) {
@@ -56,12 +53,10 @@ const UseThreads = () => {
     void loadInitial();
   }, [threadMentions, state?.token, dispatch]);
 
+  // loadInitial and fetchThreads set hasMore from the server's flag. Only an
+  // empty list stops pagination here.
   useEffect(() => {
-    if (!Array.isArray(threadMentions)) return;
-    if (
-      threadMentions.length === 0 ||
-      threadMentions.length % ORGANISATION_THREADS_PAGE_LIMIT !== 0
-    ) {
+    if (Array.isArray(threadMentions) && threadMentions.length === 0) {
       setHasMore(false);
     }
   }, [threadMentions]);
