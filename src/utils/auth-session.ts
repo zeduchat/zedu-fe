@@ -2,6 +2,40 @@ import axios from "axios";
 
 let isHandlingSessionExpiry = false;
 
+const REMEMBER_ME_KEY = "rememberMe";
+// A cookie without an expiry date is deleted when the browser closes, and
+// unlike sessionStorage it is shared by every tab.
+const BROWSER_SESSION_COOKIE = "zedu_browser_session";
+
+// Saves the "Remember me" choice made at login.
+export const saveRememberMe = (remember: boolean) => {
+  localStorage.setItem(REMEMBER_ME_KEY, remember ? "true" : "false");
+  document.cookie = `${BROWSER_SESSION_COOKIE}=1; path=/; SameSite=Lax`;
+};
+
+// Signs the user out if they chose not to be remembered and the browser has
+// been closed since they logged in. Returns true when the session was cleared.
+// Sessions saved before this choice existed have no "false" marker and are kept.
+export const endSessionIfNotRemembered = (): boolean => {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  if (localStorage.getItem(REMEMBER_ME_KEY) !== "false") {
+    return false;
+  }
+
+  const hasBrowserSession = document.cookie
+    .split(";")
+    .some((cookie) => cookie.trim() === `${BROWSER_SESSION_COOKIE}=1`);
+  if (hasBrowserSession) {
+    return false;
+  }
+
+  localStorage.clear();
+  return true;
+};
+
 export const isUnauthorizedResponse = (errorOrResponse: unknown): boolean => {
   if (!errorOrResponse || typeof errorOrResponse !== "object") {
     return false;

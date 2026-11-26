@@ -12,6 +12,7 @@ import { PostRequest } from "~/utils/request";
 import Loading from "~/components/ui/loading";
 import { LoginWebhookRequest } from "~/utils/webhook-request";
 import { getSafeRedirect } from "~/utils/safe-redirect";
+import { saveRememberMe } from "~/utils/auth-session";
 import { useGoogleLogin } from "@react-oauth/google";
 import AppleSignin from "react-apple-signin-auth";
 import { Eye, EyeOff, Mail } from "lucide-react";
@@ -103,11 +104,7 @@ function Login() {
         localStorage.setItem("useremail", user?.email);
         localStorage.setItem("user", JSON.stringify(user));
         localStorage.setItem("orgId", user?.current_org);
-        if (rememberMe) {
-          localStorage.setItem("rememberMe", "true");
-        } else {
-          localStorage.removeItem("rememberMe");
-        }
+        saveRememberMe(rememberMe);
         const orgSlug = res.data.data.user.current_organisation_slug;
         if (orgSlug) {
           localStorage.setItem("orgSlug", orgSlug);
@@ -172,11 +169,7 @@ function Login() {
         localStorage.setItem("useremail", res?.data?.data?.user?.email);
         localStorage.setItem("user", JSON.stringify(res?.data?.data?.user));
         localStorage.setItem("orgId", res?.data?.data?.user?.current_org);
-        if (rememberMe) {
-          localStorage.setItem("rememberMe", "true");
-        } else {
-          localStorage.removeItem("rememberMe");
-        }
+        saveRememberMe(rememberMe);
 
         const orgSlug = res.data.data.user.current_organisation_slug;
         if (orgSlug) {
@@ -257,11 +250,7 @@ function Login() {
           localStorage.setItem("useremail", user?.email);
           localStorage.setItem("user", JSON.stringify(user));
           localStorage.setItem("orgId", user?.current_org);
-          if (rememberMe) {
-            localStorage.setItem("rememberMe", "true");
-          } else {
-            localStorage.removeItem("rememberMe");
-          }
+          saveRememberMe(rememberMe);
           const orgSlug = res.data.data.user.current_organisation_slug;
           if (orgSlug) {
             localStorage.setItem("orgSlug", orgSlug);
