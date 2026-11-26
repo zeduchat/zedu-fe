@@ -268,16 +268,16 @@ const PinnedMessagesModal = ({
     const pinAction =
       scope === "chat" ? ACTIONS.UPDATE_DM_PIN : ACTIONS.UPDATE_CHANNEL_PIN;
 
-    dispatch({
-      type: pinAction,
-      payload: {
-        threadId: target.threadId,
-        is_pin: false,
-        details: null,
-      },
-    });
-
-    if (target.kind === "message") {
+    if (target.kind === "thread") {
+      dispatch({
+        type: pinAction,
+        payload: {
+          threadId: target.threadId,
+          is_pin: false,
+          details: null,
+        },
+      });
+    } else {
       dispatch({
         type: ACTIONS.UPDATE_REPLY_PIN,
         payload: {
