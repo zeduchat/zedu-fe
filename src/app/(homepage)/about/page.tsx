@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { siteUrl } from "~/lib/env-urls";
 import Image from "next/image";
 import { ArrowBtn, OutlineBtn } from "../_components/ui/Button";
+import { ShareZeduButton } from "../_components/ui/ShareZeduButton";
 import { WhyCard } from "../_components/ui/WhyCard";
 import { BoardIcon, BookIcon, SchoolIcon } from "../_components/svgs";
 import { DynamicFooter } from "../_components/footer/dynamic-footer";
@@ -132,6 +133,7 @@ const AboutPage = () => {
             className=" sm:w-auto w-[209px]"
           />
         </div>
+        <ShareZeduButton />
         <div className="w-full max-w-6xl overflow-hidden rounded-2xl sm:mt-0 mt-5">
           <div className="relative aspect-[16/10]  w-full sm:aspect-[16/9] lg:aspect-[2/1] ">
             <Image
