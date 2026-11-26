@@ -47,7 +47,6 @@ export default function AICreditsUsage({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
-  // eslint-disable-next-line
   const [showEmptyState, setShowEmptyState] = React.useState(false);
 
   // Transform backend data to table format

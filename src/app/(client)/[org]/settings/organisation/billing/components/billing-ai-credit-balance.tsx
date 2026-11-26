@@ -59,24 +59,20 @@ const BilllingAICreditBalance = ({
 
     window.addEventListener(
       "creditBalanceUpdated",
-      // eslint-disable-next-line
       handleCreditBalanceUpdate as EventListener
     );
     window.addEventListener(
       "creditUsageUpdated",
-      // eslint-disable-next-line
       handleCreditUsageUpdate as EventListener
     );
 
     return () => {
       window.removeEventListener(
         "creditBalanceUpdated",
-        // eslint-disable-next-line
         handleCreditBalanceUpdate as EventListener
       );
       window.removeEventListener(
         "creditUsageUpdated",
-        // eslint-disable-next-line
         handleCreditUsageUpdate as EventListener
       );
     };
