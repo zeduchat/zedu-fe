@@ -17,7 +17,7 @@ const Success: React.FC = () => {
           <Image src="/Zedu.png" alt="Zedu home" width={86} height={31} />
         </Link>
         <div>
-          Go back to Login?{" "}
+          Already have an account?{" "}
           <Link href={"/auth/login"} className="text-[#7141F8]">
             Sign In
           </Link>
