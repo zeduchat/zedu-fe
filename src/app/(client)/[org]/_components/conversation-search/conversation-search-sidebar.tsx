@@ -49,6 +49,16 @@ export default function ConversationSearchSidebar({
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const insertDateFilter = () => {
+    const today = new Date();
+    const month = `${today.getMonth() + 1}`.padStart(2, "0");
+    const day = `${today.getDate()}`.padStart(2, "0");
+    const token = `on:${today.getFullYear()}-${month}-${day}`;
+
+    setQuery((prev) => (prev.trim() ? `${prev.trimEnd()} ${token}` : token));
+    inputRef.current?.focus();
+  };
+
   useEffect(() => {
     if (!conversationSearchOpen) {
       setQuery("");
@@ -161,6 +171,7 @@ export default function ConversationSearchSidebar({
         <div className="flex items-center gap-2 border-b border-[#E6EAEF] px-3 py-2 dark:border-white/10">
           <button
             type="button"
+            onClick={insertDateFilter}
             className="rounded-md p-2 text-[#667085] hover:bg-[#F2F4F7] dark:text-zinc-400 dark:hover:bg-white/10"
             aria-label="Search by date"
             title="Date filters (from:, before:, on:, after:)"
