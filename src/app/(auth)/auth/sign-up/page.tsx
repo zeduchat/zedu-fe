@@ -20,6 +20,22 @@ import {
 import { isAutoCreatedOrg } from "~/utils/organisation";
 import { getSafeRedirect } from "~/utils/safe-redirect";
 import { AuthWorkspacePanel } from "~/app/(auth)/_components/auth-workspace-panel";
+import {
+  captureAttribution,
+  clearStoredAttribution,
+  formatAttributionMessage,
+  getStoredAttribution,
+} from "~/utils/attribution";
+
+/**
+ * Adds the stored campaign attribution to a registration webhook message, then
+ * clears it so it is only credited to this one sign-up.
+ */
+const withAttribution = (message: string) => {
+  const attributed = `${message}${formatAttributionMessage(getStoredAttribution())}`;
+  clearStoredAttribution();
+  return attributed;
+};
 
 /**
  * Modernized user registration page supporting email/password, Google, Apple auth,
@@ -42,6 +58,11 @@ function SignUp() {
   const [googleloading, setGoogleloading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
   const [refParam, setRefParam] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Covers campaign links that point straight at the sign-up page.
+    captureAttribution();
+  }, []);
 
   useEffect(() => {
     const rawRef = searchParams.get("ref") || searchParams.get("referral");
@@ -106,7 +127,7 @@ function SignUp() {
         await RegisterWebhookRequest(
           user?.username,
           "User Registration (Apple)",
-          message.trim(),
+          withAttribution(message.trim()),
           "success"
         );
       }
@@ -196,7 +217,7 @@ function SignUp() {
         await RegisterWebhookRequest(
           user?.username,
           "User Registration",
-          message.trim(),
+          withAttribution(message.trim()),
           "success"
         );
       } else {
@@ -266,7 +287,7 @@ function SignUp() {
           await RegisterWebhookRequest(
             user?.username,
             "User Registration (Google)",
-            message.trim(),
+            withAttribution(message.trim()),
             "success"
           );
         }
