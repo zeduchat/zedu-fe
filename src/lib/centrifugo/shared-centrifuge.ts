@@ -69,35 +69,67 @@ export function safeConnect(client: Centrifuge): void {
   }
 }
 
+/** The stored auth token, or "" during SSR or when storage can't be read. */
+const readAuthToken = (): string => {
+  if (typeof window === "undefined") return "";
+  try {
+    return localStorage.getItem("token") || "";
+  } catch {
+    return "";
+  }
+};
+
+/**
+ * Centrifugo treats an empty token as "unauthorized" and stops retrying, and
+ * a thrown error as temporary and retries with backoff. So a 401/403 returns
+ * "", and other failures (network, 5xx) are logged and rethrown.
+ */
+const handleTokenError = (label: string, error: unknown): string => {
+  const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+  if (status === 401 || status === 403) return "";
+  console.error(`[Centrifugo] failed to fetch ${label} token`, error);
+  throw error;
+};
+
 export async function getConnectionToken(): Promise<string> {
-  const token = localStorage.getItem("token") || "";
-  const response = await axios.get(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/token/connection`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
-  return response.data.data.token;
+  const token = readAuthToken();
+  if (!token) return "";
+
+  try {
+    const response = await axios.get(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/token/connection`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response?.data?.data?.token ?? "";
+  } catch (error) {
+    return handleTokenError("connection", error);
+  }
 }
 
 export async function getSubscriptionToken(channel: string): Promise<string> {
-  const token = localStorage.getItem("token") || "";
+  const token = readAuthToken();
+  if (!token) return "";
 
-  const response = await axios.post(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/token/subscription`,
-    { channel },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
-
-  return response.data.data.token;
+  try {
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/token/subscription`,
+      { channel },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response?.data?.data?.token ?? "";
+  } catch (error) {
+    return handleTokenError(`subscription (${channel})`, error);
+  }
 }
 
 export function getSharedCentrifuge(): Centrifuge {
