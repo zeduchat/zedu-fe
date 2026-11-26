@@ -35,7 +35,7 @@ export function ContactSalesOptions() {
       <Tabs
         value={tab}
         onValueChange={setTab}
-        className="min-w-0 rounded-2xl bg-white p-4 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.12)] sm:p-6"
+        className="min-w-0 rounded-[28px] bg-white p-6 shadow-[0_28px_60px_-18px_rgba(38,24,102,0.28)] ring-1 ring-[#6f4ef6]/5 sm:p-8 lg:p-9"
       >
         <TabsList
           aria-label="Contact sales options"
