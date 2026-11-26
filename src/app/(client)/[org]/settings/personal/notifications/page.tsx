@@ -9,7 +9,7 @@ import {
   getShowMessagePreviews,
   setShowMessagePreviews,
 } from "~/lib/notification-preview";
-import { buildTimeRange } from "./time-range";
+import { buildTimeRange, parseStoredTimeRange } from "./time-range";
 
 type Preferences = {
   notificationType: "all" | "mentions" | "nothing";
@@ -54,8 +54,10 @@ const NotificationPage = () => {
         `/organisations/${orgId}/notification-preference?device_type=web`
       );
       if (res.status === 200 || res.status === 201) {
-        const data = res.data.data;
-        const [from, to] = data.time_range.split(" - ").map(convertTo24Hour);
+        const data = res.data.data ?? {};
+        const range = parseStoredTimeRange(data.time_range);
+        const from = range?.from ?? defaultPreferences.timeFrom;
+        const to = range?.to ?? defaultPreferences.timeTo;
 
         setPrefs({
           notificationType: getNotifyType(data.notify_about),
@@ -82,14 +84,6 @@ const NotificationPage = () => {
     if (notify_about === "all_new_messages") return "all";
     if (notify_about === "mentions") return "mentions";
     return "nothing";
-  };
-
-  const convertTo24Hour = (time: string) => {
-    const [t, suffix] = time.split(" ");
-    let [h, m] = t.split(":").map(Number);
-    if (suffix === "PM" && h !== 12) h += 12;
-    if (suffix === "AM" && h === 12) h = 0;
-    return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
   };
 
   const handleSave = async () => {
