@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useEffect, useState, useCallback } from "react";
+import { useContext, useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { SearchCards } from "~/components/search/search-cards";
 import { SearchCardsSkeleton } from "~/components/search/search-cards-skeleton";
@@ -108,8 +108,13 @@ export default function Search() {
     avatar_url: member.avatar_url || member.profile_url,
   }));
 
+  const searchRequestIdRef = useRef(0);
+
   const fetchAllResults = useCallback(async () => {
+    const requestId = ++searchRequestIdRef.current;
+
     if (!baseQuery?.trim() || !orgData?.id) {
+      setLoading(false);
       setResults([]);
       return;
     }
@@ -126,17 +131,22 @@ export default function Search() {
           date: filters.date,
           sortBy: filters.sortBy,
         });
+        if (requestId !== searchRequestIdRef.current) return;
         setResults(messages);
       } else {
         const userResults = await searchUsers(orgData.id, baseQuery);
+        if (requestId !== searchRequestIdRef.current) return;
         setResults(userResults);
       }
     } catch (error) {
+      if (requestId !== searchRequestIdRef.current) return;
       console.error("Search failed:", error);
       showError("An error occurred while searching");
       setResults([]);
     } finally {
-      setLoading(false);
+      if (requestId === searchRequestIdRef.current) {
+        setLoading(false);
+      }
     }
   }, [
     baseQuery,
