@@ -112,7 +112,14 @@ export const PricingSection = ({
         {/* Pricing Cards Grid */}
         <div className="grid w-full max-w-7xl grid-cols-1 mt-4 place-items-stretch justify-center gap-8 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 lg:gap-8">
           {plans.map((plan) => (
-            <div key={plan.key} className="flex justify-center">
+            <div
+              key={plan.key}
+              className={
+                plan.variant === "enterprise"
+                  ? "flex justify-center sm:col-span-2 lg:col-span-1"
+                  : "flex justify-center"
+              }
+            >
               <PricingCard
                 title={plan.title}
                 description={plan.description}
