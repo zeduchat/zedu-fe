@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import React from "react";
+import React, { Suspense } from "react";
 import { appStoreAppId } from "~/lib/env-urls";
 import { createPageMetadata } from "~/config/site";
 import { Toaster } from "~/components/ui/toaster";
 import { DataProvider } from "~/store/GlobalState";
 import Footer from "./_components/footer";
 import Header from "./_components/header";
+import AttributionTracker from "./_components/attribution-tracker";
 import { ForceLightTheme } from "~/components/theme/force-light-theme";
 import { CelebrationThemeProvider } from "./_components/home/CelebrationThemeContext";
 import { CelebrationBanner } from "./_components/home/CelebrationBanner";
@@ -53,6 +54,9 @@ export default function RootLayout({
           </div>
 
           <Toaster />
+          <Suspense fallback={null}>
+            <AttributionTracker />
+          </Suspense>
         </DataProvider>
       </CelebrationThemeProvider>
     </ForceLightTheme>
