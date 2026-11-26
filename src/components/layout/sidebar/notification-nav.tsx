@@ -56,8 +56,14 @@ export default function NotificationNav() {
     orgId ||
     (typeof window !== "undefined" ? localStorage.getItem("orgId") || "" : "");
 
+  const requestIdRef = useRef(0);
+
   const fetchNotifications = useCallback(
     async (pageNumber: number) => {
+      // Each call supersedes the previous one, so a response that arrives
+      // after an organisation switch (or a newer page request) is ignored.
+      const requestId = ++requestIdRef.current;
+
       if (!resolvedOrgId) {
         setHasMore(false);
         return;
@@ -99,6 +105,7 @@ export default function NotificationNav() {
         `/organisations/${resolvedOrgId}/users/onesignal?page=${pageNumber}&limit=${LIMIT}`
       );
 
+      if (requestId !== requestIdRef.current) return;
       if (res?.status === 200 || res?.status === 201) {
         const items = res?.data?.data?.notifications || [];
         const pagination = res?.data?.data?.pagination;
