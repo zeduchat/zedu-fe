@@ -17,7 +17,6 @@ import { showError } from "~/components/toast/sonner";
 const BillingTopUpCredits: React.FC<TopUpCreditsProps> = ({
   creditPrice,
   creditsPerDollar,
-  // eslint-disable-next-line,
   creditOptions,
   // onPurchase,
 }) => {
