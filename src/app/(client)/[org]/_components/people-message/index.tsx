@@ -26,6 +26,7 @@ import { isUserDeactivated } from "~/utils/user-deactivation";
 import { useMessageHighlight } from "~/hooks/use-message-highlight";
 import { useMessageDeepLink } from "~/hooks/use-message-deep-link";
 import { ScrollToLatestButton } from "~/components/ui/scroll-to-latest-button";
+import { MessageJumpStatus } from "~/components/message-jump-status";
 import { useScrollToLatestOnOwnSend } from "~/hooks/use-scroll-to-latest-on-own-send";
 import { showError, showSuccess } from "~/components/toast/sonner";
 
@@ -157,7 +158,7 @@ const PeopleMessage = ({
     loading,
   });
 
-  useMessageHighlight({
+  const { status: jumpStatus } = useMessageHighlight({
     dataId,
     loading,
     chats,
@@ -176,6 +177,7 @@ const PeopleMessage = ({
   //
   return (
     <div className="relative w-full flex-1 min-h-0 flex flex-col">
+      <MessageJumpStatus status={jumpStatus} />
       {showBadge && state?.dmCount > 0 && (
         <Badge
           onClick={() => {
